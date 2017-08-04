@@ -1,0 +1,494 @@
+
+//
+//  Utility routines.
+//
+//  Copyright (c) 2005 Waync Cheng.
+//  All Rights Reserved.
+//
+//  2005/02/22 Waync created.
+//
+
+#include <algorithm>
+#include <istream>
+
+#include "swUtil.h"
+
+#if defined(WIN32) || defined(_WIN32_WCE)
+# define NOMINMAX
+# include <windows.h>
+# if !defined(_WIN32_WCE)
+#   include <conio.h>
+# endif
+# if defined(_MSC_VER)
+#   pragma comment(lib, "winmm")
+# endif
+#elif defined(_linux_)
+# include <termios.h>
+# include <sys/time.h>
+# include <time.h>
+# include <unistd.h>
+#endif
+
+namespace sw2 {
+
+namespace impl {
+
+#if defined(_linux_)
+class implGetKey
+{
+public:
+
+  termios mTios, mTiosSave;
+
+  implGetKey()
+  {
+    tcgetattr(STDIN_FILENO, &mTios);
+    memcpy(&mTiosSave, &mTios, sizeof(mTiosSave));
+    mTios.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &mTios);
+  }
+
+  ~implGetKey()
+  {
+    tcsetattr(0, TCSANOW, &mTiosSave);
+  }
+
+  int kbhit() const
+  {
+    fd_set rdfs;
+    FD_ZERO(&rdfs);
+    FD_SET (STDIN_FILENO, &rdfs);
+ 
+    struct timeval tv;
+    tv.tv_sec = tv.tv_usec = 0;
+ 
+    select(STDIN_FILENO+1, &rdfs, NULL, NULL, &tv);
+    return FD_ISSET(STDIN_FILENO, &rdfs);
+  }
+
+  int getKey() const
+  {
+    if (kbhit()) {
+      return getchar();
+    } else {
+      return -1;
+    }
+  }
+};
+
+class implGetTickCount
+{
+public:
+
+  timeval mLastTick;
+
+  implGetTickCount()
+  {
+    gettimeofday(&mLastTick, 0);
+  }
+
+  uint getTickCount() const
+  {
+    timeval currTick;
+    if (0 == gettimeofday(&currTick, 0)) {
+      return (currTick.tv_usec - mLastTick.tv_usec) / 1000 +
+             (currTick.tv_sec - mLastTick.tv_sec) * 1000;
+    }
+
+    return 0;
+  }
+};
+#endif // _linux_
+
+} // namespace impl
+
+using namespace impl;
+
+uint Util::getBitCount(uint n)
+{
+  if (0 == n) {
+    return 1;
+  }
+
+  uint bc = 0;
+  while (0 < n) {
+    bc += 1;
+    n >>= 1;
+  }
+
+  return bc;
+}
+
+int Util::getKey()
+{
+#if defined(WIN32)
+  return ::_kbhit() ? ::_getch() : -1;
+#elif defined(_linux_)
+  static implGetKey impl;
+  return impl.getKey();
+#endif
+  return -1;
+}
+
+uint Util::getTickCount()
+{
+#if defined(WIN32)
+  static DWORD lastTick = ::timeGetTime();
+  DWORD currTick = ::timeGetTime();
+  return (uint)(currTick - lastTick);
+#elif defined(_linux_)
+  static implGetTickCount impl;
+  return impl.getTickCount();
+#endif
+  return 0;
+}
+
+bool Util::isBIG5(int ch)
+{
+  return (0xa140 <= ch && 0xa3bf >= ch) ||
+         (0xa440 <= ch && 0xc67e >= ch) ||
+         (0xc6a1 <= ch && 0xc8d3 >= ch) ||
+         (0xc940 <= ch && 0xf9fe >= ch);
+}
+
+void Util::sleep(uint millsec)
+{
+#if defined(WIN32)
+  ::Sleep(millsec);
+#elif defined(_linux_)
+  struct timespec req;
+  req.tv_sec = millsec / 1000;
+  req.tv_nsec = (millsec - req.tv_sec * 1000) * 1000000;
+  (void)nanosleep(&req, NULL);
+#endif
+}
+
+std::string& Util::trim(std::string& str, std::string const& chrTrim)
+{
+  str.erase(0, str.find_first_not_of(chrTrim));
+  str.erase(str.find_last_not_of(chrTrim) + 1);
+  return str;
+}
+
+bool Util::uue(std::istream& is, std::ostream& os)
+{
+  int const BUFF_SIZE = 2048;
+
+  int curPos = (int)is.tellg();
+  is.seekg(0, std::ios_base::end);
+  int lenStream = (int)is.tellg() - curPos;
+  is.seekg(curPos, std::ios_base::beg);
+
+  if (0 >= lenStream) {
+    SW2_TRACE_ERROR("Zero length input stream.");
+    return false;
+  }
+
+  char inBuff[BUFF_SIZE];
+  char outBuff[1 + 60 + 1];             // Length + max UUE data + new line.
+
+  while (0 < lenStream) {
+
+    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    if (0 != (lenBuff % 45) && lenBuff != lenStream) { // Adjust.
+      lenBuff -= lenBuff % 45;
+    }
+
+    if (!is.read(inBuff, lenBuff)) {
+      SW2_TRACE_ERROR("Read input failed.");
+      return false;
+    }
+
+    lenStream -= lenBuff;
+
+    int idxIn = 0;
+    while (0 < lenBuff) {
+
+      int idxOut = 1;
+      for (int i = 0; i < 45 && i < lenBuff; ) {
+
+        char in[3] = {0};
+        for (int j = 0; j < 3 && i < lenBuff; j++, i++, idxIn++) {
+          in[j] = inBuff[idxIn];
+        }
+
+        char out[4] = {0};
+        out[0] = ' ' + ((in[0] & 0xfc) >> 2);
+        out[1] = ' ' + (((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4));
+        out[2] = ' ' + (((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6));
+        out[3] = ' ' + (in[2] & 0x3f);
+
+        for (int j = 0; j < 4; j++, idxOut++) {
+          if (' ' == out[j]) {
+            out[j] = '`';
+          }
+          outBuff[idxOut] = out[j];
+        }
+      }
+
+      outBuff[0] = (45 <= lenBuff ? 'M' : ' ' + lenBuff);
+      if (45 <= lenBuff) {
+        outBuff[idxOut++] = '\n';
+      }
+
+      if (!os.write(outBuff, idxOut)) {
+        SW2_TRACE_ERROR("Write output failed.");
+        return false;
+      }
+
+      lenBuff -= 45;
+    }
+  }
+
+  return true;
+}
+
+bool Util::unuue(std::istream& is, std::ostream& os)
+{
+  int const BUFF_SIZE = 2048;
+
+  int curPos = (int)is.tellg();
+  is.seekg(0, std::ios_base::end);
+  int lenStream = (int)is.tellg() - curPos;
+  is.seekg(curPos, std::ios_base::beg);
+
+  if (0 >= lenStream) {
+    SW2_TRACE_ERROR("Zero length input stream.");
+    return false;
+  }
+
+  char inBuff[BUFF_SIZE];
+
+  while (0 < lenStream) {
+
+    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    if (0 != (lenBuff % 62) && lenBuff != lenStream) { // Adjust.
+      lenBuff -= lenBuff % 62;
+    }
+
+    if (!is.read(inBuff, lenBuff)) {
+      SW2_TRACE_ERROR("Read input failed.");
+      return false;
+    }
+
+    lenStream -= lenBuff;
+
+    int idxIn = 0;
+    while (0 < lenBuff) {
+
+      char len = inBuff[idxIn++] - ' ';
+      int l = (len * 4) / 3;
+
+      for (int i = 0; i < l && i < lenBuff; ) {
+
+        char in[4] = {0};
+        for (int j = 0; j < 4 && i < lenBuff; j++, i++, idxIn++) {
+          in[j] = inBuff[idxIn];
+          if ('`' == in[j]) {
+            in[j] = ' ';
+          }
+          in[j] -= ' ';
+        }
+
+        char out[3] = {0};
+        out[0] = ((in[0] & 0x3f) << 2) | ((in[1] & 0x30) >> 4);
+        out[1] = ((in[1] & 0x0f) << 4) | ((in[2] & 0x3c) >> 2);
+        out[2] = ((in[2] & 0x03) << 6) | ((in[3] & 0x3f) >> 0);
+
+        if (!os.write(out, 3 < len ? 3 : len)) {
+          SW2_TRACE_ERROR("Write output failed.");
+          return false;
+        }
+
+        len -= 3;
+        if (0 > len && i < lenBuff) {
+          len = lenBuff - i;
+        }
+      }
+
+      idxIn += 1;                       // New line.
+      lenBuff -= 62;                    // Length + max uue data + new line.
+    }
+  }
+
+  return true;
+}
+
+bool Util::base64(std::istream& is, std::ostream& os)
+{
+  int const BUFF_SIZE = 2048;
+  std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+
+  int curPos = (int)is.tellg();
+  is.seekg(0, std::ios_base::end);
+  int lenStream = (int)is.tellg() - curPos;
+  is.seekg(curPos, std::ios_base::beg);
+
+  if (0 >= lenStream) {
+    SW2_TRACE_ERROR("Zero length input stream.");
+    return false;
+  }
+
+  char inBuff[BUFF_SIZE];
+
+  while (0 < lenStream) {
+
+    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    if (0 != (lenBuff % 3) && lenBuff != lenStream) { // Adjust.
+      lenBuff -= lenBuff % 3;
+    }
+
+    if (!is.read(inBuff, lenBuff)) {
+      SW2_TRACE_ERROR("Read input failed.");
+      return false;
+    }
+
+    lenStream -= lenBuff;
+
+    int idxIn = 0;
+    for (int i = 0; i < lenBuff; ) {
+
+      int m = i;
+      char in[3] = {0};
+      for (int j = 0; j < 3 && i < lenBuff; j++, i++, idxIn++) {
+        in[j] = inBuff[idxIn];
+      }
+      m = i - m;
+
+      char out[4] = {0};
+      out[0] = code[((in[0] & 0xfc) >> 2)];
+      out[1] = code[(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4))];
+      out[2] = code[(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6))];
+      out[3] = code[(in[2] & 0x3f)];
+
+      switch (m)
+      {
+      case 1:
+        out[2] = '=';
+      case 2:
+        out[3] = '=';
+        break;
+      }
+
+      if (!os.write(out, 4)) {
+        SW2_TRACE_ERROR("Write output failed.");
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool Util::unbase64(std::istream& is, std::ostream& os)
+{
+  int const BUFF_SIZE = 2048;
+  std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+
+  int curPos = (int)is.tellg();
+  is.seekg(0, std::ios_base::end);
+  int lenStream = (int)is.tellg() - curPos;
+  is.seekg(curPos, std::ios_base::beg);
+
+  if (0 >= lenStream) {
+    SW2_TRACE_ERROR("Zero length input stream.");
+    return false;
+  }
+
+  char inBuff[BUFF_SIZE];
+
+  while (0 < lenStream) {
+
+    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    if (0 != (lenBuff % 4) && lenBuff != lenStream) { // Adjust.
+      lenBuff -= lenBuff % 4;
+    }
+
+    if (!is.read(inBuff, lenBuff)) {
+      SW2_TRACE_ERROR("Read input failed.");
+      return false;
+    }
+
+    lenStream -= lenBuff;
+
+    int idxIn = 0;
+    for (int i = 0; i < lenBuff; ) {
+
+      char in[4] = {0}, in2[4] = {0};
+      for (int j = 0; j < 4 && i < lenBuff; j++, i++, idxIn++) {
+        in[j] = in2[j] = inBuff[idxIn];
+        in[j] = (char)(int)code.find(in[j]);
+      }
+
+      char out[3] = {0};
+      out[0] = ((in[0] & 0x3f) << 2) | ((in[1] & 0x30) >> 4);
+      out[1] = ((in[1] & 0x0f) << 4) | ((in[2] & 0x3c) >> 2);
+      out[2] = ((in[2] & 0x03) << 6) | ((in[3] & 0x3f) >> 0);
+
+      int l = '=' == in2[2] ? 1 : ('=' == in2[3] ? 2 : 3);
+      if (!os.write(out, l)) {
+        SW2_TRACE_ERROR("Write output failed.");
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
+{
+  if (0 == utf8) {
+    return;
+  }
+  int idx = 0;
+  for (int i = utf8[idx++]; 0 != i; i = utf8[idx++]) {
+    if (0 == (i & 0x80)) {
+      u.push_back((int)(i & 0xff));
+    } else if (192 == (i & 0xe0)) {
+      int j = utf8[idx++];
+      if (128 != (j & 0xc0)) {
+        return;
+      }
+      u.push_back((int)(((i & 0x1f) << 6) | (j & 0x3f)));
+    } else if (224 == (i & 0xf0)) {
+      int k = utf8[idx++];
+      int l = utf8[idx++];
+      if ((k & 0xc0) != 128 || (l & 0xc0) != 128) {
+        return;
+      }
+      u.push_back((int)(((i & 0xf) << 12) | ((k & 0x3f) << 6) | (l & 0x3f)));
+    } else {
+      return;
+    }
+  }
+}
+
+TimeoutTimer::TimeoutTimer() : timeExpired(0)
+{
+  timeExpired = Util::getTickCount();
+}
+
+TimeoutTimer::TimeoutTimer(uint ticks) : timeExpired(ticks)
+{
+  timeExpired += Util::getTickCount();
+}
+
+bool TimeoutTimer::isExpired() const
+{
+  return Util::getTickCount() >= timeExpired;
+}
+
+void TimeoutTimer::setTimeout(uint ticks)
+{
+  timeExpired = Util::getTickCount() + ticks;
+}
+
+void TimeoutTimer::setExpiredTime(uint ticks)
+{
+  timeExpired = ticks;
+}
+
+} // namespace sw2
+
+// end of swUtil.cpp

@@ -1,0 +1,257 @@
+
+//
+// TCP/IP network [Framework layer]
+//
+// Copyright (c) 2015 Waync Cheng.
+// All Rights Reserved.
+//
+// 2015/2/2 Waync created.
+//
+
+///
+/// \file
+/// \brief TCP/IP network [Framework layer]
+/// \author Waync Cheng
+/// \date 2015/2/2
+///
+
+#pragma once
+
+#include "swIni.h"
+#include "swNetwork.h"
+
+namespace sw2 {
+
+///
+/// \brief Initialize bigworld module.
+/// \return Return true if success else return false.
+///
+
+bool InitializeBigworld();
+
+///
+/// \brief Uninitialize bigworld module.
+///
+
+void UninitializeBigworld();
+
+class BigworldNode;                     // Forward decl.
+
+///
+/// \brief Bigworld event notify interface.
+///
+
+class BigworldCallback
+{
+public:
+
+  ///
+  /// \brief Notify when a new bigworld node is connected.
+  /// \param [in] pInstNode The instance node.
+  /// \param [in] pNewNode New bigworld node.
+  /// \note The new node is always a child node of pInstNode.
+  ///
+
+  virtual void onBigworldNewNodeReady(BigworldNode *pInstNode, BigworldNode *pNewNode)
+  {
+  }
+
+  ///
+  /// \brief Notify when a bigworld node is disconnected.
+  /// \param [in] pInstNode The instance node.
+  /// \param [in] pNode The bigworld node.
+  ///
+
+  virtual void onBigworldNodeClose(BigworldNode *pInstNode, BigworldNode *pNode)
+  {
+  }
+
+  ///
+  /// \brief Notify when a data stream is ready from a bigworld node.
+  /// \param [in] pInstNode The instance node.
+  /// \param [in] pNode The sender bigworld node.
+  /// \param [in] s Data stream.
+  ///
+
+  virtual void onBigworldStreamReady(BigworldNode *pInstNode, BigworldNode *pNode, std::string const &s)
+  {
+  }
+
+  ///
+  /// \brief Notify when a formated packet is ready from a bigworld node.
+  /// \param [in] pInstNode The instance node.
+  /// \param [in] pNode The sender bigworld node.
+  /// \param [in] p Data packet.
+  ///
+
+  virtual void onBigworldEventReady(BigworldNode *pInstNode, BigworldNode *pNode, NetworkPacket const &p)
+  {
+  }
+};
+
+///
+/// \brief Bigworld node.
+///
+
+class BigworldNode
+{
+public:
+
+  ///
+  /// \brief Allocate a bigworld node instance.
+  /// \param [in] pCallback Bigworld callback.
+  /// \return If success return an interface pointer else return 0.
+  ///
+
+  static BigworldNode* alloc(BigworldCallback *pCallback);
+
+  ///
+  /// \brief Release a unused bigworld node instance.
+  /// \param [in] pNode Instance to free.
+  ///
+
+  static void free(BigworldNode *pNode);
+
+  ///
+  /// \brief Get unique ID of the bigworld node.
+  /// \return Return the unique ID of the bigworld node.
+  /// \note The ID of a bigworld node is not force to be unique, but if not unique
+  ///       may cause ambiguous problem.
+  ///
+
+  virtual std::string getId() const=0;
+
+  ///
+  /// \brief Get address.
+  /// \return Return address, format: ip:port.
+  ///
+
+  virtual std::string getAddr() const=0;
+
+  ///
+  /// Get statistics.
+  /// \return Return statistics.
+  ///
+
+  virtual NetworkClientStats getNetStats()=0;
+
+  //
+  // \brief Check is this node ready.
+  // \return Return true if this node is ready.
+  //
+
+  virtual bool isReady() const=0;
+
+  ///
+  /// \brief Startup a bigworld node.
+  /// \param [in] ini The INI confs of the bigworld node.
+  /// \param [in] id The section name as the ID in the conf.
+  /// \return Return true if startup success else return false.
+  /// \note The network of a bigworld node is setup by the conf. Following is
+  ///       a sample network:\n
+  /// \n
+  /// [Login1]\n
+  /// Id=login1                         ; Default is the section name Login1. Id is also treated as node type.\n
+  /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
+  /// AddrListen=2888                   ; The addr used to listen new node.\n
+  /// PrivateDepex=Db1 Game1            ; Will connect to node Db1 and Game1 in private mode, means child nodes can't reach them.\n
+  /// \n
+  /// [Db1]\n
+  /// AddrNode=localhost:1234\n
+  /// AddrListen=1234\n
+  /// \n
+  /// [Game1]\n
+  /// AddrNode=localhost:5678\n
+  /// AddrListen=5678\n
+  /// Depex=Db1                         ; Will connecto to node Db1 in public mode, means child nodes can reach it.\n
+  /// \n
+  /// [Client]\n
+  /// Depex=Login1\n
+  /// KeepConnected=0                   ; Do not keep connected automatically. Default is 1(true).
+  /// \n
+  /// \note The relationship of the sample network:\n
+  /// - Child node of Login1: Client\n
+  /// - Parent node of Login1: Db1 Game1\n
+  /// - Child node of Game1: Login1\n
+  /// - Parent node of Game1: Db1\n
+  /// - Child node of Db1: Login1 Game1\n
+  /// - Parent node of Db1: none\n
+  /// - Child node of Client: none\n
+  /// - Parent node of Client: Login1\n
+  /// \n
+  /// \note If a node in the the PrivateDepex and Depex simultaneously, then PrivateDepex
+  ///       has higher priority.
+  ///
+
+  virtual bool startup(Ini const &ini, std::string const &id)=0;
+
+  ///
+  /// \brief Shutdown the bigworld node.
+  ///
+
+  virtual void shutdown()=0;
+
+  ///
+  /// \brief Trigger bigworld module.
+  /// \note Application should call trigger periodically to make module works
+  ///       properly.
+  ///
+
+  virtual void trigger()=0;
+
+  ///
+  /// \brief Send a data stream to this bigworld node.
+  /// \param [in] s Data stream.
+  /// \return Return true if success else return false.
+  ///
+
+  virtual bool send(std::string const &s)=0;
+
+  ///
+  /// \brief Send a data packet to this bigworld node.
+  /// \param [in] p Data packet.
+  /// \return Return true if success else return false.
+  ///
+
+  virtual bool send(const NetworkPacket &p)=0;
+
+  ///
+  /// \brief Get first child node.
+  /// \return Return the first child node.
+  /// \note A child node is a node connected to this node.
+  ///
+
+  virtual BigworldNode* getFirstChild()=0;
+
+  ///
+  /// \brief Get next child node.
+  /// \param [in] pNode Current bigworld node.
+  /// \return Return the next child node.
+  /// \note A child node is a node connected to this node.
+  ///
+
+  virtual BigworldNode* getNextChild(BigworldNode *pNode)=0;
+
+  ///
+  /// \brief Get first depex node.
+  /// \return Return the first depex node.
+  /// \note A depex node is a node this node connected to.
+  ///
+
+  virtual BigworldNode* getFirstDepex()=0;
+
+  ///
+  /// \brief Get next depex node.
+  /// \param [in] pNode Current bigworld node.
+  /// \return Return the next depex node.
+  /// \note A depex node is a node this node connected to.
+  ///
+
+  virtual BigworldNode* getNextDepex(BigworldNode *pNode)=0;
+
+  uint_ptr userData;                    ///< User define data.
+};
+
+} // namespace sw2
+
+// end of swBigworld.h

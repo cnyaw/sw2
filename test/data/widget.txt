@@ -1,0 +1,77 @@
+
+[window.1]
+text=this is window.1
+tip=window.1
+id=window.1
+dim=10 10 400 400
+isEnable=0
+child=checkbox.w1 editbox.w1 window.w1 scrollbar.w1
+
+[checkbox.w1]
+id=checkbox.w1
+dim=10 10 60 30
+isChecked=1
+
+[editbox.w1]
+id=editbox.w1
+dim=10 50 60 30
+isNumber=1
+isPassword=1
+maxLength=20
+
+[window.w1]
+dim=10 100 80 80
+child=window.w1.w1
+
+[window.w1.w1]
+id=window.w1.w1
+dim=0 0 10 10
+
+[button.1]
+text=button.1
+dim=20 20 60 25
+
+[dialog.1]
+dim=200 100 400 400
+child=radiobox.d1 radiobox.d2 radiobox.d3 listbox.d1
+
+[radiobox.d1]
+id=radiobox.d1
+dim=10 10 80 26
+
+[radiobox.d2]
+id=radiobox.d2
+dim=10 40 80 26
+isVisible=0
+
+[radiobox.d3]
+id=radiobox.d3
+dim=10 70 80 26
+isChecked=1
+
+[listbox.d1]
+id=listbox.d1
+dim=10 100 100 100
+strings=listbox.d1.strings
+
+[listbox.d1.strings]
+0=hello
+1=world
+2=smallworld
+
+[menu.1]
+strings=menu.1.strings
+
+[menu.1.strings]
+0=open
+1=close
+2=save
+3=exit
+
+[scrollbar.w1]
+isEnable=0
+isHorz=1
+range=0 100
+pageSize=10
+pos=38
+dim=200 280 120 20
