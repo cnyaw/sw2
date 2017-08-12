@@ -58,7 +58,7 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
 
   int handle = -1;
 
-  if (0 == name.find("window."))  {
+  if (0 == name.find("window.") || 0 == name.find("dialog."))  {
 
     //
     // Create window.
@@ -116,26 +116,6 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
 
     if (sec.find("isChecked")) {
       w.setChecked(sec["isChecked"]);
-    }
-
-  } else if (0 == name.find("dialog.")) {
-
-    //
-    // Create dialog.
-    //
-
-    ui::Dialog w;
-    if (-1 == (handle = w.create(hParent, dim, text, tip, id))) {
-      return -1;
-    }
-
-    if (sec.find("child")) {
-      std::vector<std::string> vchild;
-      std::stringstream ss(sec["child"].value);
-      vchild.assign(std::istream_iterator<std::string>(ss), std::istream_iterator<std::string>());
-      for (size_t i = 0; i < vchild.size(); i++) {
-        (void)createWidget(w.handle, res, vchild[i]);
-      }
     }
 
   } else if (0 == name.find("editbox.")) {
@@ -271,6 +251,8 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
     if (sec.find("isVisible")) {
       w.setVisible(sec["isVisible"]);
     }
+  } else {
+    w.setVisible(false);
   }
 
   if (sec.find("isEnable")) {
