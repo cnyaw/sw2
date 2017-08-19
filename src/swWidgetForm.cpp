@@ -25,27 +25,25 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
   Ini sec = res[name];
 
   IntRect dim;
+  dim.left = dim.top = 0;
+  dim.right = dim.bottom = 32;
 
-  if (0 != name.find("menu.")) {
-
-    if (0 == sec.find("dim")) {
-      SW2_TRACE_ERROR("'Dim' of res name [%s] not found.", name.c_str());
-      return -1;
-    }
-
+  if (sec.find("dim")) {
     std::vector<int> vdim;
     std::stringstream ss(sec["dim"].value);
     vdim.assign(std::istream_iterator<int>(ss), std::istream_iterator<int>());
-
-    if (4 > vdim.size()) {
-      SW2_TRACE_ERROR("'dim' of res name [%s] does not have enought param(x y w h).", name.c_str());
-      return -1;
+    if (0 < vdim.size()) {
+      dim.left = vdim[0];
     }
-
-    dim.left = vdim[0];
-    dim.top = vdim[1];
-    dim.right = vdim[2];
-    dim.bottom = vdim[3];
+    if (1 < vdim.size()) {
+      dim.top = vdim[1];
+    }
+    if (2 < vdim.size()) {
+      dim.right = vdim[2];
+    }
+    if (3 < vdim.size()) {
+      dim.bottom = vdim[3];
+    }
   }
 
   std::string text = sec["text"].value;
