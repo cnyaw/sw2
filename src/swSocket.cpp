@@ -128,6 +128,51 @@ bool setAddress_(std::string const& addr, struct sockaddr_in* sa)
   return true;
 }
 
+SOCKET createSock(std::string const& addr, struct sockaddr_in &sa)
+{
+  //
+  // Create new socket.
+  //
+
+  SOCKET s = ::socket(AF_INET, SOCK_STREAM, 0);
+  if (INVALID_SOCKET == s) {
+    SW2_TRACE_ERROR("Create new socket failed.");
+    return INVALID_SOCKET;
+  }
+
+  //
+  // Set non-block I/O.
+  //
+
+  unsigned long v = 1;
+  if (SOCKET_ERROR == ioctlsocket(s, FIONBIO, &v)) {
+    SW2_TRACE_ERROR("Set non-block i/o failed.");
+    closesocket(s);
+    return INVALID_SOCKET;
+  }
+
+  //
+  // Enable TCP_NODELAY.
+  //
+
+  if (SOCKET_ERROR == ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&v, sizeof(v))) {
+    SW2_TRACE_ERROR("Set tcp no delay failed.");
+    closesocket(s);
+    return INVALID_SOCKET;
+  }
+
+  //
+  // Setup sock address.
+  //
+
+  if (!setAddress_(addr, &sa)) {
+    closesocket(s);
+    return INVALID_SOCKET;
+  }
+
+  return s;
+}
+
 class implSocketBase
 {
 public:
@@ -179,40 +224,10 @@ public:
     // Create new socket.
     //
 
-    SOCKET s = ::socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in sa;
+    SOCKET s = createSock(svrAddr, sa);
     if (INVALID_SOCKET == s) {
       SW2_TRACE_ERROR("Create new socket failed.");
-      return false;
-    }
-
-    //
-    // Set non-block I/O.
-    //
-
-    unsigned long v = 1;
-    if (SOCKET_ERROR == ioctlsocket(s, FIONBIO, &v)) {
-      SW2_TRACE_ERROR("Set non-block i/o failed.");
-      closesocket(s);
-      return false;
-    }
-
-    //
-    // Enable TCP_NODELAY.
-    //
-
-    if (SOCKET_ERROR == ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&v, sizeof(v))) {
-      SW2_TRACE_ERROR("Set tcp no delay failed.");
-      closesocket(s);
-      return false;
-    }
-
-    //
-    // Setup sock address struct.
-    //
-
-    struct sockaddr_in sa;
-    if (!setAddress_(svrAddr, &sa)) {
-      closesocket(s);
       return false;
     }
 
@@ -1053,40 +1068,10 @@ public:
     // Create new socket.
     //
 
-    SOCKET s = ::socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in sa;
+    SOCKET s = createSock(addr, sa);
     if (INVALID_SOCKET == s) {
       SW2_TRACE_ERROR("Create new socket failed.");
-      return false;
-    }
-
-    //
-    // Set non-block I/O.
-    //
-
-    unsigned long v = 1;
-    if (SOCKET_ERROR == ioctlsocket(s, FIONBIO, &v)) {
-      SW2_TRACE_ERROR("Set non-block i/o failed.");
-      closesocket(s);
-      return false;
-    }
-
-    //
-    // Enable TCP_NODELAY.
-    //
-
-    if (SOCKET_ERROR == ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&v, sizeof(v))) {
-      SW2_TRACE_ERROR("Set tcp no delay failed.");
-      closesocket(s);
-      return false;
-    }
-
-    //
-    // Setup sock address.
-    //
-
-    struct sockaddr_in sa;
-    if (!setAddress_(addr, &sa)) {
-      closesocket(s);
       return false;
     }
 
