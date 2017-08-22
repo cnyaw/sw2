@@ -419,6 +419,41 @@ public:
   // Connection phase.
   //
 
+  int processSendData()
+  {
+    int n = send(m_socket, (const char*)m_pBuff->buff + m_pBuff->offset, (int)(m_pBuff->len - m_pBuff->offset), 0);
+    if (0 < n) {
+      m_pBuff->offset += n;
+      if (m_pBuff->offset >= m_pBuff->len) { // Block sent completely?
+
+        //
+        // Release buffer.
+        //
+
+        implSocketPacketBuffer* p = m_pBuff;
+        m_pBuff = m_pBuff->pNext;
+
+        if (0 == m_pBuff) {
+          m_pBuffLast = 0;
+        }
+
+        p->pNext = m_pSocketFreeBuff;
+        m_pSocketFreeBuff = p;
+      }
+
+      //
+      // Statstics.
+      //
+
+      m_netStats.bytesSent += (uint)n;
+      if (m_pSvrNetStats) {
+        m_pSvrNetStats->bytesSent += (uint)n;
+      }
+    }
+
+    return n;
+  }
+
   bool phaseConnected()
   {
     //
@@ -482,36 +517,8 @@ public:
 
     while (0 != m_pBuff) {
 
-      n = send(m_socket, (const char*)m_pBuff->buff + m_pBuff->offset, (int)(m_pBuff->len - m_pBuff->offset), 0);
+      n = processSendData();
       if (0 < n) {
-
-        m_pBuff->offset += n;
-
-        if (m_pBuff->offset >= m_pBuff->len) { // Block sent completely?
-
-          //
-          // Release buffer.
-          //
-
-          implSocketPacketBuffer* p = m_pBuff;
-          m_pBuff = m_pBuff->pNext;
-
-          if (0 == m_pBuff) {
-            m_pBuffLast = 0;
-          }
-
-          p->pNext = m_pSocketFreeBuff;
-          m_pSocketFreeBuff = p;
-        }
-
-        //
-        // Statstics.
-        //
-
-        m_netStats.bytesSent += (uint)n;
-        if (m_pSvrNetStats) {
-          m_pSvrNetStats->bytesSent += (uint)n;
-        }
 
         //
         // Send continuously until no data or reach flow upper or error occur.
@@ -552,35 +559,8 @@ public:
 
     while (0 != m_pBuff) {
 
-      int n = send(m_socket, (const char*)m_pBuff->buff + m_pBuff->offset, (int)(m_pBuff->len - m_pBuff->offset), 0);
+      int n = processSendData();
       if (0 < n) {
-
-        m_pBuff->offset += n;
-        if (m_pBuff->offset >= m_pBuff->len) { // Send this block completely?
-
-          //
-          // Release buffer.
-          //
-
-          implSocketPacketBuffer* p = m_pBuff;
-          m_pBuff = m_pBuff->pNext;
-
-          if (0 == m_pBuff) {
-            m_pBuffLast = 0;
-          }
-
-          p->pNext = m_pSocketFreeBuff;
-          m_pSocketFreeBuff = p;
-        }
-
-        //
-        // Statstics.
-        //
-
-        m_netStats.bytesSent += (uint)n;
-        if (m_pSvrNetStats) {
-          m_pSvrNetStats->bytesSent += (uint)n;
-        }
 
         //
         // Send continuously until no data or error occur.
