@@ -393,6 +393,8 @@ public:
     // Startup server.
     //
 
+    shutdown();
+
     Ini conf = ini[id];
 
     if (!conf.find(SW2_BIGWORLD_CONF_ID)) {
@@ -410,6 +412,8 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
+    } else {
+      // Ignore fail if this node is client only.
     }
 
     //
