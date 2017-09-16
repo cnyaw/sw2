@@ -868,6 +868,16 @@ public:
     }
   }
 
+  virtual int getTriggerFrequency() const
+  {
+    return m_pServer->getTriggerFrequency();
+  }
+
+  virtual void setTriggerFrequency(int freq)
+  {
+    m_pServer->setTriggerFrequency(freq);
+  }
+
 public:
 
   ObjectPool<implNetworkConnection, MAX_CLIENT> m_poolClient;
