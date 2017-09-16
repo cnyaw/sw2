@@ -412,6 +412,7 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
+      m_pServer->setTriggerFrequency(1000); // Set trigger freq to server connections unlimit.
     } else {
       // Ignore fail if this node is client only.
     }
