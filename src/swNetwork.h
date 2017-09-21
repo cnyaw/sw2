@@ -546,7 +546,7 @@ public:
   virtual int getTriggerFrequency() const=0;
 
   ///
-  /// \brief Get trigger frequency.
+  /// \brief Set trigger frequency.
   /// \param [in] freq New trigger frequency.
   ///
 
