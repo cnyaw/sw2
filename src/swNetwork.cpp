@@ -537,7 +537,7 @@ public:
   }
 
   //
-  // Iimplement SocketClientCallback.
+  // Implement SocketClientCallback.
   //
 
   virtual void onSocketServerLeave(SocketClient*)
@@ -613,6 +613,16 @@ public:
     if (!implNetworkBase::trigger_(m_pClient)) {
       disconnect();
     }
+  }
+
+  virtual int getTriggerFrequency() const
+  {
+    return m_pClient->getTriggerFrequency();
+  }
+
+  virtual void setTriggerFrequency(int freq)
+  {
+    m_pClient->setTriggerFrequency(freq);
   }
 
   //

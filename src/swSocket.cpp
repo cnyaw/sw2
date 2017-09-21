@@ -830,7 +830,7 @@ public:
   }
 
   //
-  // NetworkClient.
+  // SocketClient.
   //
 
   virtual bool connect(std::string const& svrAddr)
@@ -867,6 +867,16 @@ public:
   virtual void trigger()
   {
     implSocketBase::m_trigger.trigger();
+  }
+
+  virtual int getTriggerFrequency() const
+  {
+    return m_TriggerFreq;
+  }
+
+  virtual void setTriggerFrequency(int freq)
+  {
+    m_TriggerFreq = std::min(MAX_TRIGGER_PROCESS_FREQUENCY, std::max(1, freq));
   }
 
   //
