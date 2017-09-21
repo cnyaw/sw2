@@ -25,6 +25,7 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_ADDR_LISTEN "AddrListen"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
 #define SW2_BIGWORLD_CONF_PRIVATE_DEPEX "PrivateDepex"
+#define SW2_BIGWORLD_TRIGGER_FREQ "TriggerFreq"
 #define SW2_BIGWORLD_MAX_CHILD_NODE 1024
 #define SW2_BIGWORLD_MAX_DEPEX_NODE 64
 
@@ -412,7 +413,10 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
-      m_pServer->setTriggerFrequency(1000); // Set trigger freq to server connections unlimit.
+      if (conf.find(SW2_BIGWORLD_TRIGGER_FREQ)) {
+        int TriggerFreq = conf[SW2_BIGWORLD_TRIGGER_FREQ];
+        m_pServer->setTriggerFrequency(TriggerFreq); // Set trigger freq by conf setting.
+      }
     } else {
       // Ignore fail if this node is client only.
     }
@@ -582,6 +586,11 @@ public:
         node.m_Id = idNode;
       } else {
         node.m_Id = conf[SW2_BIGWORLD_CONF_ID].value;
+      }
+
+      if (conf.find(SW2_BIGWORLD_TRIGGER_FREQ)) {
+        int TriggerFreq = conf[SW2_BIGWORLD_TRIGGER_FREQ];
+        pClient->setTriggerFrequency(TriggerFreq); // Set trigger freq by conf setting.
       }
 
       //

@@ -155,6 +155,7 @@ public:
   /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
   /// AddrListen=2888                   ; The addr used to listen new node.\n
   /// PrivateDepex=Db1 Game1            ; Will connect to node Db1 and Game1 in private mode, means child nodes can't reach them.\n
+  /// TriggerFreq=16                    ; Set read/write trigger freq of this node.
   /// \n
   /// [Db1]\n
   /// AddrNode=localhost:1234\n
