@@ -813,7 +813,7 @@ class implSocketClient : public implSocketBase, public SocketClient
 {
 public:
 
-  explicit implSocketClient(SocketClientCallback* pCallback) : m_pCallback(pCallback), m_TriggerFreq(TRIGGER_PROCESS_FREQUENCY)
+  explicit implSocketClient(SocketClientCallback* pCallback) : m_TriggerFreq(TRIGGER_PROCESS_FREQUENCY), m_pCallback(pCallback)
   {
     SocketClient::userData = 0;
     implSocketBase::m_pTriggerFreq = &m_TriggerFreq;
