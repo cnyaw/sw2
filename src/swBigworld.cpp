@@ -24,7 +24,6 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_ADDR_NODE "AddrNode"
 #define SW2_BIGWORLD_CONF_ADDR_LISTEN "AddrListen"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
-#define SW2_BIGWORLD_CONF_PRIVATE_DEPEX "PrivateDepex"
 #define SW2_BIGWORLD_TRIGGER_FREQ "TriggerFreq"
 #define SW2_BIGWORLD_MAX_CHILD_NODE 1024
 #define SW2_BIGWORLD_MAX_DEPEX_NODE 64
@@ -149,7 +148,6 @@ public:
 class implBigworldParentNode : public BigworldNode
 {
 public:
-  bool m_bPrivate;
   NetworkClient *m_pClient;
   std::string m_Id;
   bool m_bKeepConnected;
@@ -428,11 +426,7 @@ public:
     std::stringstream ss(conf[SW2_BIGWORLD_CONF_DEPEX].value);
     std::vector<std::string> v;
     v.assign(std::istream_iterator<std::string>(ss), std::istream_iterator<std::string>());
-    connectDepex(ini, v, false);
-
-    std::stringstream ss2(conf[SW2_BIGWORLD_CONF_PRIVATE_DEPEX].value);
-    v.assign(std::istream_iterator<std::string>(ss2), std::istream_iterator<std::string>());
-    connectDepex(ini, v, true);
+    connectDepex(ini, v);
 
     return true;
   }
@@ -529,7 +523,7 @@ public:
   // Common.
   //
 
-  bool connectDepex(Ini const &ini, std::vector<std::string> &v, bool bPrivate)
+  bool connectDepex(Ini const &ini, std::vector<std::string> &v)
   {
     for (int i = 0; i < (int)v.size(); i++) {
 
@@ -572,7 +566,6 @@ public:
 
       implBigworldParentNode &node = m_poolDepex[id];
       node.userData = 0;
-      node.m_bPrivate = bPrivate;
       node.m_pClient = pClient;
       node.m_AddrNode = conf[SW2_BIGWORLD_CONF_ADDR_NODE].value;
 

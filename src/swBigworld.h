@@ -154,8 +154,8 @@ public:
   /// Id=login1                         ; Default is the section name Login1. Id is also treated as node type.\n
   /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
   /// AddrListen=2888                   ; The addr used to listen new node.\n
-  /// PrivateDepex=Db1 Game1            ; Will connect to node Db1 and Game1 in private mode, means child nodes can't reach them.\n
-  /// TriggerFreq=16                    ; Set read/write trigger freq of this node.
+  /// Depex=Db1 Game1                   ; Will connect to node Db1 and Game1.\n
+  /// TriggerFreq=16                    ; Set read/write trigger freq of this node.\n
   /// \n
   /// [Db1]\n
   /// AddrNode=localhost:1234\n
@@ -164,11 +164,11 @@ public:
   /// [Game1]\n
   /// AddrNode=localhost:5678\n
   /// AddrListen=5678\n
-  /// Depex=Db1                         ; Will connecto to node Db1 in public mode, means child nodes can reach it.\n
+  /// Depex=Db1                         ; Will connecto to node Db1.\n
   /// \n
   /// [Client]\n
   /// Depex=Login1\n
-  /// KeepConnected=0                   ; Do not keep connected automatically. Default is 1(true).
+  /// KeepConnected=0                   ; Do not keep connected automatically. Default is 1(true).\n
   /// \n
   /// \note The relationship of the sample network:\n
   /// - Child node of Login1: Client\n
@@ -179,9 +179,6 @@ public:
   /// - Parent node of Db1: none\n
   /// - Child node of Client: none\n
   /// - Parent node of Client: Login1\n
-  /// \n
-  /// \note If a node in the the PrivateDepex and Depex simultaneously, then PrivateDepex
-  ///       has higher priority.
   ///
 
   virtual bool startup(Ini const &ini, std::string const &id)=0;
