@@ -194,13 +194,9 @@ TEST(Ini, del)
 
   CHECK(0 == sec5.find("i5"));
 
-  CHECK(0 != sec5.find("i4"));
-  sec5.remove("i4");
-  CHECK(0 == sec5.find("i4"));
-
-  CHECK(0 != sec5.find("i3"));
-  sec5.remove("i3");
-  CHECK(0 == sec5.find("i3"));
+  CHECK(0 != sec5.find("i0"));
+  sec5.remove("i0");
+  CHECK(0 == sec5.find("i0"));
 
   CHECK(0 != sec5.find("i2"));
   sec5.remove("i2");
@@ -210,9 +206,13 @@ TEST(Ini, del)
   sec5.remove("i1");
   CHECK(0 == sec5.find("i1"));
 
-  CHECK(0 != sec5.find("i0"));
-  sec5.remove("i0");
-  CHECK(0 == sec5.find("i0"));
+  CHECK(0 != sec5.find("i4"));
+  sec5.remove("i4");
+  CHECK(0 == sec5.find("i4"));
+
+  CHECK(0 != sec5.find("i3"));
+  sec5.remove("i3");
+  CHECK(0 == sec5.find("i3"));
 
   ini.remove("sec5");
   CHECK(0 == ini.find("sec5"));

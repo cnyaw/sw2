@@ -291,8 +291,15 @@ bool Ini::remove(value_type const& key)
     return false;
   }
 
-  items.erase(items.begin() + it->second);
+  size_t Index = it->second;
+  items.erase(items.begin() + Index);
   index.erase(it);
+
+  for (it = index.begin(); index.end() != it; ++it) {
+    if (it->second >= Index) {
+      it->second -= 1;
+    }
+  }
 
   return true;
 }
