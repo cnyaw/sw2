@@ -8,6 +8,7 @@
 // 2015/2/2 Waync created.
 //
 
+#include <algorithm>
 #include <iterator>
 
 #include "swBigworld.h"
@@ -124,6 +125,11 @@ public:
     return m_pConn->send(p);
   }
 
+  virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
+  {
+    return false;
+  }
+
   virtual BigworldNode* getFirstChild()
   {
     return 0;
@@ -204,6 +210,11 @@ public:
   virtual bool send(const NetworkPacket &p)
   {
     return m_pClient->send(p);
+  }
+
+  virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
+  {
+    return false;
   }
 
   virtual BigworldNode* getFirstChild()
@@ -464,6 +475,25 @@ public:
   virtual bool send(const NetworkPacket &p)
   {
     return false;                       // NOP.
+  }
+
+  virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
+  {
+    std::vector<std::string> depex;
+    for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
+      const implBigworldParentNode &n = m_poolDepex[i];
+      depex.push_back(n.m_Id);
+    }
+
+    std::vector<std::string> v;
+    for (size_t i = 0; i < ids.size(); i++) {
+      const std::string &id = ids[i];
+      if (depex.end() == std::find(depex.begin(), depex.end(), id)) {
+        v.push_back(id);
+      }
+    }
+
+    return connectDepex(ini, v);
   }
 
   virtual BigworldNode* getFirstChild()

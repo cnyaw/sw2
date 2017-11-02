@@ -214,6 +214,17 @@ public:
   virtual bool send(const NetworkPacket &p)=0;
 
   ///
+  /// \brief Add a new depex node.
+  /// \param [in] ini The INI confs of the bigworld node.
+  /// \param [in] ids The section name as the ID in the conf.
+  /// \return Return true if add new depex success else return false.
+  /// \note See BigworldNode::startup for more info of conf format.
+  /// \note If a depex node is alreay existed then it is ignored.
+  ///
+
+  virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)=0;
+
+  ///
   /// \brief Get first child node.
   /// \return Return the first child node.
   /// \note A child node is a node connected to this node.
