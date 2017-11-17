@@ -1,4 +1,4 @@
-
+﻿
 //
 //  INI unit test.
 //
@@ -82,35 +82,35 @@ TEST(Ini, loadutf8)
   const Ini &sec = ini.items[0];
   CHECK(5 == sec.size());
 
-  static const int SEC_NAME[] = {36889, 26159, 20013, 25991};
+  static const wchar_t SEC_NAME[] = L"這是中文";
   std::vector<int> secName;
   Util::utf8ToU16(sec.key.c_str(), secName);
-  CHECK(secName == std::vector<int>(SEC_NAME, SEC_NAME + sizeof(SEC_NAME)/sizeof(SEC_NAME[0])));
+  CHECK(secName == std::vector<int>(SEC_NAME, SEC_NAME + sizeof(SEC_NAME)/sizeof(SEC_NAME[0]) - 1));
 
-  static const int ITEM_1[] = {36825, 26159, 39033, 30446, 19968};
+  static const wchar_t ITEM_1[] = L"这是项目一";
   std::vector<int> item1;
   Util::utf8ToU16(sec.items[0].value.c_str(), item1);
-  CHECK(item1 == std::vector<int>(ITEM_1, ITEM_1 + sizeof(ITEM_1)/sizeof(ITEM_1[0])));
+  CHECK(item1 == std::vector<int>(ITEM_1, ITEM_1 + sizeof(ITEM_1)/sizeof(ITEM_1[0]) - 1));
 
-  static const int ITEM_2[] = {12371, 12428, 12399, 12289, 12503, 12525, 12472, 12455, 12463, 12488, 73, 73, 12391, 12377};
+  static const wchar_t ITEM_2[] = L"これは、プロジェクトIIです";
   std::vector<int> item2;
   Util::utf8ToU16(sec.items[1].value.c_str(), item2);
-  CHECK(item2 == std::vector<int>(ITEM_2, ITEM_2 + sizeof(ITEM_2)/sizeof(ITEM_2[0])));
+  CHECK(item2 == std::vector<int>(ITEM_2, ITEM_2 + sizeof(ITEM_2)/sizeof(ITEM_2[0]) - 1));
 
-  static const int ITEM_3[] = {51060, 32, 54532, 47196, 51229, 53944, 32, 73, 73, 73, 51077, 45768, 45796};
+  static const wchar_t ITEM_3[] = L"이 프로젝트 III입니다";
   std::vector<int> item3;
   Util::utf8ToU16(sec.items[2].value.c_str(), item3);
-  CHECK(item3 == std::vector<int>(ITEM_3, ITEM_3 + sizeof(ITEM_3)/sizeof(ITEM_3[0])));
+  CHECK(item3 == std::vector<int>(ITEM_3, ITEM_3 + sizeof(ITEM_3)/sizeof(ITEM_3[0]) - 1));
 
-  static const int ITEM_4[] = {1069, 1090, 1086, 32, 1095, 1077, 1090, 1099, 1088, 1077, 32, 1090, 1086, 1074, 1072, 1088, 1072};
+  static const wchar_t ITEM_4[] = L"Это четыре товара";
   std::vector<int> item4;
   Util::utf8ToU16(sec.items[3].value.c_str(), item4);
-  CHECK(item4 == std::vector<int>(ITEM_4, ITEM_4 + sizeof(ITEM_4)/sizeof(ITEM_4[0])));
+  CHECK(item4 == std::vector<int>(ITEM_4, ITEM_4 + sizeof(ITEM_4)/sizeof(ITEM_4[0]) - 1));
 
-  static const int ITEM_5[] = {3609, 3637, 3657, 3648, 3611, 3655, 3609, 3650, 3588, 3619, 3591, 3585, 3634, 3619, 3607, 3637, 3656, 3627, 3657, 3634};
+  static const wchar_t ITEM_5[] = L"นี้เป็นโครงการที่ห้า";
   std::vector<int> item5;
   Util::utf8ToU16(sec.items[4].value.c_str(), item5);
-  CHECK(item5 == std::vector<int>(ITEM_5, ITEM_5 + sizeof(ITEM_5)/sizeof(ITEM_5[0])));
+  CHECK(item5 == std::vector<int>(ITEM_5, ITEM_5 + sizeof(ITEM_5)/sizeof(ITEM_5[0]) - 1));
 }
 
 TEST(Ini, loadstore)
