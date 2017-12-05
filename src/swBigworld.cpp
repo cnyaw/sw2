@@ -179,12 +179,20 @@ public:
 
   virtual NetworkClientStats getNetStats()
   {
-    return m_pClient->getNetStats();
+    if (m_pClient) {
+      return m_pClient->getNetStats();
+    } else {
+      return NetworkClientStats();
+    }
   }
 
   virtual bool isReady() const
   {
-    return CS_CONNECTED == m_pClient->getConnectionState();
+    if (m_pClient) {
+      return CS_CONNECTED == m_pClient->getConnectionState();
+    } else {
+      return false;
+    }
   }
 
   virtual bool startup(Ini const &ini, std::string const &id)
@@ -194,22 +202,34 @@ public:
 
   virtual void shutdown()
   {
-    m_pClient->disconnect();
+    if (m_pClient) {
+      m_pClient->disconnect();
+    }
   }
 
   virtual void trigger()
   {
-    m_pClient->trigger();
+    if (m_pClient) {
+      m_pClient->trigger();
+    }
   }
 
   virtual bool send(std::string const &s)
   {
-    return m_pClient->send(s);
+    if (m_pClient) {
+      return m_pClient->send(s);
+    } else {
+      return false;
+    }
   }
 
   virtual bool send(const NetworkPacket &p)
   {
-    return m_pClient->send(p);
+    if (m_pClient) {
+      return m_pClient->send(p);
+    } else {
+      return false;
+    }
   }
 
   virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
