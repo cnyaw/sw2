@@ -169,11 +169,11 @@ public:
       return false;
     }
 
-    if (0 == fac[id].pfCreateObj) {
+    implNetworkPacketRuntimeClass& rt = fac[id];
+    if (0 == rt.pfCreateObj) {
       return false;
     }
 
-    implNetworkPacketRuntimeClass& rt = fac[id];
     implNetworkPacketRuntimeClass::Cache* c = rt.allocObj();
     if (0 == c) {
       return false;
