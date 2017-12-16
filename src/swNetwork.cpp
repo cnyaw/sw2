@@ -220,6 +220,21 @@ public:
   {
   }
 
+  bool isBadHeader(ushort header) const
+  {
+    if (keepAlive == header || streamBeg == header || streamEnd == header || packetEnd == header) {
+      return false;
+    }
+
+    if (((header >> 12) & 0xf) == (m_packetRecv & 0xf)) {
+      return false;
+    }
+
+    SW2_TRACE_ERROR("Bad header.");
+
+    return true;
+  }
+
   template<class T>
   bool handleStreamReady(T* t, int len, void const* pStream)
   {
@@ -246,17 +261,9 @@ public:
         //
 
         ushort header = (ushort)(uint)(p[1] << 8) | (uint)p[0]; // Get header.
-        do
-        {
-          if (keepAlive == header || streamBeg == header || streamEnd == header || packetEnd == header) {
-            break;
-          }
-          if (((header >> 12) & 0xf) == (m_packetRecv & 0xf)) {
-            break;
-          }
-          SW2_TRACE_ERROR("Bad header.");
+        if (isBadHeader(header)) {
           return false;
-        } while (0);
+        }
 
         //
         // Wait until receive whole packet data.
