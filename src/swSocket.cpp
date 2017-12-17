@@ -264,7 +264,7 @@ public:
     return true;
   }
 
-  void disconnect_()
+  void disconnect_i()
   {
     switch (m_state)
     {
@@ -311,7 +311,7 @@ public:
     m_state = CS_DISCONNECTED;
   }
 
-  bool send_(int len, void const* pStream)
+  bool send_i(int len, void const* pStream)
   {
     assert(pStream);
 
@@ -840,7 +840,7 @@ public:
 
   virtual void disconnect()
   {
-    implSocketBase::disconnect_();
+    implSocketBase::disconnect_i();
   }
 
   virtual int getConnectionState() const
@@ -861,7 +861,7 @@ public:
 
   virtual bool send(int len, void const* pStream)
   {
-    return implSocketBase::send_(len, pStream);
+    return implSocketBase::send_i(len, pStream);
   }
 
   virtual void trigger()
@@ -916,7 +916,7 @@ public:
 
   virtual void disconnect()
   {
-    implSocketBase::disconnect_();
+    implSocketBase::disconnect_i();
   }
 
   virtual int getConnectionState() const
@@ -937,7 +937,7 @@ public:
 
   virtual bool send(int len, void const* pStream)
   {
-    return implSocketBase::send_(len, pStream);
+    return implSocketBase::send_i(len, pStream);
   }
 
   //
