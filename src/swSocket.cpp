@@ -83,7 +83,7 @@ struct implSocketPacketBuffer
 // Implementation.
 //
 
-int inet_aton_(char const *cp, struct in_addr *pin)
+int inet_aton_i(char const *cp, struct in_addr *pin)
 {
   int rc = ::inet_addr(cp);
   if (-1 == rc && ::strcmp(cp, "255.255.255.255")) {
@@ -95,7 +95,7 @@ int inet_aton_(char const *cp, struct in_addr *pin)
   return 1;
 }
 
-bool setAddress_(std::string const& addr, struct sockaddr_in* sa)
+bool setAddress_i(std::string const& addr, struct sockaddr_in* sa)
 {
   assert(sa);
 
@@ -115,7 +115,7 @@ bool setAddress_(std::string const& addr, struct sockaddr_in* sa)
 
   std::string ip = addr.substr(0, pos);
 
-  if (!inet_aton_(ip.c_str(), &sa->sin_addr)) {
+  if (!inet_aton_i(ip.c_str(), &sa->sin_addr)) {
     struct hostent *h = ::gethostbyname(ip.c_str());
     if (0 == h) {                     // Unknown host.
       SW2_TRACE_ERROR("Unknown host name.");
@@ -166,7 +166,7 @@ SOCKET createSock(std::string const& addr, struct sockaddr_in &sa)
   // Setup sock address.
   //
 
-  if (!setAddress_(addr, &sa)) {
+  if (!setAddress_i(addr, &sa)) {
     closesocket(s);
     return INVALID_SOCKET;
   }
