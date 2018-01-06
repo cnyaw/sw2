@@ -33,6 +33,8 @@ namespace sw2 {
 
 namespace impl {
 
+#define BUFF_SIZE 2048
+
 #if defined(_linux_)
 class implGetKey
 {
@@ -172,8 +174,6 @@ std::string& Util::trim(std::string& str, std::string const& chrTrim)
 
 bool Util::uue(std::istream& is, std::ostream& os)
 {
-  int const BUFF_SIZE = 2048;
-
   int curPos = (int)is.tellg();
   is.seekg(0, std::ios_base::end);
   int lenStream = (int)is.tellg() - curPos;
@@ -189,7 +189,7 @@ bool Util::uue(std::istream& is, std::ostream& os)
 
   while (0 < lenStream) {
 
-    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    int lenBuff = std::min(lenStream, BUFF_SIZE);
     if (0 != (lenBuff % 45) && lenBuff != lenStream) { // Adjust.
       lenBuff -= lenBuff % 45;
     }
@@ -245,8 +245,6 @@ bool Util::uue(std::istream& is, std::ostream& os)
 
 bool Util::unuue(std::istream& is, std::ostream& os)
 {
-  int const BUFF_SIZE = 2048;
-
   int curPos = (int)is.tellg();
   is.seekg(0, std::ios_base::end);
   int lenStream = (int)is.tellg() - curPos;
@@ -261,7 +259,7 @@ bool Util::unuue(std::istream& is, std::ostream& os)
 
   while (0 < lenStream) {
 
-    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    int lenBuff = std::min(lenStream, BUFF_SIZE);
     if (0 != (lenBuff % 62) && lenBuff != lenStream) { // Adjust.
       lenBuff -= lenBuff % 62;
     }
@@ -316,7 +314,6 @@ bool Util::unuue(std::istream& is, std::ostream& os)
 
 bool Util::base64(std::istream& is, std::ostream& os)
 {
-  int const BUFF_SIZE = 2048;
   std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
   int curPos = (int)is.tellg();
@@ -333,7 +330,7 @@ bool Util::base64(std::istream& is, std::ostream& os)
 
   while (0 < lenStream) {
 
-    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    int lenBuff = std::min(lenStream, BUFF_SIZE);
     if (0 != (lenBuff % 3) && lenBuff != lenStream) { // Adjust.
       lenBuff -= lenBuff % 3;
     }
@@ -382,7 +379,6 @@ bool Util::base64(std::istream& is, std::ostream& os)
 
 bool Util::unbase64(std::istream& is, std::ostream& os)
 {
-  int const BUFF_SIZE = 2048;
   std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
   int curPos = (int)is.tellg();
@@ -399,7 +395,7 @@ bool Util::unbase64(std::istream& is, std::ostream& os)
 
   while (0 < lenStream) {
 
-    int lenBuff = std::min(lenStream, (int)BUFF_SIZE);
+    int lenBuff = std::min(lenStream, BUFF_SIZE);
     if (0 != (lenBuff % 4) && lenBuff != lenStream) { // Adjust.
       lenBuff -= lenBuff % 4;
     }
