@@ -35,6 +35,8 @@ namespace impl {
 
 #define BUFF_SIZE 2048
 
+static std::string const base64code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+
 #if defined(_linux_)
 class implGetKey
 {
@@ -314,8 +316,6 @@ bool Util::unuue(std::istream& is, std::ostream& os)
 
 bool Util::base64(std::istream& is, std::ostream& os)
 {
-  std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-
   int curPos = (int)is.tellg();
   is.seekg(0, std::ios_base::end);
   int lenStream = (int)is.tellg() - curPos;
@@ -353,10 +353,10 @@ bool Util::base64(std::istream& is, std::ostream& os)
       m = i - m;
 
       char out[4] = {0};
-      out[0] = code[((in[0] & 0xfc) >> 2)];
-      out[1] = code[(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4))];
-      out[2] = code[(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6))];
-      out[3] = code[(in[2] & 0x3f)];
+      out[0] = base64code[((in[0] & 0xfc) >> 2)];
+      out[1] = base64code[(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4))];
+      out[2] = base64code[(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6))];
+      out[3] = base64code[(in[2] & 0x3f)];
 
       switch (m)
       {
@@ -379,8 +379,6 @@ bool Util::base64(std::istream& is, std::ostream& os)
 
 bool Util::unbase64(std::istream& is, std::ostream& os)
 {
-  std::string const code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
-
   int curPos = (int)is.tellg();
   is.seekg(0, std::ios_base::end);
   int lenStream = (int)is.tellg() - curPos;
@@ -413,7 +411,7 @@ bool Util::unbase64(std::istream& is, std::ostream& os)
       char in[4] = {0}, in2[4] = {0};
       for (int j = 0; j < 4 && i < lenBuff; j++, i++, idxIn++) {
         in[j] = in2[j] = inBuff[idxIn];
-        in[j] = (char)(int)code.find(in[j]);
+        in[j] = (char)(int)base64code.find(in[j]);
       }
 
       char out[3] = {0};
