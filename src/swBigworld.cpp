@@ -23,7 +23,6 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_ID "Id"
 #define SW2_BIGWORLD_CONF_KEEP_CONNECTED "KeepConnected"
 #define SW2_BIGWORLD_CONF_ADDR_NODE "AddrNode"
-#define SW2_BIGWORLD_CONF_ADDR_LISTEN "AddrListen"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
 #define SW2_BIGWORLD_TRIGGER_FREQ "TriggerFreq"
 #define SW2_BIGWORLD_MAX_CHILD_NODE 1024
@@ -433,12 +432,12 @@ public:
       m_id = conf[SW2_BIGWORLD_CONF_ID].value;
     }
 
-    if (conf.find(SW2_BIGWORLD_CONF_ADDR_LISTEN)) {
+    if (conf.find(SW2_BIGWORLD_CONF_ADDR_NODE)) {
       m_pServer = NetworkServer::alloc(this);
       if (0 == m_pServer) {
         return false;
       }
-      m_addrNode = conf[SW2_BIGWORLD_CONF_ADDR_LISTEN].value;
+      m_addrNode = conf[SW2_BIGWORLD_CONF_ADDR_NODE].value;
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }

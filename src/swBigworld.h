@@ -153,17 +153,14 @@ public:
   /// [Login1]\n
   /// Id=login1                         ; Default is the section name Login1. Id is also treated as node type.\n
   /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
-  /// AddrListen=2888                   ; The addr used to listen new node.\n
   /// Depex=Db1 Game1                   ; Will connect to node Db1 and Game1.\n
   /// TriggerFreq=16                    ; Set read/write trigger freq of this node.\n
   /// \n
   /// [Db1]\n
   /// AddrNode=localhost:1234\n
-  /// AddrListen=1234\n
   /// \n
   /// [Game1]\n
   /// AddrNode=localhost:5678\n
-  /// AddrListen=5678\n
   /// Depex=Db1                         ; Will connecto to node Db1.\n
   /// \n
   /// [Client]\n
