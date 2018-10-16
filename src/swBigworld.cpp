@@ -87,6 +87,11 @@ public:
     return m_pConn->getAddr();
   }
 
+  virtual std::string getServerAddr() const
+  {
+    return "";
+  }
+
   virtual NetworkClientStats getNetStats()
   {
     return m_pConn->getNetStats();
@@ -174,6 +179,11 @@ public:
   virtual std::string getAddr() const
   {
     return m_AddrNode;
+  }
+
+  virtual std::string getServerAddr() const
+  {
+    return "";
   }
 
   virtual NetworkClientStats getNetStats()
@@ -384,6 +394,15 @@ public:
   virtual std::string getAddr() const
   {
     return m_addrNode;
+  }
+
+  virtual std::string getServerAddr() const
+  {
+    if (m_pServer) {
+      return m_pServer->getAddr();
+    } else {
+      return "";
+    }
   }
 
   virtual NetworkClientStats getNetStats()
