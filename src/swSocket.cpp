@@ -1095,6 +1095,13 @@ public:
     ::memset(&m_netStats, 0, sizeof(SocketServerStats));
     m_netStats.startTime = ::time(0);
 
+    int len = sizeof(sa);
+    if (SOCKET_ERROR != getsockname(s, (sockaddr*)&sa, &len)) {
+      char addr[128];
+      ::sprintf(addr, "%s:%hu", ::inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+      m_addr = addr;
+    }
+
     //
     // Notify startup.
     //
@@ -1260,6 +1267,11 @@ public:
     }
   }
 
+  virtual std::string getAddr() const
+  {
+    return m_addr;
+  }
+
   virtual int getTriggerFrequency() const
   {
     return m_TriggerFreq;
@@ -1273,6 +1285,7 @@ public:
 public:
 
   SOCKET m_listen;                      // Listening socket.
+  std::string m_addr;                   // Server addr.
   SocketServerStats m_netStats;
 
   implSocketConnection* m_pClient;      // Active client(s).

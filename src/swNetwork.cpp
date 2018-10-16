@@ -885,6 +885,11 @@ public:
     }
   }
 
+  virtual std::string getAddr() const
+  {
+    return m_pServer->getAddr();
+  }
+
   virtual int getTriggerFrequency() const
   {
     return m_pServer->getTriggerFrequency();

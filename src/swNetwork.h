@@ -531,6 +531,13 @@ public:
   virtual void trigger()=0;
 
   ///
+  /// \brief Get server address.
+  /// \return Return address, format: ip:port.
+  ///
+
+  virtual std::string getAddr() const=0;
+
+  ///
   /// \brief Get statistics.
   /// \return Return statistics.
   ///
