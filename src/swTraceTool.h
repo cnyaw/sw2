@@ -74,25 +74,28 @@ class TraceTool
 {
 public:
 
-  static void message(const char* format, ...);
-  static void warning(const char* format, ...);
-  static void error(const char* format, ...);
+  static void message(int level, const char* format, ...);
+  static void warning(int level, const char* format, ...);
+  static void error(int level, const char* format, ...);
 
   static void enableTarget(bool bEnable, FILE* out = 0);
   static void resetTarget();
-  static void addOutputTarget(FILE* out);
+  static void addOutputTarget(FILE* out, int level = 0);
 
   static void setTimeStampFormat(const char* format);
-  static void setTraceFunc(void (*pfnTrace)(const char* format, va_list args));
+  static void setTraceFunc(void (*pfnTrace)(int level, const char* format, va_list args));
 };
 
-#define SW2_TRACE_MESSAGE sw2::TraceTool::message
-#define SW2_TRACE_WARNING sw2::TraceTool::warning
-#define SW2_TRACE_ERROR sw2::TraceTool::error
+#define SW2_TRACE_MESSAGE(fmt,...) sw2::TraceTool::message(0, fmt, ##__VA_ARGS__)
+#define SW2_TRACE_WARNING(fmt,...) sw2::TraceTool::warning(0, fmt, ##__VA_ARGS__)
+#define SW2_TRACE_ERROR(fmt,...) sw2::TraceTool::error(0, fmt, ##__VA_ARGS__)
+#define SW2_TRACE_MESSAGE_LEVEL(lvl,fmt,...) sw2::TraceTool::message(lvl, fmt, ##__VA_ARGS__)
+#define SW2_TRACE_WARNING_LEVEL(lvl,fmt,...) sw2::TraceTool::warning(lvl, fmt, ##__VA_ARGS__)
+#define SW2_TRACE_ERROR_LEVEL(lvl,fmt,...) sw2::TraceTool::error(lvl, fmt, ##__VA_ARGS__)
 
 #define SW2_TRACE_ENABLE_TARGET sw2::TraceTool::enableTarget
 #define SW2_TRACE_RESET_TARGET() sw2::TraceTool::resetTarget();
-#define SW2_TRACE_ADD_TARGET(o) sw2::TraceTool::addOutputTarget(o);
+#define SW2_TRACE_ADD_TARGET sw2::TraceTool::addOutputTarget
 
 #define SW2_TRACE_TIMESTAMP_FORMAT(Fmt) sw2::TraceTool::setTimeStampFormat(Fmt);
 #define SW2_TRACE_FUNC(Func) sw2::TraceTool::setTraceFunc(Func);

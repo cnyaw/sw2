@@ -24,20 +24,26 @@ namespace impl {
 
 #define MAX_OUTPUT 32
 
+struct implTraceToolTarget
+{
+  bool isEnable;
+  FILE* fOut;
+  int level;
+};
+
 class implTraceTool
 {
   implTraceTool() : nOut(0), nEnable(0), fmt("%Y-%m-%d %H:%M:%S "), pfnTrace(0)
   {
-    addOutputTarget(stdout);
+    addOutputTarget(stdout, 0);
   }
 
 public:
 
   int nOut, nEnable;
   std::string fmt;
-  FILE* fOut[MAX_OUTPUT];
-  bool isEnable[MAX_OUTPUT];
-  void (*pfnTrace)(const char* format, va_list args);
+  implTraceToolTarget target[MAX_OUTPUT];
+  void (*pfnTrace)(int level, const char* format, va_list args);
 
   enum CONST_TRACETOOL
   {
@@ -53,11 +59,14 @@ public:
     return i;
   }
 
-  void addOutputTarget(FILE* out)
+  void addOutputTarget(FILE* out, int level)
   {
     if (MAX_OUTPUT > nOut) {
-      isEnable[nOut] = true;
-      fOut[nOut++] = out;
+      implTraceToolTarget &t = target[nOut];
+      t.isEnable = true;
+      t.fOut = out;
+      t.level = level;
+      nOut += 1;
       nEnable += 1;
     }
   }
@@ -67,28 +76,29 @@ public:
     if (0 == out) {
       nEnable = bEnable ? 0 : nOut;
       for (int i = 0; i < nOut; i++) {
-        isEnable[i] = bEnable;
+        target[i].isEnable = bEnable;
       }
     } else {
       for (int i = 0; i < nOut; i++) {
-        if (fOut[i] == out) {
+        implTraceToolTarget &t = target[i];
+        if (t.fOut == out) {
           if (bEnable) {
-            if (isEnable[i] != bEnable) {
+            if (t.isEnable != bEnable) {
               nEnable += 1;
             }
           } else {
-            if (isEnable[i] != bEnable) {
+            if (t.isEnable != bEnable) {
               nEnable -= 1;
             }
           }
-          isEnable[i] = bEnable;
+          t.isEnable = bEnable;
           break;
         }
       }
     }
   }
 
-  void doTrace(int cat, char const* str) const
+  void doTrace(int cat, int level, char const* str) const
   {
     char buf[MAX_STR_LEN];
     buf[0] = '\0';
@@ -104,9 +114,10 @@ public:
 
     std::string s = ss.str();
     for (int i = 0; i < nOut; i++) {
-      if (isEnable[i]) {
-        fprintf(fOut[i], "%s", s.c_str());
-        fflush(fOut[i]);
+      const implTraceToolTarget &t = target[i];
+      if (t.isEnable && t.level >= level) {
+        fprintf(t.fOut, "%s", s.c_str());
+        fflush(t.fOut);
       }
     }
   }
@@ -123,25 +134,25 @@ public:
   va_list va; \
   va_start(va, format); \
   if (inst.pfnTrace) { \
-    inst.pfnTrace(format, va); \
+    inst.pfnTrace((level), format, va); \
   } else { \
     char buf[impl::implTraceTool::MAX_STR_LEN]; \
     vsnprintf(buf, impl::implTraceTool::MAX_STR_LEN, format, va); \
-    inst.doTrace((type), buf); \
+    inst.doTrace((type), (level), buf); \
   } \
   va_end(va);
 
-void TraceTool::error(const char* format, ...)
+void TraceTool::error(int level, const char* format, ...)
 {
   DO_TRACE(impl::implTraceTool::TRACECAT_ERROR)
 }
 
-void TraceTool::message(const char* format, ...)
+void TraceTool::message(int level, const char* format, ...)
 {
   DO_TRACE(impl::implTraceTool::TRACECAT_MESSAGE)
 }
 
-void TraceTool::warning(const char* format, ...)
+void TraceTool::warning(int level, const char* format, ...)
 {
   DO_TRACE(impl::implTraceTool::TRACECAT_WARNING)
 }
@@ -157,11 +168,11 @@ void TraceTool::resetTarget()
   impl::implTraceTool::inst().pfnTrace = 0;
 }
 
-void TraceTool::addOutputTarget(FILE* out)
+void TraceTool::addOutputTarget(FILE* out, int level)
 {
   assert(out);
   if (out) {
-    impl::implTraceTool::inst().addOutputTarget(out);
+    impl::implTraceTool::inst().addOutputTarget(out, level);
   }
 }
 
@@ -173,7 +184,7 @@ void TraceTool::setTimeStampFormat(const char* format)
   }
 }
 
-void TraceTool::setTraceFunc(void (*pfnTrace)(const char* format, va_list args))
+void TraceTool::setTraceFunc(void (*pfnTrace)(int level, const char* format, va_list args))
 {
   impl::implTraceTool::inst().pfnTrace = pfnTrace;
 }
