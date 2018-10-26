@@ -491,6 +491,42 @@ TEST(Util, TraceTool)
   CHECK(s.npos != s.find("TRACE3 errOr test 789"));
 }
 
+TEST(Util, TraceTool_level)
+{
+  const char *FILE_NAME = "tmltrace.txt";
+
+  FILE* out = fopen(FILE_NAME, "wt");
+  CHECK(out);
+
+  SW2_TRACE_ADD_TARGET(out, 1);
+
+  SW2_TRACE_MESSAGE_LEVEL(1, "TRACE1 messAge test %d", 123);
+  SW2_TRACE_WARNING_LEVEL(1, "TRACE1 wArning test %d", 456);
+  SW2_TRACE_ERROR_LEVEL(1, "TRACE1 errOr test %d", 789);
+  SW2_TRACE_MESSAGE_LEVEL(2, "TRACE2 messAge test %d", 123);
+  SW2_TRACE_WARNING_LEVEL(2, "TRACE2 wArning test %d", 456);
+  SW2_TRACE_ERROR_LEVEL(2, "TRACE2 errOr test %d", 789);
+
+  SW2_TRACE_RESET_TARGET();
+  fclose(out);
+
+  std::ifstream ifs(FILE_NAME);
+  std::stringstream ss;
+
+  ss << ifs.rdbuf();
+  ifs.close();
+
+  ::remove(FILE_NAME);                  // Delete temp file.
+
+  std::string s = ss.str();
+  CHECK(s.npos != s.find("TRACE1 messAge test 123"));
+  CHECK(s.npos != s.find("TRACE1 wArning test 456"));
+  CHECK(s.npos != s.find("TRACE1 errOr test 789"));
+  CHECK(s.npos == s.find("TRACE2 messAge test 123"));
+  CHECK(s.npos == s.find("TRACE2 wArning test 456"));
+  CHECK(s.npos == s.find("TRACE2 errOr test 789"));
+}
+
 TEST(Util, crc32)
 {
   std::stringstream ss(sSampleText);
