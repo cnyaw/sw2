@@ -156,7 +156,7 @@ TEST(BitStream, readwrite)
     for (int i = 2; i <= 32; i++) {
       int s;
       bs >> setBitCount(i) >> s;
-      CHECK(bs && s == (i & 1) ? 1 : -1);
+      CHECK(bs && s == ((i & 1) ? 1 : -1));
     }
 
     //
