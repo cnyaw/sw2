@@ -115,7 +115,7 @@ public:
     std::string s = ss.str();
     for (int i = 0; i < nOut; i++) {
       const implTraceToolTarget &t = target[i];
-      if (t.isEnable && t.level >= level) {
+      if (t.isEnable && (0 == level || t.level == level)) {
         fprintf(t.fOut, "%s", s.c_str());
         fflush(t.fOut);
       }
