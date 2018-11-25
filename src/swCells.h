@@ -396,8 +396,9 @@ private:
       //
 
       if (0 <= cc && ncellx * ncelly > cc) {
-        for (int i = cells[cc].first(); -1 != i && 0 < nMax; i = cells[cc].next(i)) {
-          ItemT const& obj = cobjs[cells[cc][i]];
+        const ObjectPool<int, INIT_CELL_POOL_SIZE, true> &p = cells[cc];
+        for (int i = p.first(); -1 != i && 0 < nMax; i = p.next(i)) {
+          ItemT const& obj = cobjs[p[i]];
           if (!func(obj)) {
             continue;
           }
