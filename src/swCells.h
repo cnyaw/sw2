@@ -139,7 +139,9 @@ template<typename ObjT, typename ValueT> struct implCellsSphereFunc
 
   bool operator()(ObjT const& obj) const
   {
-    return (x - obj.x) * (x - obj.x) + (y - obj.y) * (y - obj.y) <= radiuss;
+    ValueT a = x - obj.x;
+    ValueT b = y - obj.y;
+    return a * a + b * b <= radiuss;
   }
 };
 
