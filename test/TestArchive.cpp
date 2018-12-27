@@ -13,6 +13,8 @@
 #include "CppUnitLite/TestHarness.h"
 
 #include "swArchive.h"
+#include "swSocket.h"
+#include "swUtil.h"
 using namespace sw2;
 
 //
@@ -248,6 +250,179 @@ TEST(Archive, addFileSystem4)
   CHECK(ss2.str() == "this is sub/test");
 
   Archive::free(par);
+}
+
+class HttpFileSystem : public SocketClientCallback, public ArchiveFileSystem
+{
+public:
+
+  SocketClient* mClient;
+  std::string mData;
+
+  HttpFileSystem()
+  {
+    mClient = SocketClient::alloc(this);
+  }
+
+  virtual ~HttpFileSystem()
+  {
+    SocketClient::free(mClient);
+  }
+
+  //
+  // SocketClientCallback.
+  //
+
+  virtual void onSocketServerReady(SocketClient*)
+  {
+    mData.clear();
+  }
+
+  virtual void onSocketStreamReady(SocketClient*, int len, void const* pStream)
+  {
+    mData.append((char const*)pStream, len);
+  }
+
+  bool waitConnected() const
+  {
+    return waitState(CS_CONNECTED);
+  }
+
+  bool waitDisconnected() const
+  {
+    return waitState(CS_DISCONNECTED);
+  }
+
+  bool waitState(int s) const
+  {
+    sw2::TimeoutTimer lt(5000);
+    while (!lt.isExpired()) {
+      mClient->trigger();
+      if (mClient->getConnectionState() == s) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool connect(const std::string &url) const
+  {
+    if (!mClient->connect(url)) {
+      return false;
+    }
+    if (!waitConnected()) {
+      return false;
+    }
+    mClient->setTriggerFrequency(1000);
+    return true;
+  }
+
+  void disconnect() const
+  {
+    mClient->disconnect();
+    waitConnected();
+  }
+
+  bool waitData(const std::string &token) const
+  {
+    sw2::TimeoutTimer lt(5000);
+    while (!lt.isExpired()) {
+      mClient->trigger();
+      if (std::string::npos != mData.find(token)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool waitData(size_t length) const
+  {
+    sw2::TimeoutTimer lt(5000);
+    while (!lt.isExpired()) {
+      mClient->trigger();
+      if (mData.length() >= length) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  //
+  // ArchiveFileSystem.
+  //
+
+  bool get(const std::string& name) const
+  {
+    assert(mClient);
+    size_t urlpos = name.find_first_of('/');
+    if (std::string::npos == urlpos) {
+      return false;
+    }
+    const std::string url(name, 0, urlpos);
+    if (!connect(url + ":80")) {
+      return false;
+    }
+    std::string get("GET " + name.substr(urlpos) + " HTTP/1.1\r\nHost:" + url + "\r\n\r\n");
+    mClient->send((int)get.length(), get.c_str());
+    if (!waitData("200 OK") || !waitData("Content-Length:")) {
+      disconnect();
+      return false;
+    }
+    int datlen = 0;
+    sscanf(mData.c_str() + mData.find("Content-Length"), "Content-Length:%d", &datlen);
+    if (!waitData("\r\n\r\n")) {
+      disconnect();
+      return false;
+    }
+    size_t headlen = mData.find("\r\n\r\n");
+    if (!waitData(headlen + datlen)) {
+      disconnect();
+      return false;
+    }
+    disconnect();
+    return true;
+  }
+
+  virtual bool isFileExist(std::string const& name) const
+  {
+    return false;
+  }
+
+  virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
+  {
+    assert(mClient);
+    if (!get(name)) {
+      return false;
+    }
+    size_t headlen = mData.find("\r\n\r\n");
+    assert(std::string::npos != headlen);
+    outs.write(mData.data() + headlen + 4, (int)(mData.length() - headlen - 4));
+    return true;
+  }
+};
+
+TEST(Archive, httpfs)
+{
+  Archive* par = Archive::alloc();
+  if (0 == par) {
+    return;
+  }
+
+  CHECK(InitializeSocket());
+  {
+    HttpFileSystem fs;
+    CHECK(par->addFileSystem(&fs));
+
+    std::stringstream ss;
+    CHECK(par->loadFile("www.rfc-editor.org/rfc/rfc1.txt", ss));
+    CHECK(std::string::npos != ss.str().find("Network Working Group Request for Comment:   1"));
+
+    std::stringstream ss2;
+    CHECK(par->loadFile("www.rfc-editor.org/rfc/rfc2.txt", ss2));
+    CHECK(std::string::npos != ss2.str().find("1a1 Logical link 0 will be a control link between any two HOSTs on"));
+  }
+  Archive::free(par);
+  UninitializeSocket();
 }
 
 // end of TestArchive.cpp
