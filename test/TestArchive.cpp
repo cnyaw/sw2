@@ -320,7 +320,7 @@ public:
   void disconnect() const
   {
     mClient->disconnect();
-    waitConnected();
+    waitDisconnected();
   }
 
   bool waitData(const std::string &token) const
