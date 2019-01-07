@@ -283,6 +283,10 @@ public:
 
   virtual ~implBigworldNode()
   {
+  }
+
+  void destroy()
+  {
     shutdown();
     for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
       implBigworldParentNode &p = m_poolDepex[i];
@@ -675,7 +679,9 @@ BigworldNode* BigworldNode::alloc(BigworldCallback *pCallback)
 
 void BigworldNode::free(BigworldNode *pNode)
 {
-  delete (impl::implBigworldNode*)pNode;
+  impl::implBigworldNode *p = (impl::implBigworldNode*)pNode;
+  p->destroy();
+  delete p;
 }
 
 bool InitializeBigworld()

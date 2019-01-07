@@ -533,13 +533,16 @@ public:
 
   virtual ~implNetworkClient()
   {
+  }
+
+  void destroy()
+  {
     if (CS_DISCONNECTED != getConnectionState()) {
       disconnect();
       while (CS_DISCONNECTED != getConnectionState()) {
         trigger();
       }
     }
-
     SocketClient::free(m_pClient);
   }
 
@@ -936,7 +939,9 @@ NetworkClient* NetworkClient::alloc(NetworkClientCallback* pCallback)
 
 void NetworkClient::free(NetworkClient* pClient)
 {
-  delete (impl::implNetworkClient*)pClient;
+  impl::implNetworkClient *p = (impl::implNetworkClient*)pClient;
+  p->destroy();
+  delete p;
 }
 
 NetworkServer* NetworkServer::alloc(NetworkServerCallback* pCallback)

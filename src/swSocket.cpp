@@ -819,7 +819,11 @@ public:
     implSocketBase::m_pTriggerFreq = &m_TriggerFreq;
   }
 
-  ~implSocketClient()
+  virtual ~implSocketClient()
+  {
+  }
+
+  void destroy()
   {
     if (CS_DISCONNECTED != m_state) {
       disconnect();
@@ -987,6 +991,10 @@ public:
   }
 
   virtual ~implSocketServer()
+  {
+  }
+
+  void destroy()
   {
     shutdown();
 
@@ -1326,7 +1334,9 @@ SocketClient* SocketClient::alloc(SocketClientCallback* pCallback)
 
 void SocketClient::free(SocketClient* pClient)
 {
-  delete (impl::implSocketClient*)pClient;
+  impl::implSocketClient *p = (impl::implSocketClient*)pClient;
+  p->destroy();
+  delete p;
 }
 
 SocketServer* SocketServer::alloc(SocketServerCallback* pCallback)
@@ -1337,7 +1347,9 @@ SocketServer* SocketServer::alloc(SocketServerCallback* pCallback)
 
 void SocketServer::free(SocketServer* pServer)
 {
-  delete (impl::implSocketServer*)pServer;
+  impl::implSocketServer *p = (impl::implSocketServer*)pServer;
+  p->destroy();
+  delete p;
 }
 
 } // namespace sw2
