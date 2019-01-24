@@ -8,18 +8,21 @@ FLAGS     = -Wall -D_linux_
 
 INCDIR    = ../include
 
-CPPFILES := $(notdir $(wildcard ./*.cpp))
-OFILES   := $(CPPFILES:.cpp=.o)
+SRC      := $(notdir $(wildcard ./*.cpp))
+OBJ      := $(SRC:.cpp=.o)
+DEP      := $(OBJ:%.o=%.d)
 
 all: $(TARGET)
 
-$(TARGET): $(OFILES)
+$(TARGET): $(OBJ)
+
+-include $(DEP)
 
 clean:
-	@rm -f $(TARGET) $(OFILES)
+	@rm -f $(TARGET) $(OBJ) $(DEP)
 
 %.o: %.cpp
-	$(CXX) $(FLAGS) -I$(INCDIR) -c -o $*.o $<
+	$(CXX) $(FLAGS) -I$(INCDIR) -MMD -c -o $*.o $<
 
 %.a:
 	@mkdir -p ../lib

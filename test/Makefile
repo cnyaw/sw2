@@ -7,16 +7,19 @@ FLAGS     = -Wall -D_linux_
 LIBDIR    = ../lib
 INCDIR    = ../include
 
-CPPFILES := $(notdir $(wildcard ./*.cpp)) $(foreach name, $(notdir $(wildcard CppUnitLite/*.cpp)), CppUnitLite/$(name))
-OFILES   := $(CPPFILES:.cpp=.o)
+SRC      := $(notdir $(wildcard ./*.cpp)) $(foreach name, $(notdir $(wildcard CppUnitLite/*.cpp)), CppUnitLite/$(name))
+OBJ      := $(SRC:.cpp=.o)
+DEP      := $(OBJ:%.o=%.d)
 
 all: $(TARGET)
 
-$(TARGET): $(LIBDIR)/libsw2.a $(OFILES)
-	$(CXX) $(OFILES) -L$(LIBDIR) -lsw2 -lz -lpthread -o $@
+$(TARGET): $(LIBDIR)/libsw2.a $(OBJ)
+	$(CXX) $(OBJ) -L$(LIBDIR) -lsw2 -lz -lpthread -o $@
+
+-include $(DEP)
 
 clean:
-	@rm -f $(TARGET) $(OFILES)
+	@rm -f $(TARGET) $(OBJ) $(DEP)
 
 %.o: %.cpp
-	$(CXX) $(FLAGS) -I$(INCDIR) -c -o $*.o $<
+	$(CXX) $(FLAGS) -I$(INCDIR) -MMD -c -o $*.o $<
