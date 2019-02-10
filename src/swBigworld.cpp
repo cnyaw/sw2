@@ -333,7 +333,7 @@ public:
     m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], s);
   }
 
-  void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
+  virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
   {
     int id = (int)pClient->userData;
     implBigworldChildNode &c = m_poolChild[id];
@@ -530,8 +530,11 @@ public:
     std::vector<std::string> v;
     for (size_t i = 0; i < ids.size(); i++) {
       const std::string &id = ids[i];
-      if (depex.end() == std::find(depex.begin(), depex.end(), id)) {
-        v.push_back(id);
+      std::vector<std::string>::iterator itDep = std::find(depex.begin(), depex.end(), id);
+      if (depex.end() == itDep) {
+        v.push_back(id);                // New depex node.
+      } else {
+        updateDepex(ini, id);           // Update exist depex node info.
       }
     }
 
@@ -595,7 +598,7 @@ public:
   // Common.
   //
 
-  bool connectDepex(Ini const &ini, std::vector<std::string> &v)
+  bool connectDepex(Ini const &ini, const std::vector<std::string> &v)
   {
     for (int i = 0; i < (int)v.size(); i++) {
 
@@ -639,24 +642,8 @@ public:
       implBigworldParentNode &node = m_poolDepex[id];
       node.userData = 0;
       node.m_pClient = pClient;
-      node.m_AddrNode = conf[SW2_BIGWORLD_CONF_ADDR_NODE].value;
 
-      if (conf.find(SW2_BIGWORLD_CONF_KEEP_CONNECTED)) {
-        node.m_bKeepConnected = conf[SW2_BIGWORLD_CONF_KEEP_CONNECTED];
-      } else {
-        node.m_bKeepConnected = true;
-      }
-
-      if (!conf.find(SW2_BIGWORLD_CONF_ID)) {
-        node.m_Id = idNode;
-      } else {
-        node.m_Id = conf[SW2_BIGWORLD_CONF_ID].value;
-      }
-
-      if (conf.find(SW2_BIGWORLD_TRIGGER_FREQ)) {
-        int TriggerFreq = conf[SW2_BIGWORLD_TRIGGER_FREQ];
-        pClient->setTriggerFrequency(TriggerFreq); // Set trigger freq by conf setting.
-      }
+      setupDepex(conf, idNode, node);
 
       //
       // Try to connect to depex node.
@@ -666,6 +653,43 @@ public:
     }
 
     return true;
+  }
+
+  void updateDepex(const Ini &ini, const std::string &idNode)
+  {
+    if (0 == ini.find(idNode)) {
+      return;
+    }
+
+    for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
+      implBigworldParentNode &n = m_poolDepex[i];
+      if (idNode == n.m_Id) {
+        setupDepex(ini[idNode], idNode, n);
+        break;
+      }
+    }
+  }
+
+  void setupDepex(const Ini &conf, const std::string &idNode, implBigworldParentNode &node)
+  {
+    node.m_AddrNode = conf[SW2_BIGWORLD_CONF_ADDR_NODE].value;
+
+    if (conf.find(SW2_BIGWORLD_CONF_KEEP_CONNECTED)) {
+      node.m_bKeepConnected = conf[SW2_BIGWORLD_CONF_KEEP_CONNECTED];
+    } else {
+      node.m_bKeepConnected = true;
+    }
+
+    if (!conf.find(SW2_BIGWORLD_CONF_ID)) {
+      node.m_Id = idNode;
+    } else {
+      node.m_Id = conf[SW2_BIGWORLD_CONF_ID].value;
+    }
+
+    if (conf.find(SW2_BIGWORLD_TRIGGER_FREQ)) {
+      int TriggerFreq = conf[SW2_BIGWORLD_TRIGGER_FREQ];
+      node.m_pClient->setTriggerFrequency(TriggerFreq); // Set trigger freq by conf setting.
+    }
   }
 };
 
