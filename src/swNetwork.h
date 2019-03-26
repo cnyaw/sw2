@@ -55,7 +55,7 @@
 ///   // Declare packet class and it's unique ID.
 ///   //
 ///
-///   SW2_DECLALRE_PACKET(ID_MYPACKET, MyPacket)
+///   SW2_DECLARE_PACKET(ID_MYPACKET, MyPacket)
 ///
 ///   //
 ///   // Implement formated data read/write functions.
