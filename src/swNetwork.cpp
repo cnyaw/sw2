@@ -287,7 +287,7 @@ public:
           if (streamBeg == header) {    // Stream start?
             m_ss = "";                  // Reset buffer.
           } else if (streamEnd == header) { // Stream end.
-            onStreamReady_(m_ss);
+            onStreamReady_((int)m_ss.length(), m_ss.data());
           } else if (packetEnd == header) { // Large packet end.
 
             //
@@ -429,13 +429,13 @@ public:
   }
 
   template<class T>
-  bool send_(T* t, std::string const& s)
+  bool send_(T* t, int len, void const* pStream)
   {
     //
     // Send stream raw data.
     //
 
-    return send_(t, s.data(), (int)s.length(), 0, streamBeg, streamEnd);
+    return send_(t, (char*)pStream, len, 0, streamBeg, streamEnd);
   }
 
   template<class T>
@@ -501,7 +501,7 @@ public:
   // Callback.
   //
 
-  virtual void onStreamReady_(std::string const& s)=0;
+  virtual void onStreamReady_(int len, void const* pStream)=0;
   virtual void onPacketReady_(NetworkPacket const& p)=0;
   virtual void IncRecvPack()=0;
   virtual void IncSendPack()=0;
@@ -606,9 +606,9 @@ public:
     return ns;
   }
 
-  virtual bool send(std::string const& s)
+  virtual bool send(int len, void const* pStream)
   {
-    return implNetworkBase::send_(m_pClient, s);
+    return implNetworkBase::send_(m_pClient, len, pStream);
   }
 
   virtual bool send(NetworkPacket const& p)
@@ -639,9 +639,9 @@ public:
   // Implement implNetworkBase.
   //
 
-  virtual void onStreamReady_(std::string const& s)
+  virtual void onStreamReady_(int len, void const* pStream)
   {
-    m_pInterface->onNetworkStreamReady(this, s);
+    m_pInterface->onNetworkStreamReady(this, len, pStream);
   }
 
   virtual void onPacketReady_(NetworkPacket const& p)
@@ -708,9 +708,9 @@ public:
     return ns;
   }
 
-  virtual bool send(std::string const& s)
+  virtual bool send(int len, void const* pStream)
   {
-    return implNetworkBase::send_(m_pClientPeer, s);
+    return implNetworkBase::send_(m_pClientPeer, len, pStream);
   }
 
   virtual bool send(NetworkPacket const& p)
@@ -722,9 +722,9 @@ public:
   // Implement implNetworkBase.
   //
 
-  virtual void onStreamReady_(std::string const& s)
+  virtual void onStreamReady_(int len, void const* pStream)
   {
-    m_pInterface->onNetworkStreamReady(m_pServer, (NetworkConnection*)this, s);
+    m_pInterface->onNetworkStreamReady(m_pServer, (NetworkConnection*)this, len, pStream);
   }
 
   virtual void onPacketReady_(NetworkPacket const& p)

@@ -70,10 +70,11 @@ public:
   /// \brief Notify when a data stream is ready from a bigworld node.
   /// \param [in] pInstNode The instance node.
   /// \param [in] pNode The sender bigworld node.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   ///
 
-  virtual void onBigworldStreamReady(BigworldNode *pInstNode, BigworldNode *pNode, std::string const &s)
+  virtual void onBigworldStreamReady(BigworldNode *pInstNode, BigworldNode *pNode, int len, void const* pStream)
   {
   }
 
@@ -203,11 +204,12 @@ public:
 
   ///
   /// \brief Send a data stream to this bigworld node.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   /// \return Return true if success else return false.
   ///
 
-  virtual bool send(std::string const &s)=0;
+  virtual bool send(int len, void const* pStream)=0;
 
   ///
   /// \brief Send a data packet to this bigworld node.

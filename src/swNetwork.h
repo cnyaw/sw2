@@ -93,7 +93,7 @@
 ///   virtual void onNetworkServerLeave(NetworkClient* pClient)
 ///   { // Do something when disconnect from server.
 ///   }
-///   virtual void onNetworkStreamReady(NetworkClient* pClient, std::string const& s)
+///   virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
 ///   { // Do something when receive a data stream from server.
 ///   }
 ///   void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
@@ -135,7 +135,7 @@
 ///   virtual void onNetworkClientLeave(NetworkServer* pServer, NetworkConnection* pClient)
 ///   { // Do something when a client is disconnect.
 ///   }
-///   virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, std::string const& s)
+///   virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
 ///   { // Do something when received a data stream from a client.
 ///   }
 ///   void onNetworkPacketReady(NetworkServer* pServer, NetworkConnection* pClient, NetworkPacket const& p)
@@ -270,10 +270,11 @@ public:
   ///
   /// \brief Notify when a data stream is ready from server.
   /// \param [in] pClient The client.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   ///
 
-  virtual void onNetworkStreamReady(NetworkClient* pClient, std::string const& s)
+  virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
   {
   }
 
@@ -346,10 +347,11 @@ public:
   /// \brief Notify when a data stream is ready from a client.
   /// \param [in] pServer The server.
   /// \param [in] pClient The sender client.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   ///
 
-  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, std::string const& s)
+  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
   {
   }
 
@@ -402,13 +404,14 @@ public:
 
   ///
   /// \brief Send a data stream to remote client.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte).
+  /// \param [in] pStream Data stream.
   /// \return Return true if success else return false.
   /// \note Return true doesn't mean the data is sent right away. It is possible
   ///       queued and sent later.
   ///
 
-  virtual bool send(std::string const& s)=0;
+  virtual bool send(int len, void const* pStream)=0;
 
   ///
   /// \brief Send a formated packet to remote client.

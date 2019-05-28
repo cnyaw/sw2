@@ -119,9 +119,9 @@ public:
     //
   }
 
-  virtual bool send(std::string const &s)
+  virtual bool send(int len, void const* pStream)
   {
-    return m_pConn->send(s);
+    return m_pConn->send(len, pStream);
   }
 
   virtual bool send(const NetworkPacket &p)
@@ -223,10 +223,10 @@ public:
     }
   }
 
-  virtual bool send(std::string const &s)
+  virtual bool send(int len, void const* pStream)
   {
     if (m_pClient) {
-      return m_pClient->send(s);
+      return m_pClient->send(len, pStream);
     } else {
       return false;
     }
@@ -327,10 +327,10 @@ public:
     m_poolChild.free(id);
   }
 
-  virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, std::string const& s)
+  virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream)
   {
     int id = (int)pClient->userData;
-    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], s);
+    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], len, pStream);
   }
 
   virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
@@ -368,10 +368,10 @@ public:
     m_pCallback->onBigworldNodeClose((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id]);
   }
 
-  virtual void onNetworkStreamReady(NetworkClient* pClient, std::string const& s)
+  virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
   {
     int id = (int)pClient->userData;
-    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], s);
+    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], len, pStream);
   }
 
   virtual void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
@@ -509,7 +509,7 @@ public:
     }
   }
 
-  virtual bool send(std::string const &s)
+  virtual bool send(int len, void const* pStream)
   {
     return false;                       // NOP.
   }

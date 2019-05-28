@@ -86,7 +86,7 @@ public:
     return false;
   }
 
-  virtual bool send(std::string const& s)
+  virtual bool send(int len, void const* pStream)
   {
     return false;
   }
@@ -284,9 +284,9 @@ public:
     return m_pClient->send(p);
   }
 
-  virtual bool send(std::string const& s)
+  virtual bool send(int len, void const* pStream)
   {
-    return m_pClient->send(s);
+    return m_pClient->send(len, pStream);
   }
 
   //
@@ -524,9 +524,9 @@ public:
     m_stage.trigger((uint_ptr)(intptr_t)&p);
   }
 
-  virtual void onNetworkStreamReady(NetworkClient*, std::string const& s)
+  virtual void onNetworkStreamReady(NetworkClient*, int len, void const* pStream)
   {
-    m_pCallback->onSmallworldStreamReady(this, s);
+    m_pCallback->onSmallworldStreamReady(this, len, pStream);
   }
 
   //

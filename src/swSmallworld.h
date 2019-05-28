@@ -171,11 +171,12 @@ public:
 
   ///
   /// Send a data stream to server.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   /// \return Return true if success else return false.
   ///
 
-  virtual bool send(std::string const& s)=0;
+  virtual bool send(int len, void const* pStream)=0;
 
   ///
   /// Send a public message to all players in current channel.
@@ -520,10 +521,11 @@ struct SmallworldServerCallback
   /// Notify when receive a data stream from a player.
   /// \param [in] pServer The server.
   /// \param [in] pPlayer Data sender.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   ///
 
-  virtual void onSmallworldStreamReady(SmallworldServer* pServer, SmallworldPlayer* pPlayer, std::string const& s) {}
+  virtual void onSmallworldStreamReady(SmallworldServer* pServer, SmallworldPlayer* pPlayer, int len, void const* pStream) {}
 
   ///
   /// Notify when a new player login
@@ -740,10 +742,11 @@ struct SmallworldClientCallback
   ///
   /// Notify when receive a data stream from server.
   /// \param [in] pClient The client.
-  /// \param [in] s Data stream.
+  /// \param [in] len Data length(in byte)
+  /// \param [in] pStream Data stream.
   ///
 
-  virtual void onSmallworldStreamReady(SmallworldClient* pClient, std::string const& s) {}
+  virtual void onSmallworldStreamReady(SmallworldClient* pClient, int len, void const* pStream) {}
 
   ///
   /// Notify when current channel is changed.

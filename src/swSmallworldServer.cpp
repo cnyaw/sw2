@@ -92,7 +92,7 @@ public:
   virtual NetworkClientStats getNetStats();
 
   virtual bool send(const NetworkPacket& p);
-  virtual bool send(const std::string& s);
+  virtual bool send(int len, void const* pStream);
 
   virtual bool sendMessage(const std::string& msg);
   virtual bool sendPrivateMessage(int idWho, const std::string& msg);
@@ -230,7 +230,7 @@ public:
   virtual bool onNetworkNewClientReady(NetworkServer*, NetworkConnection* pNewClient);
   virtual void onNetworkClientLeave(NetworkServer*, NetworkConnection* pClient);
   virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, const NetworkPacket& p);
-  virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, std::string const& s);
+  virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream);
 
   //
   // Implement stages.
@@ -526,14 +526,14 @@ void implSmallworldServer::onNetworkPacketReady(NetworkServer*, NetworkConnectio
   m_player[id].m_stage.trigger((uint_ptr)(intptr_t)&p);
 }
 
-void implSmallworldServer::onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, std::string const& s)
+void implSmallworldServer::onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream)
 {
   //
   // TODO: valid the stream by correct stage.
   //
 
   int id = (int)pClient->userData;
-  m_pCallback->onSmallworldStreamReady(this, &m_player[id], s);
+  m_pCallback->onSmallworldStreamReady(this, &m_player[id], len, pStream);
 }
 
 void implSmallworldServer::stageDummy(int, uint_ptr)
@@ -875,7 +875,7 @@ bool implSmallworldServerPlayer::send(const NetworkPacket& p)
   return m_pNetPeer->send(p);
 }
 
-bool implSmallworldServerPlayer::send(const std::string& s)
+bool implSmallworldServerPlayer::send(int len, void const* pStream)
 {
   if (!m_bVerified) {
     SW2_TRACE_ERROR("[LB] try to send stream while not ready");
@@ -886,7 +886,7 @@ bool implSmallworldServerPlayer::send(const std::string& s)
     return false;
   }
 
-  return m_pNetPeer->send(s);
+  return m_pNetPeer->send(len, pStream);
 }
 
 bool implSmallworldServerPlayer::sendMessage(const std::string& msg)
