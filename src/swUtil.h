@@ -133,26 +133,6 @@ namespace Util {
   std::string& trim(std::string& str, std::string const& chrTrim = " \t\r\n");
 
   ///
-  /// \brief UU(Unix-to-Unix) encode.
-  /// \param [in] is Input stream.
-  /// \param [out] os Output stream.
-  /// \return Return true if success else return false.
-  /// \note For more info, see http://zh.wikipedia.org/wiki/Uuencode.
-  ///
-
-  bool uue(std::istream& is, std::ostream& os);
-
-  ///
-  /// \brief UU(Unix-to-Unix) decode.
-  /// \param [in] is Input stream.
-  /// \param [out] os Output stream.
-  /// \return Return true if success else return false.
-  /// \note For more info, see http://zh.wikipedia.org/wiki/Uuencode.
-  ///
-
-  bool unuue(std::istream& is, std::ostream& os);
-
-  ///
   /// \brief Base64 encode.
   /// \param [in] is Input stream.
   /// \param [out] os Output stream.

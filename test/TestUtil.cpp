@@ -96,45 +96,6 @@ TEST(Util, bitCount)
 }
 
 //
-// Test UUE.
-//
-
-TEST(Util, uue)
-{
-  std::string const sText("Each group of sixty output characters (corresponding to 45 input bytes) is output as a separate line preceded by an encoded character giving the number of encoded bytes on that line. For all lines except the last, this will be the character 'M' (ASCII code 77 = 32+45). If the input is not evenly divisible by 45, the last line will contain the remaining N output characters, preceded by the character whose code is 32 + the number of remaining input bytes. Finally, a line containing just a single space (or grave character) is output, followed by one line containing the string \"end\".");
-  std::string const sText2("M16%C:\"!G<F]U<\"!O9B!S:7AT>2!O=71P=70@8VAA<F%C=&5R<R`H8V]R<F5S\n"
-    "M<&]N9&EN9R!T;R`T-2!I;G!U=\"!B>71E<RD@:7,@;W5T<'5T(&%S(&$@<V5P\n"
-    "M87)A=&4@;&EN92!P<F5C961E9\"!B>2!A;B!E;F-O9&5D(&-H87)A8W1E<B!G\n"
-    "M:79I;F<@=&AE(&YU;6)E<B!O9B!E;F-O9&5D(&)Y=&5S(&]N('1H870@;&EN\n"
-    "M92X@1F]R(&%L;\"!L:6YE<R!E>&-E<'0@=&AE(&QA<W0L('1H:7,@=VEL;\"!B\n"
-    "M92!T:&4@8VAA<F%C=&5R(\"=-)R`H05-#24D@8V]D92`W-R`](#,R*S0U*2X@\n"
-    "M268@=&AE(&EN<'5T(&ES(&YO=\"!E=F5N;'D@9&EV:7-I8FQE(&)Y(#0U+\"!T\n"
-    "M:&4@;&%S=\"!L:6YE('=I;&P@8V]N=&%I;B!T:&4@<F5M86EN:6YG($X@;W5T\n"
-    "M<'5T(&-H87)A8W1E<G,L('!R96-E9&5D(&)Y('1H92!C:&%R86-T97(@=VAO\n"
-    "M<V4@8V]D92!I<R`S,B`K('1H92!N=6UB97(@;V8@<F5M86EN:6YG(&EN<'5T\n"
-    "M(&)Y=&5S+B!&:6YA;&QY+\"!A(&QI;F4@8V]N=&%I;FEN9R!J=7-T(&$@<VEN\n"
-    "M9VQE('-P86-E(\"AO<B!G<F%V92!C:&%R86-T97(I(&ES(&]U='!U=\"P@9F]L\n"
-    "M;&]W960@8GD@;VYE(&QI;F4@8V]N=&%I;FEN9R!T:&4@<W1R:6YG(\")E;F0B\n"
-    "!+@``");
-
-  std::stringstream ssText(sText), ss1;
-  if (!Util::uue(ssText, ss1)) {
-    FAIL("uue");
-  }
-
-  std::string s1(ss1.str());
-  CHECK(s1 == sText2);
-
-  std::stringstream ssText2(sText2), ss2;
-  if (!Util::unuue(ssText2, ss2)) {
-    FAIL("unuue");
-  }
-
-  std::string s2(ss2.str());
-  CHECK(s2 == sText);
-}
-
-//
 // Test base64.
 //
 
