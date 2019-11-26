@@ -453,6 +453,27 @@ public:
   }
 
   ///
+  /// \brief Get first free entity.
+  /// \return Return first free entity.
+  ///
+
+  int firstFree() const
+  {
+    return mFree1;
+  }
+
+  ///
+  /// \brief Get next free entity.
+  /// \param [in] cursor Current entity ID(index).
+  /// \return Return next free entity.
+  ///
+
+  int nextFree(int cursor) const
+  {
+    return mLstNext[cursor];
+  }
+
+  ///
   /// \brief Get last used entity.
   /// \return Return last used entity.
   ///

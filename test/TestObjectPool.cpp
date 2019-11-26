@@ -548,4 +548,22 @@ TEST(ObjectPool, clear)
   CHECK(0 == p2.size());
 }
 
+TEST(ObjectPool, firstFree)
+{
+  const int N = 16;
+  ObjectPool<int, N> p;
+
+  for (int i = 0; i < N-1; i++) {
+    int a = p.alloc(i);
+    CHECK(a == i);
+  }
+  CHECK(N-1 == p.firstFree());
+
+  for (int i = 0; i < N-1; i++) {
+    p.free(i);                          // Append to free list end.
+    p.alloc();
+    CHECK(i == p.firstFree());
+  }
+}
+
 // end of TestObjectPool.cpp
