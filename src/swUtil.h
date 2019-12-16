@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <iterator>
 #include <vector>
 
 #include "swinc.h"
