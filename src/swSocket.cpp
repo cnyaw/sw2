@@ -61,8 +61,6 @@ namespace impl {
 //
 
 #define TIMEOUT_DISCONNECTING 10        // Disconnecting phase timeout, second.
-#define TRIGGER_PROCESS_FREQUENCY 8     // Default frequency of trigger process(send/recv), Hz.
-#define MAX_TRIGGER_PROCESS_FREQUENCY 1000 // Max frequency of trigger process, means no limit.
 #define MAX_PACKET_BUFFER_SIZE 256      // Max buffer size, bytes.
 #define MAX_TRIGGER_READ_SIZE 1024      // Max data size will be read in each trigger process, bytes.
 #define MAX_TRIGGER_WIRTE_SIZE 1024     // Max data size will be written in each trigger process, bytes.
@@ -464,17 +462,6 @@ public:
     assert(CS_CONNECTED == m_state);
 
     //
-    // Control the trigger frequency.
-    //
-
-    if (MAX_TRIGGER_PROCESS_FREQUENCY > *m_pTriggerFreq) {
-      if (!m_lastProcessTimeout.isExpired()) {
-        return true;
-      }
-      m_lastProcessTimeout.setTimeout(1000 / *m_pTriggerFreq);
-    }
-
-    //
     // Process receive data.
     //
 
@@ -661,7 +648,6 @@ public:
   {
     if (JOIN == state) {
       m_state = CS_CONNECTED;
-      m_lastProcessTimeout.setTimeout(1000 / TRIGGER_PROCESS_FREQUENCY);
       ::memset(&m_netStats, 0, sizeof(SocketClientStats));
       m_netStats.startTime = ::time(0);
       onConnected();
@@ -800,7 +786,6 @@ public:
   std::string m_addr;                   // Host address.
   SocketClientStats m_netStats;         // Net stats.
   SocketServerStats* m_pSvrNetStats;
-  int *m_pTriggerFreq;
 
   implSocketPacketBuffer* m_pSocketFreeBuff; // Free list of packet buffer.
 
@@ -813,10 +798,9 @@ class implSocketClient : public implSocketBase, public SocketClient
 {
 public:
 
-  explicit implSocketClient(SocketClientCallback* pCallback) : m_TriggerFreq(TRIGGER_PROCESS_FREQUENCY), m_pCallback(pCallback)
+  explicit implSocketClient(SocketClientCallback* pCallback) : m_pCallback(pCallback)
   {
     SocketClient::userData = 0;
-    implSocketBase::m_pTriggerFreq = &m_TriggerFreq;
   }
 
   virtual ~implSocketClient()
@@ -873,16 +857,6 @@ public:
     implSocketBase::m_trigger.trigger();
   }
 
-  virtual int getTriggerFrequency() const
-  {
-    return m_TriggerFreq;
-  }
-
-  virtual void setTriggerFrequency(int freq)
-  {
-    m_TriggerFreq = std::min(MAX_TRIGGER_PROCESS_FREQUENCY, std::max(1, freq));
-  }
-
   //
   // Notification.
   //
@@ -904,7 +878,6 @@ public:
 
 public:
 
-  int m_TriggerFreq;
   SocketClientCallback* m_pCallback;
 };
 
@@ -983,8 +956,7 @@ public:
     m_listen(INVALID_SOCKET),
     m_pClient(0),
     m_pFreeClient(0),
-    m_pCallback(pCallback),
-    m_TriggerFreq(TRIGGER_PROCESS_FREQUENCY)
+    m_pCallback(pCallback)
   {
     SocketServer::userData = 0;
     ::memset(&m_netStats, 0, sizeof(SocketServerStats));
@@ -1211,7 +1183,6 @@ public:
       pClient->userData = 0;
       pClient->m_socket = s;
       pClient->m_state = CS_CONNECTED;
-      pClient->m_pTriggerFreq = &m_TriggerFreq;
 
       pClient->m_pNext = m_pClient;     // Link.
       m_pClient = pClient;
@@ -1280,16 +1251,6 @@ public:
     return m_addr;
   }
 
-  virtual int getTriggerFrequency() const
-  {
-    return m_TriggerFreq;
-  }
-
-  virtual void setTriggerFrequency(int freq)
-  {
-    m_TriggerFreq = std::min(MAX_TRIGGER_PROCESS_FREQUENCY, std::max(1, freq));
-  }
-
 public:
 
   SOCKET m_listen;                      // Listening socket.
@@ -1300,8 +1261,6 @@ public:
   implSocketConnection* m_pFreeClient;  // Available client(s).
 
   SocketServerCallback* m_pCallback;
-
-  int m_TriggerFreq;
 };
 
 } // namespace impl

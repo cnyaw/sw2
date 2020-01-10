@@ -468,23 +468,6 @@ public:
   ///
 
   virtual void trigger()=0;
-
-  ///
-  /// \brief Get trigger frequency.
-  /// \return Return trigger frequency setting.
-  /// \note A trigger frequency is used to control the data flow of send/recv
-  ///       process of a connection. Higher frequency can handle more data in
-  ///       a second, lower frequency can handle less data in a second.
-  ///
-
-  virtual int getTriggerFrequency() const=0;
-
-  ///
-  /// \brief Set trigger frequency.
-  /// \param [in] freq New trigger frequency.
-  ///
-
-  virtual void setTriggerFrequency(int freq)=0;
 };
 
 ///
@@ -561,23 +544,6 @@ public:
   ///
 
   virtual NetworkConnection* getNextConnection(NetworkConnection* pClient) const=0;
-
-  ///
-  /// \brief Get trigger frequency.
-  /// \return Return trigger frequency setting.
-  /// \note A trigger frequency is used to control the data flow of send/recv
-  ///       process of a connection. Higher frequency can handle more data in
-  ///       a second, lower frequency can handle less data in a second.
-  ///
-
-  virtual int getTriggerFrequency() const=0;
-
-  ///
-  /// \brief Set trigger frequency.
-  /// \param [in] freq New trigger frequency.
-  ///
-
-  virtual void setTriggerFrequency(int freq)=0;
 
   uint_ptr userData;                    ///< User define data.
 };

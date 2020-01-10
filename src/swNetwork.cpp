@@ -625,16 +625,6 @@ public:
     }
   }
 
-  virtual int getTriggerFrequency() const
-  {
-    return m_pClient->getTriggerFrequency();
-  }
-
-  virtual void setTriggerFrequency(int freq)
-  {
-    m_pClient->setTriggerFrequency(freq);
-  }
-
   //
   // Implement implNetworkBase.
   //
@@ -891,16 +881,6 @@ public:
   virtual std::string getAddr() const
   {
     return m_pServer->getAddr();
-  }
-
-  virtual int getTriggerFrequency() const
-  {
-    return m_pServer->getTriggerFrequency();
-  }
-
-  virtual void setTriggerFrequency(int freq)
-  {
-    m_pServer->setTriggerFrequency(freq);
   }
 
 public:

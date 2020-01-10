@@ -313,7 +313,6 @@ public:
     if (!waitConnected()) {
       return false;
     }
-    mClient->setTriggerFrequency(1000);
     return true;
   }
 
