@@ -421,6 +421,15 @@ public:
       cs.packetsSent = ss.packetsSent;
     } else {
       memset(&cs, 0, sizeof(cs));
+      for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
+        NetworkClientStats ns = m_poolDepex[i].m_pClient->getNetStats();
+        cs.bytesRecv += ns.bytesRecv;
+        cs.bytesSent += ns.bytesSent;
+        cs.packetsRecv += ns.packetsRecv;
+        cs.packetsSent += ns.packetsSent;
+        cs.startTime = ns.startTime;
+        cs.upTime = ns.upTime;
+      }
     }
     return cs;
   }
