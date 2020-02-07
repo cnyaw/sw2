@@ -130,13 +130,6 @@ public:
   virtual std::string getAddr() const=0;
 
   ///
-  /// \brief Get server address.
-  /// \return Return address, format: ip:port.
-  ///
-
-  virtual std::string getServerAddr() const=0;
-
-  ///
   /// Get statistics.
   /// \return Return statistics.
   ///

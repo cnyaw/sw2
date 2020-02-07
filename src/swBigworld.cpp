@@ -86,11 +86,6 @@ public:
     return m_pConn->getAddr();
   }
 
-  virtual std::string getServerAddr() const
-  {
-    return "";
-  }
-
   virtual NetworkClientStats getNetStats()
   {
     return m_pConn->getNetStats();
@@ -178,11 +173,6 @@ public:
   virtual std::string getAddr() const
   {
     return m_AddrNode;
-  }
-
-  virtual std::string getServerAddr() const
-  {
-    return "";
   }
 
   virtual NetworkClientStats getNetStats()
@@ -399,15 +389,6 @@ public:
     return m_addrNode;
   }
 
-  virtual std::string getServerAddr() const
-  {
-    if (m_pServer) {
-      return m_pServer->getAddr();
-    } else {
-      return "";
-    }
-  }
-
   virtual NetworkClientStats getNetStats()
   {
     NetworkClientStats cs;
@@ -472,6 +453,7 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
+      m_addrNode = getServerAddr_i();
     } else {
       // Ignore fail if this node is client only.
     }
@@ -657,6 +639,16 @@ public:
     }
 
     return true;
+  }
+
+  std::string getServerAddr_i() const
+  {
+    std::string addr = m_pServer->getAddr();
+    const std::string AnyAddr("0.0.0.0");
+    if (std::string::npos != addr.find(AnyAddr)) {
+      addr.replace(0, AnyAddr.size(), "localhost");
+    }
+    return addr;
   }
 
   void updateDepex(const Ini &ini, const std::string &idNode)
