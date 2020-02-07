@@ -170,6 +170,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\swHttp.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\swIni.cpp"
 				>
 			</File>

@@ -252,135 +252,13 @@ TEST(Archive, addFileSystem4)
   Archive::free(par);
 }
 
-class HttpFileSystem : public SocketClientCallback, public ArchiveFileSystem
+class HttpFileSystem : public ArchiveFileSystem
 {
 public:
-
-  SocketClient* mClient;
-  std::string mData;
-
-  HttpFileSystem()
-  {
-    mClient = SocketClient::alloc(this);
-  }
-
-  virtual ~HttpFileSystem()
-  {
-    SocketClient::free(mClient);
-  }
-
-  //
-  // SocketClientCallback.
-  //
-
-  virtual void onSocketServerReady(SocketClient*)
-  {
-    mData.clear();
-  }
-
-  virtual void onSocketStreamReady(SocketClient*, int len, void const* pStream)
-  {
-    mData.append((char const*)pStream, len);
-  }
-
-  bool waitConnected() const
-  {
-    return waitState(CS_CONNECTED);
-  }
-
-  bool waitDisconnected() const
-  {
-    return waitState(CS_DISCONNECTED);
-  }
-
-  bool waitState(int s) const
-  {
-    sw2::TimeoutTimer lt(5000);
-    while (!lt.isExpired()) {
-      mClient->trigger();
-      if (mClient->getConnectionState() == s) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool connect(const std::string &url) const
-  {
-    if (!mClient->connect(url)) {
-      return false;
-    }
-    if (!waitConnected()) {
-      return false;
-    }
-    return true;
-  }
-
-  void disconnect() const
-  {
-    mClient->disconnect();
-    waitDisconnected();
-  }
-
-  bool waitData(const std::string &token) const
-  {
-    sw2::TimeoutTimer lt(5000);
-    while (!lt.isExpired()) {
-      mClient->trigger();
-      if (std::string::npos != mData.find(token)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool waitData(size_t length) const
-  {
-    sw2::TimeoutTimer lt(5000);
-    while (!lt.isExpired()) {
-      mClient->trigger();
-      if (mData.length() >= length) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   //
   // ArchiveFileSystem.
   //
-
-  bool get(const std::string& name) const
-  {
-    assert(mClient);
-    size_t urlpos = name.find_first_of('/');
-    if (std::string::npos == urlpos) {
-      return false;
-    }
-    const std::string url(name, 0, urlpos);
-    if (!connect(url + ":80")) {
-      return false;
-    }
-    std::string get("GET " + name.substr(urlpos) + " HTTP/1.1\r\nHost:" + url + "\r\n\r\n");
-    mClient->send((int)get.length(), get.c_str());
-    if (!waitData("200 OK") || !waitData("Content-Length:")) {
-      disconnect();
-      return false;
-    }
-    int datlen = 0;
-    sscanf(mData.c_str() + mData.find("Content-Length"), "Content-Length:%d", &datlen);
-    if (!waitData("\r\n\r\n")) {
-      disconnect();
-      return false;
-    }
-    size_t headlen = mData.find("\r\n\r\n");
-    if (!waitData(headlen + datlen)) {
-      disconnect();
-      return false;
-    }
-    disconnect();
-    return true;
-  }
 
   virtual bool isFileExist(std::string const& name) const
   {
@@ -389,14 +267,15 @@ public:
 
   virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
   {
-    assert(mClient);
-    if (!get(name)) {
+    std::string resp = Util::httpGet(name);
+    if (!resp.empty()) {
+      size_t headlen = resp.find("\r\n\r\n");
+      assert(std::string::npos != headlen);
+      outs.write(resp.data() + headlen + 4, (int)(resp.length() - headlen - 4));
+      return true;
+    } else {
       return false;
     }
-    size_t headlen = mData.find("\r\n\r\n");
-    assert(std::string::npos != headlen);
-    outs.write(mData.data() + headlen + 4, (int)(mData.length() - headlen - 4));
-    return true;
   }
 };
 
