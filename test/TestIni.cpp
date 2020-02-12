@@ -119,7 +119,7 @@ TEST(Ini, loadutf8)
 std::string getUtf8Str(const std::vector<int> &v)
 {
   std::string s;
-  Util::unicodeToUtf8(v, s);
+  Util::u16ToUtf8(v, s);
   return s;
 }
 

@@ -318,7 +318,7 @@ void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
   }
 }
 
-void Util::unicodeToUtf8(const std::vector<int> &u, std::string &utf8)
+void Util::u16ToUtf8(const std::vector<int> &u, std::string &utf8)
 {
   for (size_t i = 0; i < u.size(); i++) {
     int ch = u[i];
