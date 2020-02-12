@@ -78,6 +78,8 @@ static const wchar_t UNICODE_ITEM_3[] = L"이 프로젝트 III입니다";
 static const wchar_t UNICODE_ITEM_4[] = L"Это четыре товара";
 static const wchar_t UNICODE_ITEM_5[] = L"นี้เป็นโครงการที่ห้า";
 
+#define GET_UNICODE_ARR(w) std::vector<int>(w, w + sizeof(w)/sizeof(w[0]) - 1)
+
 TEST(Ini, loadutf8)
 {
   Ini ini;
@@ -91,28 +93,37 @@ TEST(Ini, loadutf8)
 
   std::vector<int> secName;
   Util::utf8ToU16(sec.key.c_str(), secName);
-  CHECK(secName == std::vector<int>(UNICODE_SEC_NAME, UNICODE_SEC_NAME + sizeof(UNICODE_SEC_NAME)/sizeof(UNICODE_SEC_NAME[0]) - 1));
+  CHECK(secName == GET_UNICODE_ARR(UNICODE_SEC_NAME));
 
   std::vector<int> item1;
   Util::utf8ToU16(sec["1"].value.c_str(), item1);
-  CHECK(item1 == std::vector<int>(UNICODE_ITEM_1, UNICODE_ITEM_1 + sizeof(UNICODE_ITEM_1)/sizeof(UNICODE_ITEM_1[0]) - 1));
+  CHECK(item1 == GET_UNICODE_ARR(UNICODE_ITEM_1));
 
   std::vector<int> item2;
   Util::utf8ToU16(sec["2"].value.c_str(), item2);
-  CHECK(item2 == std::vector<int>(UNICODE_ITEM_2, UNICODE_ITEM_2 + sizeof(UNICODE_ITEM_2)/sizeof(UNICODE_ITEM_2[0]) - 1));
+  CHECK(item2 == GET_UNICODE_ARR(UNICODE_ITEM_2));
 
   std::vector<int> item3;
   Util::utf8ToU16(sec["3"].value.c_str(), item3);
-  CHECK(item3 == std::vector<int>(UNICODE_ITEM_3, UNICODE_ITEM_3 + sizeof(UNICODE_ITEM_3)/sizeof(UNICODE_ITEM_3[0]) - 1));
+  CHECK(item3 == GET_UNICODE_ARR(UNICODE_ITEM_3));
 
   std::vector<int> item4;
   Util::utf8ToU16(sec["4"].value.c_str(), item4);
-  CHECK(item4 == std::vector<int>(UNICODE_ITEM_4, UNICODE_ITEM_4 + sizeof(UNICODE_ITEM_4)/sizeof(UNICODE_ITEM_4[0]) - 1));
+  CHECK(item4 == GET_UNICODE_ARR(UNICODE_ITEM_4));
 
   std::vector<int> item5;
   Util::utf8ToU16(sec["5"].value.c_str(), item5);
-  CHECK(item5 == std::vector<int>(UNICODE_ITEM_5, UNICODE_ITEM_5 + sizeof(UNICODE_ITEM_5)/sizeof(UNICODE_ITEM_5[0]) - 1));
+  CHECK(item5 == GET_UNICODE_ARR(UNICODE_ITEM_5));
 }
+
+std::string getUtf8Str(const std::vector<int> &v)
+{
+  std::string s;
+  Util::unicodeToUtf8(v, s);
+  return s;
+}
+
+#define GET_UTF8_STR(w) getUtf8Str(std::vector<int>(w, w + sizeof(w)/sizeof(w[0]) - 1))
 
 TEST(Ini, loadutf8_2)
 {
@@ -125,34 +136,22 @@ TEST(Ini, loadutf8_2)
   const Ini &sec = ini.items[0];
   CHECK(5 == sec.size());
 
-  std::vector<int> vSecName(UNICODE_SEC_NAME, UNICODE_SEC_NAME + sizeof(UNICODE_SEC_NAME)/sizeof(UNICODE_SEC_NAME[0]) - 1);
-  std::string secName;
-  Util::unicodeToUtf8(vSecName, secName);
+  std::string secName = GET_UTF8_STR(UNICODE_SEC_NAME);
   CHECK(secName == sec.key);
 
-  std::vector<int> v1(UNICODE_ITEM_1, UNICODE_ITEM_1 + sizeof(UNICODE_ITEM_1)/sizeof(UNICODE_ITEM_1[0]) - 1);
-  std::string item1;
-  Util::unicodeToUtf8(v1, item1);
+  std::string item1 = GET_UTF8_STR(UNICODE_ITEM_1);
   CHECK(item1 == sec["1"].value);
 
-  std::vector<int> v2(UNICODE_ITEM_2, UNICODE_ITEM_2 + sizeof(UNICODE_ITEM_2)/sizeof(UNICODE_ITEM_2[0]) - 1);
-  std::string item2;
-  Util::unicodeToUtf8(v2, item2);
+  std::string item2 = GET_UTF8_STR(UNICODE_ITEM_2);
   CHECK(item2 == sec["2"].value);
 
-  std::vector<int> v3(UNICODE_ITEM_3, UNICODE_ITEM_3 + sizeof(UNICODE_ITEM_3)/sizeof(UNICODE_ITEM_3[0]) - 1);
-  std::string item3;
-  Util::unicodeToUtf8(v3, item3);
+  std::string item3 = GET_UTF8_STR(UNICODE_ITEM_3);
   CHECK(item3 == sec["3"].value);
 
-  std::vector<int> v4(UNICODE_ITEM_4, UNICODE_ITEM_4 + sizeof(UNICODE_ITEM_4)/sizeof(UNICODE_ITEM_4[0]) - 1);
-  std::string item4;
-  Util::unicodeToUtf8(v4, item4);
+  std::string item4 = GET_UTF8_STR(UNICODE_ITEM_4);
   CHECK(item4 == sec["4"].value);
 
-  std::vector<int> v5(UNICODE_ITEM_5, UNICODE_ITEM_5 + sizeof(UNICODE_ITEM_5)/sizeof(UNICODE_ITEM_5[0]) - 1);
-  std::string item5;
-  Util::unicodeToUtf8(v5, item5);
+  std::string item5 = GET_UTF8_STR(UNICODE_ITEM_5);
   CHECK(item5 == sec["5"].value);
 }
 
