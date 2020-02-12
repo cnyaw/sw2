@@ -231,6 +231,12 @@ namespace Util {
   void utf8ToU16(const char *utf8, std::vector<int> &u);
 
   //
+  // \brief Convert unicode array to utf8 string.
+  //
+
+  void unicodeToUtf8(const std::vector<int> &u, std::string &utf8);
+
+  //
   // \brief Send HTTP GET request to url and get response.
   // \param [in] url Target URL.
   // \return Return the response from url.

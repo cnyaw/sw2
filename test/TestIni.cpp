@@ -71,6 +71,13 @@ TEST(Ini, load)
   CHECK("\"string4\"" == ini["sec8"]["s4"].value);
 }
 
+static const wchar_t UNICODE_SEC_NAME[] = L"這是中文";
+static const wchar_t UNICODE_ITEM_1[] = L"这是项目一";
+static const wchar_t UNICODE_ITEM_2[] = L"これは、プロジェクトIIです";
+static const wchar_t UNICODE_ITEM_3[] = L"이 프로젝트 III입니다";
+static const wchar_t UNICODE_ITEM_4[] = L"Это четыре товара";
+static const wchar_t UNICODE_ITEM_5[] = L"นี้เป็นโครงการที่ห้า";
+
 TEST(Ini, loadutf8)
 {
   Ini ini;
@@ -82,35 +89,71 @@ TEST(Ini, loadutf8)
   const Ini &sec = ini.items[0];
   CHECK(5 == sec.size());
 
-  static const wchar_t SEC_NAME[] = L"這是中文";
   std::vector<int> secName;
   Util::utf8ToU16(sec.key.c_str(), secName);
-  CHECK(secName == std::vector<int>(SEC_NAME, SEC_NAME + sizeof(SEC_NAME)/sizeof(SEC_NAME[0]) - 1));
+  CHECK(secName == std::vector<int>(UNICODE_SEC_NAME, UNICODE_SEC_NAME + sizeof(UNICODE_SEC_NAME)/sizeof(UNICODE_SEC_NAME[0]) - 1));
 
-  static const wchar_t ITEM_1[] = L"这是项目一";
   std::vector<int> item1;
-  Util::utf8ToU16(sec.items[0].value.c_str(), item1);
-  CHECK(item1 == std::vector<int>(ITEM_1, ITEM_1 + sizeof(ITEM_1)/sizeof(ITEM_1[0]) - 1));
+  Util::utf8ToU16(sec["1"].value.c_str(), item1);
+  CHECK(item1 == std::vector<int>(UNICODE_ITEM_1, UNICODE_ITEM_1 + sizeof(UNICODE_ITEM_1)/sizeof(UNICODE_ITEM_1[0]) - 1));
 
-  static const wchar_t ITEM_2[] = L"これは、プロジェクトIIです";
   std::vector<int> item2;
-  Util::utf8ToU16(sec.items[1].value.c_str(), item2);
-  CHECK(item2 == std::vector<int>(ITEM_2, ITEM_2 + sizeof(ITEM_2)/sizeof(ITEM_2[0]) - 1));
+  Util::utf8ToU16(sec["2"].value.c_str(), item2);
+  CHECK(item2 == std::vector<int>(UNICODE_ITEM_2, UNICODE_ITEM_2 + sizeof(UNICODE_ITEM_2)/sizeof(UNICODE_ITEM_2[0]) - 1));
 
-  static const wchar_t ITEM_3[] = L"이 프로젝트 III입니다";
   std::vector<int> item3;
-  Util::utf8ToU16(sec.items[2].value.c_str(), item3);
-  CHECK(item3 == std::vector<int>(ITEM_3, ITEM_3 + sizeof(ITEM_3)/sizeof(ITEM_3[0]) - 1));
+  Util::utf8ToU16(sec["3"].value.c_str(), item3);
+  CHECK(item3 == std::vector<int>(UNICODE_ITEM_3, UNICODE_ITEM_3 + sizeof(UNICODE_ITEM_3)/sizeof(UNICODE_ITEM_3[0]) - 1));
 
-  static const wchar_t ITEM_4[] = L"Это четыре товара";
   std::vector<int> item4;
-  Util::utf8ToU16(sec.items[3].value.c_str(), item4);
-  CHECK(item4 == std::vector<int>(ITEM_4, ITEM_4 + sizeof(ITEM_4)/sizeof(ITEM_4[0]) - 1));
+  Util::utf8ToU16(sec["4"].value.c_str(), item4);
+  CHECK(item4 == std::vector<int>(UNICODE_ITEM_4, UNICODE_ITEM_4 + sizeof(UNICODE_ITEM_4)/sizeof(UNICODE_ITEM_4[0]) - 1));
 
-  static const wchar_t ITEM_5[] = L"นี้เป็นโครงการที่ห้า";
   std::vector<int> item5;
-  Util::utf8ToU16(sec.items[4].value.c_str(), item5);
-  CHECK(item5 == std::vector<int>(ITEM_5, ITEM_5 + sizeof(ITEM_5)/sizeof(ITEM_5[0]) - 1));
+  Util::utf8ToU16(sec["5"].value.c_str(), item5);
+  CHECK(item5 == std::vector<int>(UNICODE_ITEM_5, UNICODE_ITEM_5 + sizeof(UNICODE_ITEM_5)/sizeof(UNICODE_ITEM_5[0]) - 1));
+}
+
+TEST(Ini, loadutf8_2)
+{
+  Ini ini;
+  CHECK(0 == ini.size());
+
+  CHECK(ini.load("./data/testw.ini"));
+  CHECK(1 == ini.size());
+
+  const Ini &sec = ini.items[0];
+  CHECK(5 == sec.size());
+
+  std::vector<int> vSecName(UNICODE_SEC_NAME, UNICODE_SEC_NAME + sizeof(UNICODE_SEC_NAME)/sizeof(UNICODE_SEC_NAME[0]) - 1);
+  std::string secName;
+  Util::unicodeToUtf8(vSecName, secName);
+  CHECK(secName == sec.key);
+
+  std::vector<int> v1(UNICODE_ITEM_1, UNICODE_ITEM_1 + sizeof(UNICODE_ITEM_1)/sizeof(UNICODE_ITEM_1[0]) - 1);
+  std::string item1;
+  Util::unicodeToUtf8(v1, item1);
+  CHECK(item1 == sec["1"].value);
+
+  std::vector<int> v2(UNICODE_ITEM_2, UNICODE_ITEM_2 + sizeof(UNICODE_ITEM_2)/sizeof(UNICODE_ITEM_2[0]) - 1);
+  std::string item2;
+  Util::unicodeToUtf8(v2, item2);
+  CHECK(item2 == sec["2"].value);
+
+  std::vector<int> v3(UNICODE_ITEM_3, UNICODE_ITEM_3 + sizeof(UNICODE_ITEM_3)/sizeof(UNICODE_ITEM_3[0]) - 1);
+  std::string item3;
+  Util::unicodeToUtf8(v3, item3);
+  CHECK(item3 == sec["3"].value);
+
+  std::vector<int> v4(UNICODE_ITEM_4, UNICODE_ITEM_4 + sizeof(UNICODE_ITEM_4)/sizeof(UNICODE_ITEM_4[0]) - 1);
+  std::string item4;
+  Util::unicodeToUtf8(v4, item4);
+  CHECK(item4 == sec["4"].value);
+
+  std::vector<int> v5(UNICODE_ITEM_5, UNICODE_ITEM_5 + sizeof(UNICODE_ITEM_5)/sizeof(UNICODE_ITEM_5[0]) - 1);
+  std::string item5;
+  Util::unicodeToUtf8(v5, item5);
+  CHECK(item5 == sec["5"].value);
 }
 
 TEST(Ini, loadstore)

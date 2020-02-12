@@ -318,6 +318,28 @@ void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
   }
 }
 
+void Util::unicodeToUtf8(const std::vector<int> &u, std::string &utf8)
+{
+  for (size_t i = 0; i < u.size(); i++) {
+    int ch = u[i];
+    if (0x80 > ch) {
+      utf8.push_back(ch);
+    } else if (0x800 >= ch) {
+      utf8.push_back((ch >> 6) | 0xc0);
+      utf8.push_back((ch & 0x3f) | 0x80);
+    } else if (0x10000 >= ch) {
+      utf8.push_back((ch >> 12) | 0xe0);
+      utf8.push_back(((ch >> 6) & 0x3f) | 0x80);
+      utf8.push_back((ch & 0x3f) | 0x80);
+    } else if (0x110000 >= ch) {
+      utf8.push_back((ch >> 18) | 0xf0);
+      utf8.push_back(((ch >> 12) & 0x3f) | 0x80);
+      utf8.push_back(((ch >> 6) & 0x3f) | 0x80);
+      utf8.push_back((ch & 0x3f) | 0x80);
+    }
+  }
+}
+
 TimeoutTimer::TimeoutTimer() : timeExpired(0)
 {
   timeExpired = Util::getTickCount();
