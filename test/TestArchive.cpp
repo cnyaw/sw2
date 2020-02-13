@@ -267,8 +267,8 @@ public:
 
   virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
   {
-    std::string resp = Util::httpGet(name);
-    if (!resp.empty()) {
+    std::string resp;
+    if (Util::httpGet(name, resp)) {
       size_t headlen = resp.find("\r\n\r\n");
       assert(std::string::npos != headlen);
       outs.write(resp.data() + headlen + 4, (int)(resp.length() - headlen - 4));

@@ -239,10 +239,11 @@ namespace Util {
   //
   // \brief Send HTTP GET request to url and get response.
   // \param [in] url Target URL.
-  // \return Return the response from url.
+  // \param [out] resp The response from url.
+  // \return Return true if request success else false.
   //
 
-  std::string httpGet(const std::string &url);
+  bool httpGet(const std::string &url, std::string &resp);
 
 } // namespace Util
 

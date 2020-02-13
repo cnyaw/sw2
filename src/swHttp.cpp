@@ -18,9 +18,9 @@ class implHttpRequest : public SocketClientCallback
 {
 public:
   SocketClient* mClient;
-  std::string mData;
+  std::string &mData;
 
-  implHttpRequest()
+  implHttpRequest(std::string &data) : mData(data)
   {
     mClient = SocketClient::alloc(this);
   }
@@ -142,14 +142,10 @@ public:
 
 } // namespace impl
 
-std::string Util::httpGet(const std::string &url)
+bool Util::httpGet(const std::string &url, std::string &resp)
 {
-  impl::implHttpRequest http;
-  if (http.get(url)) {
-    return http.mData;
-  } else {
-    return "";
-  }
+  impl::implHttpRequest http(resp);
+  return http.get(url);
 }
 
 } // namespace sw2
