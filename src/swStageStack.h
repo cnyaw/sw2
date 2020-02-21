@@ -108,6 +108,8 @@
 
 #include "swinc.h"
 
+namespace sw2 {
+
 ///
 /// Stage state.
 //
@@ -118,8 +120,6 @@ enum STAGESTACK_STATE
   LEAVE,                                ///< When switch to new state, previous state will get this state notify.
   TRIGGER                               ///< When trigger the controller, current state will get this notify.
 };
-
-namespace sw2 {
 
 ///
 /// \brief Stage stack.
