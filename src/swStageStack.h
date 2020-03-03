@@ -116,9 +116,11 @@ namespace sw2 {
 
 enum STAGESTACK_STATE
 {
-  JOIN,                                 ///< When swtich to new state, new state will get this state notify.
-  LEAVE,                                ///< When switch to new state, previous state will get this state notify.
-  TRIGGER                               ///< When trigger the controller, current state will get this notify.
+  JOIN,                                 ///< When a new state is pushsed, new state will get this state notify.
+  LEAVE,                                ///< When a state is popped, previous state will get this state notify.
+  TRIGGER,                              ///< When trigger the controller, current state will get this notify.
+  SUSPEND,                              ///< When a new state is pushed, previous state will get this notify.
+  RESUME                                ///< When a state is popped, previous state will get this notify.
 };
 
 ///
@@ -177,6 +179,9 @@ public:
   void push(Stage stage)
   {
     assert(stage && MAX_STAGE - 1 > m_top);
+    if (-1 != m_top) {
+      (m_pHost->*m_stack[m_top])(SUSPEND, 0);
+    }
     m_stack[++m_top] = stage;
     (m_pHost->*stage)(JOIN, 0);
   }
@@ -193,6 +198,9 @@ public:
       int top = m_top;
       m_top -= 1;
       (m_pHost->*m_stack[top])(LEAVE, 0);
+      if (-1 != m_top) {
+        (m_pHost->*m_stack[m_top])(RESUME, 0);
+      }
     }
   }
 

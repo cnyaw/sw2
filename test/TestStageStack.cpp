@@ -11,6 +11,7 @@
 #include "CppUnitLite/TestHarness.h"
 
 #include "swStageStack.h"
+#include "swUtil.h"
 using namespace sw2;
 
 class TestStageStack
@@ -65,10 +66,6 @@ public:
   }
 };
 
-//
-// Initialil value check.
-//
-
 TEST(StageStack, test)
 {
   TestStageStack t1;
@@ -88,6 +85,89 @@ TEST(StageStack, test)
 
   t1.trigger();
   CHECK(t1.mStack.top() == 0);
+}
+
+class TestStageStack2
+{
+public:
+  StageStack<TestStageStack2> m_stage;
+  int m_count;                          // join,resume:+1, leave,suspend:-1.
+
+  TestStageStack2() : m_count(0)
+  {
+    m_stage.initialize(this, &TestStageStack2::s1);
+  }
+
+  void defs(int s)
+  {
+    if (JOIN == s || RESUME == s) {
+      m_count += 1;
+    }
+    if (LEAVE == s || SUSPEND == s) {
+      m_count -= 1;
+    }
+  }
+
+  void s1(int s, uint_ptr)
+  {
+    defs(s);
+    if (TRIGGER == s) {
+      m_stage.push(&TestStageStack2::s2);
+    }
+  }
+
+  void s2(int s, uint_ptr)
+  {
+    defs(s);
+    if (TRIGGER == s) {
+      if (rand() % 2) {
+        m_stage.pop();
+      } else {
+        m_stage.push(&TestStageStack2::s3);
+      }
+    }
+  }
+
+  void s3(int s, uint_ptr)
+  {
+    defs(s);
+    if (TRIGGER == s) {
+      if (rand() % 2) {
+        m_stage.pop();
+      } else {
+        m_stage.push(&TestStageStack2::s4);
+      }
+    }
+  }
+
+  void s4(int s, uint_ptr)
+  {
+    defs(s);
+    if (TRIGGER == s) {
+      m_stage.pop();
+    }
+  }
+
+  bool test(int ticks) const
+  {
+    return 1 == m_count;
+  }
+
+  void trigger()
+  {
+    m_stage.trigger();
+  }
+};
+
+TEST(StageStack, test2)
+{
+  const int TICKS = rangeRand(1500, 2000);
+
+  TestStageStack2 s;
+  for (int i = 0; i < TICKS; i++) {
+    s.trigger();
+  }
+  CHECK(s.test(1000));
 }
 
 // end of TestStageStack.cpp
