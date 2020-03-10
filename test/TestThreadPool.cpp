@@ -286,4 +286,62 @@ wait:
   UninitializeThreadPool();
 }
 
+class TestBankBalance : public ThreadTask
+{
+public:
+  ThreadLock *m_pLock;
+  int *m_pBalance;
+  int m_withdraw;
+
+  virtual void threadTask()
+  {
+    m_pLock->lock();
+    if (m_withdraw <= *m_pBalance) {
+      *m_pBalance -= m_withdraw;
+    }
+    m_pLock->unlock();
+  }
+};
+
+TEST(ThreadPool, bankbalance)
+{
+  const int n = 20;
+  CHECK(InitializeThreadPool(n));
+
+  {
+    ThreadLock *pLock = ThreadLock::alloc();
+    int balance = 1000, result;
+    TestBankBalance test[n];
+
+    result = balance;
+    for (int i = 0; i < n; i++) {
+      TestBankBalance &t = test[i];
+      t.m_pLock = pLock;
+      t.m_pBalance = &balance;
+      int withdraw = 3 * (1 + i);
+      t.m_withdraw = withdraw;
+      result -= withdraw;
+    }
+
+    for (int i = 0; i < n; i++) {
+      CHECK(!test[i].isRunning());
+      test[i].runTask();
+    }
+
+wait:
+    for (int i = 0; i < n; i++) {
+      if (test[i].isRunning()) {
+        Util::sleep(1);
+        goto wait;
+      }
+    }
+
+    CHECK(result == balance);
+
+    ThreadLock::free(pLock);
+  }
+
+  UninitializeThreadPool();
+}
+
 // end of TestThreadPool.cpp
