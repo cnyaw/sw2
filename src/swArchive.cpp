@@ -281,7 +281,7 @@ public:
     return true;
   }
 
-  bool loadFileInternal(zItem const& item, std::istream& stream, std::ostream& outs, std::string const& password) const
+  bool loadFile_i(zItem const& item, std::istream& stream, std::ostream& outs, std::string const& password) const
   {
     //
     // Is password present if the item is encrypted?
@@ -393,14 +393,14 @@ public:
       // Load from file archive.
       //
 
-      return loadFileInternal(it->second, ifs, outs, password);
+      return loadFile_i(it->second, ifs, outs, password);
     }
 
     //
     // Load from memory archive.
     //
 
-    bool ret = loadFileInternal(it->second, mem, outs, password);
+    bool ret = loadFile_i(it->second, mem, outs, password);
 
     mem.seekg(0, std::ios::beg);
 
