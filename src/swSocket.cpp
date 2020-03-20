@@ -226,7 +226,6 @@ public:
     struct sockaddr_in sa;
     SOCKET s = createSock(svrAddr, sa);
     if (INVALID_SOCKET == s) {
-      SW2_TRACE_ERROR("Create new socket failed.");
       return false;
     }
 
@@ -1047,7 +1046,6 @@ public:
     struct sockaddr_in sa;
     SOCKET s = createSock(addr, sa);
     if (INVALID_SOCKET == s) {
-      SW2_TRACE_ERROR("Create new socket failed.");
       return false;
     }
 
