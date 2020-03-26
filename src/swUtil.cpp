@@ -340,6 +340,11 @@ void Util::u16ToUtf8(const std::vector<int> &u, std::string &utf8)
   }
 }
 
+void Util::toLowerString(std::string &str)
+{
+  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
 TimeoutTimer::TimeoutTimer() : timeExpired(0)
 {
   timeExpired = Util::getTickCount();

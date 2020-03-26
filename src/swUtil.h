@@ -245,6 +245,13 @@ namespace Util {
 
   bool httpGet(const std::string &url, std::string &resp);
 
+  //
+  // \brief Convert string to lowercase.
+  // \param [in/out] str String to convert to lowercase.
+  //
+
+  void toLowerString(std::string &str);
+
 } // namespace Util
 
 ///
