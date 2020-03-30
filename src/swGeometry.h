@@ -139,6 +139,17 @@ struct RECT_t
     return false;
   }
 
+  //
+  // \brief Check if rc is completely inside this rectangle.
+  // \param[in] rc The rectangle to be tested.
+  // \return Return true if rc is completely inside this rectangle else return false.
+  //
+
+  bool contain(const RECT_t &rc) const
+  {
+    return left <= rc.left && rc.right <= right && top <= rc.top && rc.bottom <= bottom;
+  }
+
   inline RECT_t& operator=(const RECT_t& rc)
   {
     if (this == &rc) {

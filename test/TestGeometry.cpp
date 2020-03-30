@@ -283,4 +283,22 @@ TEST(RECT_t, intersectRect)
   CHECK(!rc2.intersect(FloatRect(15.0f, 5.0f, 20.0f, 15.0f)));
 }
 
+TEST(RECT_t, contain)
+{
+  IntRect r(0, 0, 100, 100);
+  
+  CHECK(!r.contain(IntRect(0, 110, 100, 200)));
+  CHECK(!r.contain(IntRect(110, 0, 200, 100)));
+  CHECK(!r.contain(IntRect(-110, 0, -110, 200)));
+  CHECK(!r.contain(IntRect(0, -110, 100, -10)));
+
+  CHECK(!r.contain(IntRect(0, 50, 100, 150)));
+  CHECK(!r.contain(IntRect(50, 50, 150, 150)));
+  CHECK(!r.contain(IntRect(-50, 0, 50, 100)));
+  CHECK(!r.contain(IntRect(0, -50, 100, 50)));
+
+  CHECK(r.contain(IntRect(10, 10, 90, 90)));
+  CHECK(r.contain(r));
+}
+
 // end of TestGeometry.cpp
