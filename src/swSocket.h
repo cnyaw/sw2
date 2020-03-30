@@ -148,8 +148,8 @@ struct SocketClientStats
   time_t startTime;                     ///< Start time.
   time_t upTime;                        ///< Up time.
 
-  long bytesSent;                       ///< Total bytes sent.
-  long bytesRecv;                       ///< Total bytes received.
+  unsigned long long bytesSent;         ///< Total bytes sent.
+  unsigned long long bytesRecv;         ///< Total bytes received.
 };
 
 ///
@@ -161,12 +161,12 @@ struct SocketServerStats
   time_t startTime;                     ///< Start time.
   time_t upTime;                        ///< Up time.
 
-  long bytesSent;                       ///< Total bytes sent.
-  long bytesRecv;                       ///< Total bytes received.
+  unsigned long long bytesSent;         ///< Total bytes sent.
+  unsigned long long bytesRecv;         ///< Total bytes received.
 
-  long hits;                            ///< Total hit count.
-  long currOnline;                      ///< Current online count.
-  long maxOnline;                       ///< Max online count.
+  unsigned int hits;                    ///< Total hit count.
+  unsigned int currOnline;              ///< Current online count.
+  unsigned int maxOnline;               ///< Max online count.
 };
 
 class SocketClient;

@@ -180,8 +180,8 @@ void UninitializeNetwork();
 
 struct NetworkClientStats : public SocketClientStats
 {
-  long packetsSent;                     ///< Total packets sent.
-  long packetsRecv;                     ///< Total packets received.
+  unsigned long long packetsSent;       ///< Total packets sent.
+  unsigned long long packetsRecv;       ///< Total packets received.
 };
 
 ///
@@ -190,8 +190,8 @@ struct NetworkClientStats : public SocketClientStats
 
 struct NetworkServerStats : public SocketServerStats
 {
-  long packetsSent;                     ///< Total packets sent.
-  long packetsRecv;                     ///< Total packets received.
+  unsigned long long packetsSent;       ///< Total packets sent.
+  unsigned long long packetsRecv;       ///< Total packets received.
 };
 
 ///
