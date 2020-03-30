@@ -170,9 +170,10 @@ public:
   RECT_t<ValueT> rc;                    // Boundary.
 
   typedef impl::implCellsItem<ObjT, ValueT> ItemT;
+  typedef ObjectPool<int, INIT_CELL_POOL_SIZE, true> CellT;
 
   ObjectPool<ItemT, INIT_OBJ_POOL_SIZE, true> cobjs; // Manage all objects in the cells.
-  std::vector<ObjectPool<int, INIT_CELL_POOL_SIZE, true> > cells; // All cells, each cell manages its' own objects list.
+  std::vector<CellT> cells;             // All cells, each cell manages its' own objects list.
 
   ///
   /// \brief Initialize cells.
@@ -398,7 +399,7 @@ private:
       //
 
       if (0 <= cc && ncellx * ncelly > cc) {
-        const ObjectPool<int, INIT_CELL_POOL_SIZE, true> &p = cells[cc];
+        const CellT &p = cells[cc];
         for (int i = p.first(); -1 != i && 0 < nMax; i = p.next(i)) {
           ItemT const& obj = cobjs[p[i]];
           if (!func(obj)) {
