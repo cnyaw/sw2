@@ -8,6 +8,8 @@
 //  2005/02/22 Waync created.
 //
 
+#include <ctype.h>
+
 #include <algorithm>
 #include <istream>
 
