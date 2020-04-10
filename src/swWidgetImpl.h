@@ -1024,6 +1024,9 @@ public:
 
   void OnMouseWheel(int x, int y, uint keyStat, int delta)
   {
+    if (!((TBase&)*this).isEnable()) {
+      return;
+    }
     if (0 < delta) {                    // Rotated forward, away from the user.
       dec();
     } else {                            // Rotated backward, toward the user.
