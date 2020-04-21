@@ -14,7 +14,6 @@
 #include "swBigworld.h"
 #include "swNetwork.h"
 #include "swObjectPool.h"
-#include "swSmallworldEv.h"
 
 namespace sw2 {
 
@@ -27,40 +26,8 @@ namespace impl {
 #define SW2_BIGWORLD_MAX_CHILD_NODE 1024
 #define SW2_BIGWORLD_MAX_DEPEX_NODE 64
 
-enum BIGWORLD_EVENT_ID
-{
-  EID_REQ_ID = EID_LAST_TAG,            // Request child node ID.
-  EID_RESP_ID,                          // Response node ID to parent.
-};
-
-struct BigworldReqId : public NetworkPacket
-{
-  SW2_DECLARE_PACKET(EID_REQ_ID, BigworldReqId)
-
-  virtual bool read(BitStream& bs) { return true; }
-  virtual bool write(BitStream& bs) const { return true; }
-};
-
-SW2_IMPLEMENT_PACKET(EID_REQ_ID, BigworldReqId)
-
-struct BigworldRespId : public NetworkPacket
-{
-  SW2_DECLARE_PACKET(EID_RESP_ID, BigworldRespId)
-
-  virtual bool read(BitStream& bs)
-  {
-    return bs >> m_Id;
-  }
-
-  virtual bool write(BitStream& bs) const
-  {
-    return bs << m_Id;
-  }
-
-  std::string m_Id;
-};
-
-SW2_IMPLEMENT_PACKET(EID_RESP_ID, BigworldRespId)
+static const unsigned char SW2_BIGWORLD_REQ_ID[] = {0x1e, 0x33, 0x5e, 0x9f, 0x0f, 0x86, 0xb9, 0x48, 0xae, 0xc6, 0xb, 0xf3, 0x33, 0x4c, 0xa0, 0x8};
+static const unsigned char SW2_BIGWORLD_RESP_ID[] = {0xb2, 0x06, 0x50, 0x05, 0x5f, 0xb7, 0x83, 0x44, 0xa1, 0x21, 0x93, 0x50, 0xba, 0x42, 0xf3, 0x4d};
 
 class implBigworldChildNode : public BigworldNode
 {
@@ -304,7 +271,7 @@ public:
     node.m_pConn = pNewClient;
     node.m_Id = "";
 
-    pNewClient->send(BigworldReqId());  // Request child node ID.
+    pNewClient->send(sizeof(SW2_BIGWORLD_REQ_ID), SW2_BIGWORLD_REQ_ID);
 
     return true;
   }
@@ -318,27 +285,23 @@ public:
 
   virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream)
   {
+    const int sz = sizeof(SW2_BIGWORLD_RESP_ID);
     int id = (int)pClient->userData;
-    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], len, pStream);
+    implBigworldChildNode &c = m_poolChild[id];
+    if (sz < len && !memcmp(pStream, SW2_BIGWORLD_RESP_ID, sz)) {
+      if (c.getId().empty()) {
+        c.m_Id = std::string((const char*)pStream + sz, len - sz);
+        m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&c);
+      }
+    } else {
+      m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&c, len, pStream);
+    }
   }
 
   virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
   {
     int id = (int)pClient->userData;
-    implBigworldChildNode &c = m_poolChild[id];
-    if (EID_RESP_ID == p.getId()) {
-
-      //
-      // Received client node ID.
-      //
-
-      if (c.getId().empty()) {
-        c.m_Id = ((const BigworldRespId&)p).m_Id;
-        m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&c);
-      }
-    } else {
-      m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&c, p);
-    }
+    m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], p);
   }
 
   //
@@ -359,20 +322,21 @@ public:
 
   virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
   {
+    const int sz = sizeof(SW2_BIGWORLD_REQ_ID);
     int id = (int)pClient->userData;
-    m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], len, pStream);
+    if (sz == len && !memcmp(pStream, SW2_BIGWORLD_REQ_ID, sz)) {
+      std::string s((const char*)SW2_BIGWORLD_RESP_ID, sz);
+      s.append(getId());
+      pClient->send((int)s.size(), s.c_str());
+    } else {
+      m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], len, pStream);
+    }
   }
 
   virtual void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
   {
     int id = (int)pClient->userData;
-    if (EID_REQ_ID == p.getId()) {
-      BigworldRespId resp;
-      resp.m_Id = getId();
-      pClient->send(resp);
-    } else {
-      m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], p);
-    }
+    m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], p);
   }
 
   //
