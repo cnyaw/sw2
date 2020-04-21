@@ -35,8 +35,32 @@ public:
   NetworkConnection *m_pConn;
   std::string m_Id;
 
+  typedef void (implBigworldChildNode::*onNetworkStreamReady_t)(BigworldCallback*, BigworldNode*, NetworkConnection*, int, void const*);
+  onNetworkStreamReady_t m_onStream;
+
   virtual ~implBigworldChildNode()
   {
+  }
+
+  //
+  // Networkd stream ready handler.
+  //
+
+  void onNetworkStreamReadyWaitId(BigworldCallback *pCallback, BigworldNode *pServer, NetworkConnection *pClient, int len, void const *pStream)
+  {
+    const int sz = sizeof(SW2_BIGWORLD_RESP_ID);
+    if (sz < len && !memcmp(pStream, SW2_BIGWORLD_RESP_ID, sz)) {
+      if (getId().empty()) {
+        m_Id = std::string((const char*)pStream + sz, len - sz);
+        pCallback->onBigworldNewNodeReady(pServer, (BigworldNode*)this);
+        m_onStream = &implBigworldChildNode::onNetworkStreamReady;
+      }
+    }
+  }
+
+  void onNetworkStreamReady(BigworldCallback *pCallback, BigworldNode *pServer, NetworkConnection *pClient, int len, void const *pStream)
+  {
+    pCallback->onBigworldStreamReady(pServer, (BigworldNode*)this, len, pStream);
   }
 
   //
@@ -124,8 +148,31 @@ public:
   bool m_bKeepConnected;
   std::string m_AddrNode;
 
+  typedef void (implBigworldParentNode::*onNetworkStreamReady_t)(BigworldCallback*, BigworldNode*, NetworkClient*, int, void const*);
+  onNetworkStreamReady_t m_onStream;
+
   virtual ~implBigworldParentNode()
   {
+  }
+
+  //
+  // Network stream ready handler.
+  //
+
+  void onNetworkStreamReadyWaitId(BigworldCallback *pCallback, BigworldNode *pInstNode, NetworkClient *pClient, int len, void const *pStream)
+  {
+    const int sz = sizeof(SW2_BIGWORLD_REQ_ID);
+    if (sz == len && !memcmp(pStream, SW2_BIGWORLD_REQ_ID, sz)) {
+      std::string s((const char*)SW2_BIGWORLD_RESP_ID, sz);
+      s.append(pInstNode->getId());
+      pClient->send((int)s.size(), s.c_str());
+      m_onStream = &implBigworldParentNode::onNetworkStreamReady;
+    }
+  }
+
+  void onNetworkStreamReady(BigworldCallback *pCallback, BigworldNode *pInstNode, NetworkClient *pClient, int len, void const *pStream)
+  {
+    pCallback->onBigworldStreamReady(pInstNode, (BigworldNode*)this, len, pStream);
   }
 
   //
@@ -270,6 +317,7 @@ public:
     node.userData = 0;
     node.m_pConn = pNewClient;
     node.m_Id = "";
+    node.m_onStream = &implBigworldChildNode::onNetworkStreamReadyWaitId;
 
     pNewClient->send(sizeof(SW2_BIGWORLD_REQ_ID), SW2_BIGWORLD_REQ_ID);
 
@@ -285,17 +333,9 @@ public:
 
   virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream)
   {
-    const int sz = sizeof(SW2_BIGWORLD_RESP_ID);
     int id = (int)pClient->userData;
     implBigworldChildNode &c = m_poolChild[id];
-    if (sz < len && !memcmp(pStream, SW2_BIGWORLD_RESP_ID, sz)) {
-      if (c.getId().empty()) {
-        c.m_Id = std::string((const char*)pStream + sz, len - sz);
-        m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&c);
-      }
-    } else {
-      m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&c, len, pStream);
-    }
+    (c.*(c.m_onStream))(m_pCallback, (BigworldNode*)this, pClient, len, pStream);
   }
 
   virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
@@ -311,7 +351,9 @@ public:
   virtual void onNetworkServerReady(NetworkClient* pClient)
   {
     int id = (int)pClient->userData;
-    m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id]);
+    implBigworldParentNode &node = m_poolDepex[id];
+    node.m_onStream = &implBigworldParentNode::onNetworkStreamReadyWaitId;
+    m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&node);
   }
 
   virtual void onNetworkServerLeave(NetworkClient* pClient)
@@ -322,15 +364,9 @@ public:
 
   virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
   {
-    const int sz = sizeof(SW2_BIGWORLD_REQ_ID);
     int id = (int)pClient->userData;
-    if (sz == len && !memcmp(pStream, SW2_BIGWORLD_REQ_ID, sz)) {
-      std::string s((const char*)SW2_BIGWORLD_RESP_ID, sz);
-      s.append(getId());
-      pClient->send((int)s.size(), s.c_str());
-    } else {
-      m_pCallback->onBigworldStreamReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], len, pStream);
-    }
+    implBigworldParentNode &node = m_poolDepex[id];
+    (node.*(node.m_onStream))(m_pCallback, (BigworldNode*)this, pClient, len, pStream);
   }
 
   virtual void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
