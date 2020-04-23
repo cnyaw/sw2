@@ -595,7 +595,7 @@ public:
     return m_pClient->getAddr();
   }
 
-  virtual NetworkClientStats getNetStats()
+  virtual NetworkClientStats getNetStats() const
   {
     NetworkClientStats ns;
 
@@ -687,7 +687,7 @@ public:
     return m_pClientPeer->getAddr();
   }
 
-  virtual NetworkClientStats getNetStats()
+  virtual NetworkClientStats getNetStats() const
   {
     NetworkClientStats ns;
 
@@ -848,7 +848,7 @@ public:
     }
   }
 
-  virtual NetworkServerStats getNetStats()
+  virtual NetworkServerStats getNetStats() const
   {
     NetworkServerStats ns;
 

@@ -840,10 +840,11 @@ public:
     return implSocketBase::m_addr;
   }
 
-  virtual SocketClientStats getNetStats()
+  virtual SocketClientStats getNetStats() const
   {
-    m_netStats.upTime = (time_t)::difftime(::time(0), m_netStats.startTime);
-    return m_netStats;
+    SocketClientStats s = m_netStats;
+    s.upTime = (time_t)::difftime(::time(0), s.startTime);
+    return s;
   }
 
   virtual bool send(int len, void const* pStream)
@@ -905,10 +906,11 @@ public:
     return implSocketBase::m_addr;
   }
 
-  virtual SocketClientStats getNetStats()
+  virtual SocketClientStats getNetStats() const
   {
-    m_netStats.upTime = (time_t)::difftime(::time(0), m_netStats.startTime);
-    return m_netStats;
+    SocketClientStats s = m_netStats;
+    s.upTime = (time_t)::difftime(::time(0), s.startTime);
+    return s;
   }
 
   virtual bool send(int len, void const* pStream)
@@ -1016,10 +1018,11 @@ public:
     return (SocketConnection*)(((implSocketConnection*)pClient)->m_pNext);
   }
 
-  virtual SocketServerStats getNetStats()
+  virtual SocketServerStats getNetStats() const
   {
-    m_netStats.upTime = (time_t)difftime(time(0), m_netStats.startTime);
-    return m_netStats;
+    SocketServerStats s = m_netStats;
+    s.upTime = (time_t)difftime(time(0), s.startTime);
+    return s;
   }
 
   virtual void shutdown()

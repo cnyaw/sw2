@@ -134,7 +134,7 @@ public:
   /// \return Return statistics.
   ///
 
-  virtual NetworkClientStats getNetStats()=0;
+  virtual NetworkClientStats getNetStats() const=0;
 
   //
   // \brief Check is this node ready.

@@ -317,7 +317,7 @@ public:
   /// \return Return statistics.
   ///
 
-  virtual SocketClientStats getNetStats()=0;
+  virtual SocketClientStats getNetStats() const=0;
 
   ///
   /// \brief Send a data stream to remote client.
@@ -436,7 +436,7 @@ public:
   /// \return Return statistics.
   ///
 
-  virtual SocketServerStats getNetStats()=0;
+  virtual SocketServerStats getNetStats() const=0;
 
   ///
   /// \brief Get first connection.

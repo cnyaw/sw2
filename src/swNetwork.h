@@ -400,7 +400,7 @@ public:
   /// \return Return statistics.
   ///
 
-  virtual NetworkClientStats getNetStats()=0;
+  virtual NetworkClientStats getNetStats() const=0;
 
   ///
   /// \brief Send a data stream to remote client.
@@ -528,7 +528,7 @@ public:
   /// \return Return statistics.
   ///
 
-  virtual NetworkServerStats getNetStats()=0;
+  virtual NetworkServerStats getNetStats() const=0;
 
   ///
   /// \brief Get first connection.

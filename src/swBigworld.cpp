@@ -77,7 +77,7 @@ public:
     return m_pConn->getAddr();
   }
 
-  virtual NetworkClientStats getNetStats()
+  virtual NetworkClientStats getNetStats() const
   {
     return m_pConn->getNetStats();
   }
@@ -189,7 +189,7 @@ public:
     return m_AddrNode;
   }
 
-  virtual NetworkClientStats getNetStats()
+  virtual NetworkClientStats getNetStats() const
   {
     if (m_pClient) {
       return m_pClient->getNetStats();
@@ -389,7 +389,7 @@ public:
     return m_addrNode;
   }
 
-  virtual NetworkClientStats getNetStats()
+  virtual NetworkClientStats getNetStats() const
   {
     NetworkClientStats cs;
     memset(&cs, 0, sizeof(cs));
