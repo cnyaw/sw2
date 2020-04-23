@@ -392,6 +392,7 @@ public:
   virtual NetworkClientStats getNetStats()
   {
     NetworkClientStats cs;
+    memset(&cs, 0, sizeof(cs));
     if (m_pServer) {
       NetworkServerStats ss = m_pServer->getNetStats();
       cs.startTime = ss.startTime;
@@ -400,17 +401,15 @@ public:
       cs.bytesSent = ss.bytesSent;
       cs.packetsRecv = ss.packetsRecv;
       cs.packetsSent = ss.packetsSent;
-    } else {
-      memset(&cs, 0, sizeof(cs));
-      for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
-        NetworkClientStats ns = m_poolDepex[i].m_pClient->getNetStats();
-        cs.bytesRecv += ns.bytesRecv;
-        cs.bytesSent += ns.bytesSent;
-        cs.packetsRecv += ns.packetsRecv;
-        cs.packetsSent += ns.packetsSent;
-        cs.startTime = ns.startTime;
-        cs.upTime = ns.upTime;
-      }
+    }
+    for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
+      NetworkClientStats ns = m_poolDepex[i].m_pClient->getNetStats();
+      cs.bytesRecv += ns.bytesRecv;
+      cs.bytesSent += ns.bytesSent;
+      cs.packetsRecv += ns.packetsRecv;
+      cs.packetsSent += ns.packetsSent;
+      cs.startTime = ns.startTime;
+      cs.upTime = ns.upTime;
     }
     return cs;
   }
