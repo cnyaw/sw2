@@ -287,7 +287,7 @@ public:
           if (streamBeg == header) {    // Stream start?
             m_ss = "";                  // Reset buffer.
           } else if (streamEnd == header) { // Stream end.
-            onStreamReady_((int)m_ss.length(), m_ss.data());
+            onStreamReady_i((int)m_ss.length(), m_ss.data());
           } else if (packetEnd == header) { // Large packet end.
 
             //
@@ -302,7 +302,7 @@ public:
               return false;
             }
 
-            onPacketReady_(*p);
+            onPacketReady_i(*p);
 
           } else if (keepAlive != header) {
             SW2_TRACE_ERROR("Invalid keep alive header.");
@@ -339,7 +339,7 @@ public:
               }
 
               m_packetRecv += 1;
-              onPacketReady_(*p);
+              onPacketReady_i(*p);
               IncRecvPack();
             }
             break;
@@ -378,7 +378,7 @@ public:
   }
 
   template<class T>
-  bool send_(T* t, char const *buff, int szBuff, int type, ushort beg, ushort end)
+  bool send_i(T* t, char const *buff, int szBuff, int type, ushort beg, ushort end)
   {
     if (0 >= szBuff) {
       return false;
@@ -429,17 +429,17 @@ public:
   }
 
   template<class T>
-  bool send_(T* t, int len, void const* pStream)
+  bool send_i(T* t, int len, void const* pStream)
   {
     //
     // Send stream raw data.
     //
 
-    return send_(t, (char*)pStream, len, 0, streamBeg, streamEnd);
+    return send_i(t, (char*)pStream, len, 0, streamBeg, streamEnd);
   }
 
   template<class T>
-  bool send_(T* t, NetworkPacket const& p)
+  bool send_i(T* t, NetworkPacket const& p)
   {
     //
     // Send packet data.
@@ -460,7 +460,7 @@ public:
       m_packetSent += 1;
       IncSendPack();
     } else {                            // Large packet.
-      if (!send_(t, buff.data(), bs.getByteCount(), 0, streamBeg, packetEnd)) {
+      if (!send_i(t, buff.data(), bs.getByteCount(), 0, streamBeg, packetEnd)) {
         return false;
       }
     }
@@ -501,8 +501,8 @@ public:
   // Callback.
   //
 
-  virtual void onStreamReady_(int len, void const* pStream)=0;
-  virtual void onPacketReady_(NetworkPacket const& p)=0;
+  virtual void onStreamReady_i(int len, void const* pStream)=0;
+  virtual void onPacketReady_i(NetworkPacket const& p)=0;
   virtual void IncRecvPack()=0;
   virtual void IncSendPack()=0;
 
@@ -608,12 +608,12 @@ public:
 
   virtual bool send(int len, void const* pStream)
   {
-    return implNetworkBase::send_(m_pClient, len, pStream);
+    return implNetworkBase::send_i(m_pClient, len, pStream);
   }
 
   virtual bool send(NetworkPacket const& p)
   {
-    return implNetworkBase::send_(m_pClient, p);
+    return implNetworkBase::send_i(m_pClient, p);
   }
 
   virtual void trigger()
@@ -629,12 +629,12 @@ public:
   // Implement implNetworkBase.
   //
 
-  virtual void onStreamReady_(int len, void const* pStream)
+  virtual void onStreamReady_i(int len, void const* pStream)
   {
     m_pInterface->onNetworkStreamReady(this, len, pStream);
   }
 
-  virtual void onPacketReady_(NetworkPacket const& p)
+  virtual void onPacketReady_i(NetworkPacket const& p)
   {
     m_pInterface->onNetworkPacketReady(this, p);
   }
@@ -700,24 +700,24 @@ public:
 
   virtual bool send(int len, void const* pStream)
   {
-    return implNetworkBase::send_(m_pClientPeer, len, pStream);
+    return implNetworkBase::send_i(m_pClientPeer, len, pStream);
   }
 
   virtual bool send(NetworkPacket const& p)
   {
-    return implNetworkBase::send_(m_pClientPeer, p);
+    return implNetworkBase::send_i(m_pClientPeer, p);
   }
 
   //
   // Implement implNetworkBase.
   //
 
-  virtual void onStreamReady_(int len, void const* pStream)
+  virtual void onStreamReady_i(int len, void const* pStream)
   {
     m_pInterface->onNetworkStreamReady(m_pServer, (NetworkConnection*)this, len, pStream);
   }
 
-  virtual void onPacketReady_(NetworkPacket const& p)
+  virtual void onPacketReady_i(NetworkPacket const& p)
   {
     m_pInterface->onNetworkPacketReady(m_pServer, (NetworkConnection*)this, p);
   }
