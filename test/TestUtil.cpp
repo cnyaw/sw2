@@ -517,4 +517,19 @@ TEST(Util, utf8ToUnicode)
   CHECK(u == u16);
 }
 
+TEST(Util, toLowerStr)
+{
+  std::string a("Util::toLowerString");
+  Util::toLowerString(a);
+  CHECK("util::tolowerstring" == a);
+
+  std::string b("util::tolowerstring");
+  Util::toLowerString(b);
+  CHECK("util::tolowerstring" == b);
+
+  std::string c("UTIL::TOLOWERSTRING");
+  Util::toLowerString(c);
+  CHECK("util::tolowerstring" == c);
+}
+
 // end of TestUtil.cpp
