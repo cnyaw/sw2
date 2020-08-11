@@ -74,7 +74,7 @@ public:
   void enableTarget(bool bEnable, FILE* out)
   {
     if (0 == out) {
-      nEnable = bEnable ? 0 : nOut;
+      nEnable = bEnable ? nOut : 0;
       for (int i = 0; i < nOut; i++) {
         target[i].isEnable = bEnable;
       }
