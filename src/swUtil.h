@@ -260,7 +260,7 @@ namespace Util {
 
 class TimeoutTimer
 {
-  uint timeExpired;
+  uint m_timeExpired;
 public:
 
   TimeoutTimer();
@@ -282,10 +282,10 @@ public:
 
   ///
   /// \brief Set new timeout time imediately.
-  /// \param [in] ticks Ticks to check from now.
+  /// \param [in] timeExpired New expired time.
   ///
 
-  void setExpiredTime(uint ticks);
+  void setExpiredTime(uint timeExpired);
 
   //
   // \brief Get expired time.
@@ -294,7 +294,7 @@ public:
 
   uint getExpiredTime() const
   {
-    return timeExpired;
+    return m_timeExpired;
   }
 };
 

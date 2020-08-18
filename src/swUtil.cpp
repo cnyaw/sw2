@@ -347,29 +347,29 @@ void Util::toLowerString(std::string &str)
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-TimeoutTimer::TimeoutTimer() : timeExpired(0)
+TimeoutTimer::TimeoutTimer() : m_timeExpired(0)
 {
-  timeExpired = Util::getTickCount();
+  m_timeExpired = Util::getTickCount();
 }
 
-TimeoutTimer::TimeoutTimer(uint ticks) : timeExpired(ticks)
+TimeoutTimer::TimeoutTimer(uint ticks) : m_timeExpired(ticks)
 {
-  timeExpired += Util::getTickCount();
+  m_timeExpired += Util::getTickCount();
 }
 
 bool TimeoutTimer::isExpired() const
 {
-  return Util::getTickCount() >= timeExpired;
+  return Util::getTickCount() >= m_timeExpired;
 }
 
 void TimeoutTimer::setTimeout(uint ticks)
 {
-  timeExpired = Util::getTickCount() + ticks;
+  m_timeExpired = Util::getTickCount() + ticks;
 }
 
-void TimeoutTimer::setExpiredTime(uint ticks)
+void TimeoutTimer::setExpiredTime(uint timeExpired)
 {
-  timeExpired = ticks;
+  m_timeExpired = timeExpired;
 }
 
 } // namespace sw2
