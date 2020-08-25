@@ -19,8 +19,9 @@ class implHttpRequest : public SocketClientCallback
 public:
   SocketClient* mClient;
   std::string &mData;
+  int mTimeout;
 
-  implHttpRequest(std::string &data) : mData(data)
+  implHttpRequest(std::string &data, int timeout) : mData(data), mTimeout(timeout)
   {
     mClient = SocketClient::alloc(this);
   }
@@ -100,7 +101,7 @@ public:
 
   bool waitData(const std::string &token) const
   {
-    TimeoutTimer lt(5000);
+    TimeoutTimer lt(1000 * mTimeout);
     while (!lt.isExpired()) {
       mClient->trigger();
       if (std::string::npos != mData.find(token)) {
@@ -112,7 +113,7 @@ public:
 
   bool waitData(size_t length) const
   {
-    TimeoutTimer lt(5000);
+    TimeoutTimer lt(1000 * mTimeout);
     while (!lt.isExpired()) {
       mClient->trigger();
       if (mData.length() >= length) {
@@ -129,7 +130,7 @@ public:
 
   bool waitState(int s) const
   {
-    TimeoutTimer lt(5000);
+    TimeoutTimer lt(1000 * mTimeout);
     while (!lt.isExpired()) {
       mClient->trigger();
       if (mClient->getConnectionState() == s) {
@@ -142,9 +143,9 @@ public:
 
 } // namespace impl
 
-bool Util::httpGet(const std::string &url, std::string &resp)
+bool Util::httpGet(const std::string &url, std::string &resp, int timeout)
 {
-  impl::implHttpRequest http(resp);
+  impl::implHttpRequest http(resp, timeout);
   return http.get(url);
 }
 

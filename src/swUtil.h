@@ -240,10 +240,11 @@ namespace Util {
   // \brief Send HTTP GET request to url and get response.
   // \param [in] url Target URL.
   // \param [out] resp The response from url.
+  // \param [in] timeout Timeout time in seconds.
   // \return Return true if request success else false.
   //
 
-  bool httpGet(const std::string &url, std::string &resp);
+  bool httpGet(const std::string &url, std::string &resp, int timeout = 5);
 
   //
   // \brief Convert string to lowercase.
