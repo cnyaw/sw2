@@ -170,7 +170,8 @@ public:
       IMAGEHLP_LINE ImageHlpLine = { sizeof(IMAGEHLP_LINE) };
       DWORD dwLineDisplacement;
       if (SymGetLineFromAddr(hProcess, StackFrame.AddrPC.Offset, &dwLineDisplacement, &ImageHlpLine)) {
-        sprintf(szBuffer, "%s line %u", ImageHlpLine.FileName, ImageHlpLine.LineNumber);
+        strDetails += ImageHlpLine.FileName;
+        sprintf(szBuffer, " line %u", ImageHlpLine.LineNumber);
         strDetails += szBuffer;
       }
 
