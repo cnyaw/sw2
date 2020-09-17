@@ -167,6 +167,7 @@ public:
       s.append(pInstNode->getId());
       pClient->send((int)s.size(), s.c_str());
       m_onStream = &implBigworldParentNode::onNetworkStreamReady;
+      pCallback->onBigworldNewNodeReady(pInstNode, (BigworldNode*)this);
     }
   }
 
@@ -353,7 +354,6 @@ public:
     int id = (int)pClient->userData;
     implBigworldParentNode &node = m_poolDepex[id];
     node.m_onStream = &implBigworldParentNode::onNetworkStreamReadyWaitId;
-    m_pCallback->onBigworldNewNodeReady((BigworldNode*)this, (BigworldNode*)&node);
   }
 
   virtual void onNetworkServerLeave(NetworkClient* pClient)
