@@ -273,6 +273,10 @@ public:
 
   void free(ThreadTask* pTask)
   {
+    if (0 == m_nThread) {               // Not initialized.
+      return;
+    }
+
     std::map<void*, int>::const_iterator it = m_taskMap.find(pTask);
     if (m_taskMap.end() == it) {
       return;
@@ -428,6 +432,10 @@ public:
 
   bool isRunning(ThreadTask* pTask)
   {
+    if (0 == m_nThread) {               // Not initialized.
+      return false;
+    }
+
     std::map<void*, int>::const_iterator it = m_taskMap.find(pTask);
     if (m_taskMap.end() == it) {
       return false;
@@ -442,6 +450,10 @@ public:
 
   bool runTask(int idTask)
   {
+    if (0 == m_nThread) {               // Not initialized.
+      return false;
+    }
+
     //
     // ThreadTask::runTask already check is it running. So schedule it now.
     //
