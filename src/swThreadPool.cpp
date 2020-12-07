@@ -11,16 +11,16 @@
 #include <queue>
 #include <map>
 
-#include "swObjectPool.h"
-#include "swThreadPool.h"
-#include "swUtil.h"
-
 #if defined(WIN32)
 # define NOMINMAX
 # include <windows.h>
 #elif defined(_linux_)
 # include "pthread.h"
 #endif
+
+#include "swObjectPool.h"
+#include "swThreadPool.h"
+#include "swUtil.h"
 
 namespace sw2 {
 

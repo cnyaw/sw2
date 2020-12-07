@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <istream>
 
-#include "swUtil.h"
-
 #if defined(WIN32) || defined(_WIN32_WCE)
 # define NOMINMAX
 # include <windows.h>
@@ -30,6 +28,8 @@
 # include <time.h>
 # include <unistd.h>
 #endif
+
+#include "swUtil.h"
 
 namespace sw2 {
 

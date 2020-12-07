@@ -12,13 +12,13 @@
 #include <fstream>
 #include <sstream>
 
-#include "swUtil.h"
-#include "swZipUtil.h"
-
 #if defined(WIN32) || defined(_WIN32_WCE)
 # define NOMINMAX
 # include <windows.h>
 #endif
+
+#include "swUtil.h"
+#include "swZipUtil.h"
 
 namespace sw2 {
 
