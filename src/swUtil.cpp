@@ -314,6 +314,14 @@ void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
         return;
       }
       u.push_back((int)(((i & 0xf) << 12) | ((k & 0x3f) << 6) | (l & 0x3f)));
+    } else if (240 == (i & 0xf8)) {
+      int j = utf8[idx++];
+      int k = utf8[idx++];
+      int l = utf8[idx++];
+      if ((j & 0xc0) != 128 || (k & 0xc0) != 128 || (l & 0xc0) != 128) {
+        return;
+      }
+      u.push_back((int)(((i & 0x7) << 18) | ((j & 0x3f) << 12) | ((k & 0x3f) << 6) | (l & 0x3f)));
     } else {
       return;
     }
