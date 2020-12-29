@@ -341,7 +341,7 @@ void Util::u16ToUtf8(const std::vector<int> &u, std::string &utf8)
       utf8.push_back((ch >> 12) | 0xe0);
       utf8.push_back(((ch >> 6) & 0x3f) | 0x80);
       utf8.push_back((ch & 0x3f) | 0x80);
-    } else if (0x110000 >= ch) {
+    } else if (0x200000 >= ch) {
       utf8.push_back((ch >> 18) | 0xf0);
       utf8.push_back(((ch >> 12) & 0x3f) | 0x80);
       utf8.push_back(((ch >> 6) & 0x3f) | 0x80);
