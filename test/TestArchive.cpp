@@ -356,11 +356,7 @@ TEST(Archive, httpfs)
   CHECK(InitializeSocket());
 
   Archive* par = Archive::alloc();
-  if (0 == par) {
-    return;
-  }
-
-  {
+  if (par) {
     HttpFileServer svr;
     HttpFileServerTrigger httptask(svr);
     httptask.runTask();
@@ -375,8 +371,9 @@ TEST(Archive, httpfs)
     while (httptask.isRunning()) {
       Util::sleep(1);
     }
+    Archive::free(par);
   }
-  Archive::free(par);
+
   UninitializeSocket();
   UninitializeThreadPool();
 }
