@@ -39,8 +39,14 @@ public:
       return false;
     }
     const std::string url(name, 0, urlpos);
-    if (!connect(url + ":80")) {
-      return false;
+    if (std::string::npos != url.find_first_of(':')) {
+      if (!connect(url)) {
+        return false;
+      }
+    } else {
+      if (!connect(url + ":80")) {
+        return false;
+      }
     }
     std::string get("GET " + name.substr(urlpos) + " HTTP/1.1\r\nHost:" + url + "\r\n\r\n");
     mClient->send((int)get.length(), get.c_str());
