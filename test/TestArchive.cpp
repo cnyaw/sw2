@@ -294,7 +294,7 @@ public:
       const char fmt[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n" ;
       std::string resp;
       resp.resize(strlen(fmt) + m_str.size() + 32);
-      sprintf((char*)resp.c_str(), fmt, m_str.size());
+      sprintf((char*)resp.c_str(), fmt, (int)m_str.size());
       std::string s = resp.c_str() + m_str;
       pClient->send((int)s.size(), s.data());
     } else {

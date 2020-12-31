@@ -126,7 +126,6 @@ class implNetworkPacketFactory
 
   implNetworkPacketFactory()
   {
-    memset(fac, 0, sizeof (fac));
   }
 
 public:
