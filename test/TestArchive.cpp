@@ -8,12 +8,14 @@
 //  2008/05/31 Waync created.
 //
 
+#include <fstream>
 #include <sstream>
 
 #include "CppUnitLite/TestHarness.h"
 
 #include "swArchive.h"
 #include "swSocket.h"
+#include "swThreadPool.h"
 #include "swUtil.h"
 using namespace sw2;
 
@@ -252,6 +254,75 @@ TEST(Archive, addFileSystem4)
   Archive::free(par);
 }
 
+class HttpFileServer : public SocketServerCallback
+{
+public:
+  SocketServer* m_pServer;
+  std::string m_str;
+
+  HttpFileServer()
+  {
+    m_pServer = SocketServer::alloc(this);
+    if (m_pServer) {
+      m_pServer->startup("24680");
+    }
+    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);
+    std::stringstream ss;
+    ss << ifs.rdbuf();
+    ifs.close();
+    m_str = ss.str();
+  }
+
+  virtual ~HttpFileServer()
+  {
+    SocketServer::free(m_pServer);
+    m_pServer = 0;
+  }
+
+  void trigger()
+  {
+    if (m_pServer) {
+      m_pServer->trigger();
+    }
+  }
+
+  virtual void onSocketStreamReady(SocketServer*, SocketConnection* pClient, int len, void const* pStream)
+  {
+    const char *HTTP_GET_FILE = "GET /ThePoolOfTears.txt";
+    std::string buff((const char*)pStream, len);
+    if (!strncmp(buff.c_str(), HTTP_GET_FILE, strlen(HTTP_GET_FILE))) {
+      const char fmt[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n" ;
+      std::string resp;
+      resp.resize(strlen(fmt) + m_str.size() + 32);
+      sprintf((char*)resp.c_str(), fmt, m_str.size());
+      std::string s = resp.c_str() + m_str;
+      pClient->send((int)s.size(), s.data());
+    } else {
+      const char *err = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n" ;
+      pClient->send((int)strlen(err), err);
+    }
+    pClient->disconnect();
+  }
+};
+
+class HttpFileServerTrigger : public ThreadTask
+{
+  HttpFileServer &m_server;
+public:
+  HttpFileServerTrigger(HttpFileServer &server) : m_server(server)
+  {
+  }
+
+  virtual void threadTask()
+  {
+    TimeoutTimer tt(1000);
+    while (!tt.isExpired()) {
+      m_server.trigger();
+      Util::sleep(1);
+    }
+  }
+};
+
 class HttpFileSystem : public ArchiveFileSystem
 {
 public:
@@ -281,26 +352,33 @@ public:
 
 TEST(Archive, httpfs)
 {
+  CHECK(InitializeThreadPool(1));
+  CHECK(InitializeSocket());
+
   Archive* par = Archive::alloc();
   if (0 == par) {
     return;
   }
 
-  CHECK(InitializeSocket());
   {
+    HttpFileServer svr;
+    HttpFileServerTrigger httptask(svr);
+    httptask.runTask();
+
     HttpFileSystem fs;
     CHECK(par->addFileSystem(&fs));
 
     std::stringstream ss;
-    CHECK(par->loadFile("www.rfc-editor.org/rfc/rfc1.txt", ss));
-    CHECK(std::string::npos != ss.str().find("Network Working Group Request for Comment:   1"));
+    CHECK(par->loadFile("localhost:24680/ThePoolOfTears.txt", ss));
+    CHECK(ss.str() == svr.m_str);
 
-    std::stringstream ss2;
-    CHECK(par->loadFile("www.rfc-editor.org/rfc/rfc2.txt", ss2));
-    CHECK(std::string::npos != ss2.str().find("1a1 Logical link 0 will be a control link between any two HOSTs on"));
+    while (httptask.isRunning()) {
+      Util::sleep(1);
+    }
   }
   Archive::free(par);
   UninitializeSocket();
+  UninitializeThreadPool();
 }
 
 // end of TestArchive.cpp
