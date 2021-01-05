@@ -228,13 +228,13 @@ namespace Util {
   // \brief Convert utf8 text to unicode array.
   //
 
-  void utf8ToU16(const char *utf8, std::vector<int> &u);
+  void utf8ToU32(const char *utf8, std::vector<int> &u);
 
   //
   // \brief Convert unicode array to utf8 string.
   //
 
-  void u16ToUtf8(const std::vector<int> &u, std::string &utf8);
+  void u32ToUtf8(const std::vector<int> &u, std::string &utf8);
 
   //
   // \brief Send HTTP GET request to url and get response.

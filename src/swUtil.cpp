@@ -292,7 +292,7 @@ bool Util::unbase64(std::istream& is, std::ostream& os)
   return true;
 }
 
-void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
+void Util::utf8ToU32(const char *utf8, std::vector<int> &u)
 {
   if (0 == utf8) {
     return;
@@ -328,7 +328,7 @@ void Util::utf8ToU16(const char *utf8, std::vector<int> &u)
   }
 }
 
-void Util::u16ToUtf8(const std::vector<int> &u, std::string &utf8)
+void Util::u32ToUtf8(const std::vector<int> &u, std::string &utf8)
 {
   for (size_t i = 0; i < u.size(); i++) {
     int ch = u[i];

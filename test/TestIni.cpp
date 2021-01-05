@@ -92,34 +92,34 @@ TEST(Ini, loadutf8)
   CHECK(5 == sec.size());
 
   std::vector<int> secName;
-  Util::utf8ToU16(sec.key.c_str(), secName);
+  Util::utf8ToU32(sec.key.c_str(), secName);
   CHECK(secName == GET_UNICODE_ARR(UNICODE_SEC_NAME));
 
   std::vector<int> item1;
-  Util::utf8ToU16(sec["1"].value.c_str(), item1);
+  Util::utf8ToU32(sec["1"].value.c_str(), item1);
   CHECK(item1 == GET_UNICODE_ARR(UNICODE_ITEM_1));
 
   std::vector<int> item2;
-  Util::utf8ToU16(sec["2"].value.c_str(), item2);
+  Util::utf8ToU32(sec["2"].value.c_str(), item2);
   CHECK(item2 == GET_UNICODE_ARR(UNICODE_ITEM_2));
 
   std::vector<int> item3;
-  Util::utf8ToU16(sec["3"].value.c_str(), item3);
+  Util::utf8ToU32(sec["3"].value.c_str(), item3);
   CHECK(item3 == GET_UNICODE_ARR(UNICODE_ITEM_3));
 
   std::vector<int> item4;
-  Util::utf8ToU16(sec["4"].value.c_str(), item4);
+  Util::utf8ToU32(sec["4"].value.c_str(), item4);
   CHECK(item4 == GET_UNICODE_ARR(UNICODE_ITEM_4));
 
   std::vector<int> item5;
-  Util::utf8ToU16(sec["5"].value.c_str(), item5);
+  Util::utf8ToU32(sec["5"].value.c_str(), item5);
   CHECK(item5 == GET_UNICODE_ARR(UNICODE_ITEM_5));
 }
 
 std::string getUtf8Str(const std::vector<int> &v)
 {
   std::string s;
-  Util::u16ToUtf8(v, s);
+  Util::u32ToUtf8(v, s);
   return s;
 }
 

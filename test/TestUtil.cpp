@@ -510,11 +510,11 @@ TEST(Util, utf8ToUnicode)
   Archive::free(ar);
 
   std::vector<int> u;
-  Util::utf8ToU16(ss1.str().c_str(), u);
+  Util::utf8ToU32(ss1.str().c_str(), u);
 
-  std::vector<int> u16;
-  u16.assign(std::istream_iterator<int>(ss2), std::istream_iterator<int>());
-  CHECK(u == u16);
+  std::vector<int> u32;
+  u32.assign(std::istream_iterator<int>(ss2), std::istream_iterator<int>());
+  CHECK(u == u32);
 }
 
 TEST(Util, toLowerStr)
