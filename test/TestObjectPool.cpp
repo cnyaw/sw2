@@ -232,7 +232,7 @@ TEST(ObjectPool, alloc2)
 TEST(ObjectPool, alloc2_2)
 {
   std::vector<int> v1;
-  for (int i = 0; i < rangeRand<int>(32,48); ++i) {
+  for (int i = 0; i < Util::rangeRand<int>(32,48); ++i) {
     v1.push_back(i);
   }
 

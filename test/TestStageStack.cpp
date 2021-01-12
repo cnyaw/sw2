@@ -161,7 +161,7 @@ public:
 
 TEST(StageStack, test2)
 {
-  const int TICKS = rangeRand(1500, 2000);
+  const int TICKS = Util::rangeRand(1500, 2000);
 
   TestStageStack2 s;
   for (int i = 0; i < TICKS; i++) {

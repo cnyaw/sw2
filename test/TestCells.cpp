@@ -230,14 +230,14 @@ TEST(Cells, search1_2)
   std::vector<IntPoint> pt;
 
   for (int i = 0; i < 128; ++i) {
-    pt.push_back(IntPoint(rangeRand<int>(-100,100-1),rangeRand<int>(-100,100-1)));
+    pt.push_back(IntPoint(Util::rangeRand<int>(-100,100-1), Util::rangeRand<int>(-100,100-1)));
     CHECK(-1 != grid.alloc(i, pt[i].x, pt[i].y));
   }
 
   for (int i = 0; i < 1024; ++i) {
 
-    int x = rangeRand<int>(-100,100-1), y = rangeRand<int>(-100,100-1);
-    int w = rangeRand<int>(30,60), h = rangeRand<int>(30,60);
+    int x = Util::rangeRand<int>(-100,100-1), y = Util::rangeRand<int>(-100,100-1);
+    int w = Util::rangeRand<int>(30,60), h = Util::rangeRand<int>(30,60);
 
     TestCellsFilter f;
     grid.search(x, y, x+w, y+h, 32, f);
@@ -301,14 +301,14 @@ TEST(Cells, search2_2)
   std::vector<IntPoint> pt;
 
   for (int i = 0; i < 128; ++i) {
-    pt.push_back(IntPoint(rangeRand<int>(-100, 100 - 1), rangeRand<int>(-100, 100 - 1)));
+    pt.push_back(IntPoint(Util::rangeRand<int>(-100, 100 - 1), Util::rangeRand<int>(-100, 100 - 1)));
     CHECK(-1 != grid.alloc(i, pt[i].x, pt[i].y));
   }
 
   for (int i = 0; i < 1024; ++i) {
 
-    int x = rangeRand<int>(-100, 100 - 1), y = rangeRand<int>(-100, 100 - 1);
-    int r = rangeRand<int>(30,80);
+    int x = Util::rangeRand<int>(-100, 100 - 1), y = Util::rangeRand<int>(-100, 100 - 1);
+    int r = Util::rangeRand<int>(30,80);
 
     TestCellsFilter f;
     grid.search(x, y, r, 50, f);

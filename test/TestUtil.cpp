@@ -28,23 +28,23 @@ static std::string const sSampleText("Man is distinguished, not only by his reas
 
 TEST(Util, clamp)
 {
-  CHECK(10 == clamp<int>(10, 5, 20));
-  CHECK(5 == clamp<int>(5, 5, 20));
-  CHECK(20 == clamp<int>(20, 5, 20));
-  CHECK(5 == clamp<int>(3, 5, 20));
-  CHECK(20 == clamp<int>(26, 5, 20));
+  CHECK(10 == Util::clamp<int>(10, 5, 20));
+  CHECK(5 == Util::clamp<int>(5, 5, 20));
+  CHECK(20 == Util::clamp<int>(20, 5, 20));
+  CHECK(5 == Util::clamp<int>(3, 5, 20));
+  CHECK(20 == Util::clamp<int>(26, 5, 20));
 
-  CHECK(10.0f == clamp<float>(10.0f, 5.0f, 20.0f));
-  CHECK(5.0f == clamp<float>(5.0f, 5.0f, 20.0f));
-  CHECK(20.0f == clamp<float>(20.0f, 5.0f, 20.0f));
-  CHECK(5.0f == clamp<float>(3.0f, 5.0f, 20.0f));
-  CHECK(20.0f == clamp<float>(26.0f, 5.0f, 20.0f));
+  CHECK(10.0f == Util::clamp<float>(10.0f, 5.0f, 20.0f));
+  CHECK(5.0f == Util::clamp<float>(5.0f, 5.0f, 20.0f));
+  CHECK(20.0f == Util::clamp<float>(20.0f, 5.0f, 20.0f));
+  CHECK(5.0f == Util::clamp<float>(3.0f, 5.0f, 20.0f));
+  CHECK(20.0f == Util::clamp<float>(26.0f, 5.0f, 20.0f));
 
-  CHECK(10.0 == clamp<double>(10.0, 5.0, 20.0));
-  CHECK(5.0 == clamp<double>(5.0, 5.0, 20.0));
-  CHECK(20.0 == clamp<double>(20.0, 5.0, 20.0));
-  CHECK(5.0 == clamp<double>(3.0, 5.0, 20.0));
-  CHECK(20.0 == clamp<double>(26.0, 5.0, 20.0));
+  CHECK(10.0 == Util::clamp<double>(10.0, 5.0, 20.0));
+  CHECK(5.0 == Util::clamp<double>(5.0, 5.0, 20.0));
+  CHECK(20.0 == Util::clamp<double>(20.0, 5.0, 20.0));
+  CHECK(5.0 == Util::clamp<double>(3.0, 5.0, 20.0));
+  CHECK(20.0 == Util::clamp<double>(26.0, 5.0, 20.0));
 }
 
 //

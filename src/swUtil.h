@@ -47,45 +47,45 @@ template<> struct BITCOUNT<0>
 };
 
 ///
-/// \brief Clamp the number to the specified range.
-/// \param [in] value The number.
-/// \param [in] a Min value.
-/// \param [in] b Max value.
-/// \return Return the number between a and b.
-///
-
-template<typename T>
-static T clamp(T value, T a, T b)
-{
-  if (value > b) {
-    return b;
-  }
-
-  if (value < a) {
-    return a;
-  }
-
-  return value;
-}
-
-///
-/// \brief Get a random number between two specified numbers.
-/// \param [in] a Min value.
-/// \param [in] b Max value.
-/// \return Return a random number between a and b.
-///
-
-template<typename T>
-static T rangeRand(T a, T b)
-{
-  return (T)(a + (b - a) * (rand() / (float)RAND_MAX));
-}
-
-///
 /// \brief Utility routines.
 ///
 
 namespace Util {
+
+  ///
+  /// \brief Clamp the number to the specified range.
+  /// \param [in] value The number.
+  /// \param [in] a Min value.
+  /// \param [in] b Max value.
+  /// \return Return the number between a and b.
+  ///
+
+  template<typename T>
+  static T clamp(T value, T a, T b)
+  {
+    if (value > b) {
+      return b;
+    }
+
+    if (value < a) {
+      return a;
+    }
+
+    return value;
+  }
+
+  ///
+  /// \brief Get a random number between two specified numbers.
+  /// \param [in] a Min value.
+  /// \param [in] b Max value.
+  /// \return Return a random number between a and b.
+  ///
+
+  template<typename T>
+  static T rangeRand(T a, T b)
+  {
+    return (T)(a + (b - a) * (rand() / (float)RAND_MAX));
+  }
 
   ///
   /// \brief Calculate the max bit need to store a number.
