@@ -139,9 +139,7 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
 
   getDosTime(itemfullname, z.modTime, z.modDate, attr);
 
-  ifs.seekg(0, std::ios_base::end);
-  z.szUncompressed = (uint)ifs.tellg();
-  ifs.seekg(0, std::ios_base::beg);
+  z.szUncompressed = (uint)Util::getStreamLen(ifs);
 
   z.crc32 = 0;
   Util::crc32(z.crc32, ifs);
@@ -359,11 +357,7 @@ const int CHUNK = 1024;
 
 bool Util::zip(std::istream& is, std::ostream& os, int level)
 {
-  int curPos = (int)is.tellg();
-  is.seekg(0, std::ios_base::end);
-  int lenStream = (int)is.tellg() - curPos;
-  is.seekg(curPos, std::ios_base::beg);
-
+  int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
@@ -451,11 +445,7 @@ bool Util::zip(std::istream& is, std::ostream& os, int level)
 
 bool Util::unzip(std::istream& is, std::ostream& os, uint len)
 {
-  int curPos = (int)is.tellg();
-  is.seekg(0, std::ios_base::end);
-  int lenStream = (int)is.tellg() - curPos;
-  is.seekg(curPos, std::ios_base::beg);
-
+  int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
@@ -550,11 +540,7 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
 
 bool Util::crc32(uint& value, std::istream& is, uint len)
 {
-  int curPos = (int)is.tellg();
-  is.seekg(0, std::ios_base::end);
-  int lenStream = (int)is.tellg() - curPos;
-  is.seekg(curPos, std::ios_base::beg);
-
+  int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
@@ -655,10 +641,7 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
 
 bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password)
 {
-  std::streampos pos = is.tellg();
-  is.seekg(0, std::ios_base::end);
-  bool empty = pos == is.tellg();
-  is.seekg(pos, std::ios_base::beg);
+  bool empty = 0 >= getStreamLen(is);
 
   //
   // Create new.

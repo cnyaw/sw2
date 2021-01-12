@@ -136,6 +136,15 @@ int Util::getKey()
   return -1;
 }
 
+int Util::getStreamLen(std::istream &is)
+{
+  int curPos = (int)is.tellg();
+  is.seekg(0, std::ios_base::end);
+  int lenStream = (int)is.tellg() - curPos;
+  is.seekg(curPos, std::ios_base::beg);
+  return lenStream;
+}
+
 uint Util::getTickCount()
 {
 #if defined(WIN32)
@@ -178,11 +187,7 @@ std::string& Util::trim(std::string& str, std::string const& chrTrim)
 
 bool Util::base64(std::istream& is, std::ostream& os)
 {
-  int curPos = (int)is.tellg();
-  is.seekg(0, std::ios_base::end);
-  int lenStream = (int)is.tellg() - curPos;
-  is.seekg(curPos, std::ios_base::beg);
-
+  int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
@@ -241,11 +246,7 @@ bool Util::base64(std::istream& is, std::ostream& os)
 
 bool Util::unbase64(std::istream& is, std::ostream& os)
 {
-  int curPos = (int)is.tellg();
-  is.seekg(0, std::ios_base::end);
-  int lenStream = (int)is.tellg() - curPos;
-  is.seekg(curPos, std::ios_base::beg);
-
+  int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;

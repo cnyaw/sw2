@@ -88,6 +88,14 @@ namespace Util {
   }
 
   ///
+  /// \brief Get length in bytes of an input stream.
+  /// \param [in] is An input stream.
+  /// \return Return length in bytes.
+  ///
+
+  int getStreamLen(std::istream &is);
+
+  ///
   /// \brief Calculate the max bit need to store a number.
   /// \param [in] n A number.
   /// \return Return the max bit need to store the number.
