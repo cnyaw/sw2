@@ -255,30 +255,33 @@ TEST(ObjectPool, alloc2_2)
 // Test reset of fix size pool.
 //
 
+#define TEST_OBJECT_POOL_RESET(p) \
+  for (int i = 0; i < 128; ++i) {\
+    CHECK(-1 != p.alloc());\
+  }\
+\
+  std::vector<int> v1;\
+  for (int i = p.first(); -1 != i; i = p.next(i)) {\
+    v1.push_back(i);\
+  }\
+\
+  p.reset();\
+\
+  for (int i = 0; i < 128; ++i) {\
+    CHECK(-1 != p.alloc());\
+  }\
+\
+  std::vector<int> v2;\
+  for (int i = p.first(); -1 != i; i = p.next(i)) {\
+    v2.push_back(i);\
+  }\
+\
+  CHECK(v1 == v2);
+
 TEST(ObjectPool, reset1)
 {
   ObjectPool<int,128> p;
-  for (int i = 0; i < 128; ++i) {
-    CHECK(-1 != p.alloc());
-  }
-
-  std::vector<int> v1;
-  for (int i = p.first(); -1 != i; i = p.next(i)) {
-    v1.push_back(i);
-  }
-
-  p.reset();
-
-  for (int i = 0; i < 128; ++i) {
-    CHECK(-1 != p.alloc());
-  }
-
-  std::vector<int> v2;
-  for (int i = p.first(); -1 != i; i = p.next(i)) {
-    v2.push_back(i);
-  }
-
-  CHECK(v1 == v2);
+  TEST_OBJECT_POOL_RESET(p);
 }
 
 //
@@ -288,66 +291,49 @@ TEST(ObjectPool, reset1)
 TEST(ObjectPool, reset2)
 {
   ObjectPool<int,4,true> p;
-  for (int i = 0; i < 128; ++i) {
-    CHECK(-1 != p.alloc());
-  }
-
-  std::vector<int> v1;
-  for (int i = p.first(); -1 != i; i = p.next(i)) {
-    v1.push_back(i);
-  }
-
-  p.reset();
-
-  for (int i = 0; i < 128; ++i) {
-    CHECK(-1 != p.alloc());
-  }
-
-  std::vector<int> v2;
-  for (int i = p.first(); -1 != i; i = p.next(i)) {
-    v2.push_back(i);
-  }
-
-  CHECK(v1 == v2);
+  TEST_OBJECT_POOL_RESET(p);
 }
 
 //
 // Test swap of fix size pool.
 //
 
+#define TEST_OBJECT_POOL_SWAP(p) \
+  for (int i = 0; i < 5; ++i) {\
+    p.alloc();\
+  }\
+\
+  CHECK(!p.swap(10, 20));\
+  CHECK(!p.swap(-10, -20));\
+  CHECK(!p.swap(1, 10));\
+  CHECK(!p.swap(-10, 1));\
+\
+  CHECK(!p.swap(p.first(), p.first()));\
+  CHECK(!p.swap(1, 1));\
+  CHECK(!p.swap(p.last(), p.last()));\
+\
+  CHECK(p.swap(3, 1));                  /* 0,3,2,1,4 */\
+  CHECK(p.swap(p.first(), 1));          /* 1,3,2,0,4 */\
+  CHECK(p.swap(p.last(), 0));           /* 1,3,2,4,0 */\
+  CHECK(p.swap(p.first(), p.last()));   /* 0,3,2,4,1 */\
+  CHECK(p.swap(3, 2));                  /* 0,2,3,4,1 */\
+  CHECK(p.swap(2, p.first()));          /* 2,0,3,4,1 */\
+  CHECK(p.swap(4, 3));                  /* 2,0,4,3,1 */\
+  CHECK(p.swap(p.last(), 3));           /* 2,0,4,1,3 */\
+\
+  int const la[] = {2,0,4,1,3};\
+  for (int i = 0, id = p.first(); -1 != id; id = p.next(id), ++i) {\
+    CHECK(la[i] == id);\
+  }\
+\
+  for (int i = 4, id = p.last(); -1 != id; id = p.prev(id), --i) {\
+    CHECK(la[i] == id);\
+  }
+
 TEST(ObjectPool, swap1)
 {
   ObjectPool<int,5> p;
-  for (int i = 0; i < 5; ++i) {
-    p.alloc();
-  }
-
-  CHECK(!p.swap(10, 20));
-  CHECK(!p.swap(-10, -20));
-  CHECK(!p.swap(1, 10));
-  CHECK(!p.swap(-10, 1));
-
-  CHECK(!p.swap(p.first(), p.first()));
-  CHECK(!p.swap(1, 1));
-  CHECK(!p.swap(p.last(), p.last()));
-
-  CHECK(p.swap(3, 1));                  // 0,3,2,1,4
-  CHECK(p.swap(p.first(), 1));          // 1,3,2,0,4
-  CHECK(p.swap(p.last(), 0));           // 1,3,2,4,0
-  CHECK(p.swap(p.first(), p.last()));   // 0,3,2,4,1
-  CHECK(p.swap(3, 2));                  // 0,2,3,4,1
-  CHECK(p.swap(2, p.first()));          // 2,0,3,4,1
-  CHECK(p.swap(4, 3));                  // 2,0,4,3,1
-  CHECK(p.swap(p.last(), 3));           // 2,0,4,1,3
-
-  int const la[] = {2,0,4,1,3};
-  for (int i = 0, id = p.first(); -1 != id; id = p.next(id), ++i) {
-    CHECK(la[i] == id);
-  }
-
-  for (int i = 4, id = p.last(); -1 != id; id = p.prev(id), --i) {
-    CHECK(la[i] == id);
-  }
+  TEST_OBJECT_POOL_SWAP(p);
 }
 
 //
@@ -357,36 +343,7 @@ TEST(ObjectPool, swap1)
 TEST(ObjectPool, swap2)
 {
   ObjectPool<int,5,true> p;
-  for (int i = 0; i < 5; ++i) {
-    p.alloc();
-  }
-
-  CHECK(!p.swap(10, 20));
-  CHECK(!p.swap(-10, -20));
-  CHECK(!p.swap(1, 10));
-  CHECK(!p.swap(-10, 1));
-
-  CHECK(!p.swap(p.first(), p.first()));
-  CHECK(!p.swap(1, 1));
-  CHECK(!p.swap(p.last(), p.last()));
-
-  CHECK(p.swap(3, 1));                  // 0,3,2,1,4
-  CHECK(p.swap(p.first(), 1));          // 1,3,2,0,4
-  CHECK(p.swap(p.last(), 0));           // 1,3,2,4,0
-  CHECK(p.swap(p.first(), p.last()));   // 0,3,2,4,1
-  CHECK(p.swap(3, 2));                  // 0,2,3,4,1
-  CHECK(p.swap(2, p.first()));          // 2,0,3,4,1
-  CHECK(p.swap(4, 3));                  // 2,0,4,3,1
-  CHECK(p.swap(p.last(), 3));           // 2,0,4,1,3
-
-  int const la[] = {2,0,4,1,3};
-  for (int i = 0, id = p.first(); -1 != id; id = p.next(id), ++i) {
-    CHECK(la[i] == id);
-  }
-
-  for (int i = 4, id = p.last(); -1 != id; id = p.prev(id), --i) {
-    CHECK(la[i] == id);
-  }
+  TEST_OBJECT_POOL_SWAP(p);
 }
 
 //
