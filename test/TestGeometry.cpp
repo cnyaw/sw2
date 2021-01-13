@@ -55,6 +55,30 @@ TEST(RECT_t, init)
 // Test empty RECT_t.
 //
 
+#define TEST_RECT_T_EMPTY()\
+  CHECK(rc1.empty());\
+  CHECK(!rc2.empty());\
+  CHECK(!rc3.empty());\
+  CHECK(!rc4.empty());\
+  CHECK(!rc5.empty());\
+  CHECK(!rc6.empty());\
+  CHECK(!rc7.empty());\
+  CHECK(!rc8.empty());\
+  rc2.setEmpty();\
+  rc3.setEmpty();\
+  rc4.setEmpty();\
+  rc5.setEmpty();\
+  rc6.setEmpty();\
+  rc7.setEmpty();\
+  rc8.setEmpty();\
+  CHECK(rc2.empty());\
+  CHECK(rc3.empty());\
+  CHECK(rc4.empty());\
+  CHECK(rc5.empty());\
+  CHECK(rc6.empty());\
+  CHECK(rc7.empty());\
+  CHECK(rc8.empty());\
+
 TEST(RECT_t, empty)
 {
   {
@@ -66,29 +90,7 @@ TEST(RECT_t, empty)
     IntRect rc6(1,1,0,0);
     IntRect rc7(2,0,2,2);
     IntRect rc8(3,4,5,6);
-    CHECK(rc1.empty());
-    CHECK(!rc2.empty());
-    CHECK(!rc3.empty());
-    CHECK(!rc4.empty());
-    CHECK(!rc5.empty());
-    CHECK(!rc6.empty());
-    CHECK(!rc7.empty());
-    CHECK(!rc8.empty());
-
-    rc2.setEmpty();
-    rc3.setEmpty();
-    rc4.setEmpty();
-    rc5.setEmpty();
-    rc6.setEmpty();
-    rc7.setEmpty();
-    rc8.setEmpty();
-    CHECK(rc2.empty());
-    CHECK(rc3.empty());
-    CHECK(rc4.empty());
-    CHECK(rc5.empty());
-    CHECK(rc6.empty());
-    CHECK(rc7.empty());
-    CHECK(rc8.empty());
+    TEST_RECT_T_EMPTY();
   }
 
   {
@@ -100,29 +102,7 @@ TEST(RECT_t, empty)
     FloatRect rc6(.10f, 2.0f, .0f, .0f);
     FloatRect rc7(.0f, 2.0f, 3.0f, .0f);
     FloatRect rc8(4.0f, 1.0f, .0f, 13.0f);
-    CHECK(rc1.empty());
-    CHECK(!rc2.empty());
-    CHECK(!rc3.empty());
-    CHECK(!rc4.empty());
-    CHECK(!rc5.empty());
-    CHECK(!rc6.empty());
-    CHECK(!rc7.empty());
-    CHECK(!rc8.empty());
-
-    rc2.setEmpty();
-    rc3.setEmpty();
-    rc4.setEmpty();
-    rc5.setEmpty();
-    rc6.setEmpty();
-    rc7.setEmpty();
-    rc8.setEmpty();
-    CHECK(rc2.empty());
-    CHECK(rc3.empty());
-    CHECK(rc4.empty());
-    CHECK(rc5.empty());
-    CHECK(rc6.empty());
-    CHECK(rc7.empty());
-    CHECK(rc8.empty());
+    TEST_RECT_T_EMPTY();
   }
 }
 

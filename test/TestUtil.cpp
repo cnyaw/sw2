@@ -148,33 +148,33 @@ TEST(Util, zip_unzip)
 // Test zipArchive.
 //
 
+#define INIT_TEST_UTIL_ZIP_ARCHIVE()\
+  Ini ini1, ini2;\
+  CHECK(ini1.load("./data/test.ini"));\
+  CHECK(ini2.load("./data/widget.txt"));\
+  std::string str1;\
+  {\
+    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);\
+    std::stringstream ss;\
+    ss << ifs.rdbuf();\
+    ifs.close();\
+    str1 = ss.str();\
+  }\
+  std::string str2;\
+  {\
+    std::ifstream ifs("./data/test.txt", std::ios_base::binary);\
+    std::stringstream ss;\
+    ss << ifs.rdbuf();\
+    ifs.close();\
+    str2 = ss.str();\
+  }\
+  std::stringstream out1, out2;\
+  CHECK(ini1.store(out1));\
+  CHECK(ini2.store(out2));
+
 TEST(Util, zipArchive)
 {
-  Ini ini1, ini2;
-  CHECK(ini1.load("./data/test.ini"));
-  CHECK(ini2.load("./data/widget.txt"));
-
-  std::string str1;
-  {
-    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    ifs.close();
-    str1 = ss.str();
-  }
-
-  std::string str2;
-  {
-    std::ifstream ifs("./data/test.txt", std::ios_base::binary);
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    ifs.close();
-    str2 = ss.str();
-  }
-
-  std::stringstream out1, out2;
-  CHECK(ini1.store(out1));
-  CHECK(ini2.store(out2));
+  INIT_TEST_UTIL_ZIP_ARCHIVE();
 
   //
   // Test 1.
@@ -280,31 +280,7 @@ TEST(Util, zipArchive)
 
 TEST(Util, zipArchive2)
 {
-  Ini ini1, ini2;
-  CHECK(ini1.load("./data/test.ini"));
-  CHECK(ini2.load("./data/widget.txt"));
-
-  std::string str1;
-  {
-    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    ifs.close();
-    str1 = ss.str();
-  }
-
-  std::string str2;
-  {
-    std::ifstream ifs("./data/test.txt", std::ios_base::binary);
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    ifs.close();
-    str2 = ss.str();
-  }
-
-  std::stringstream out1, out2;
-  CHECK(ini1.store(out1));
-  CHECK(ini2.store(out2));
+  INIT_TEST_UTIL_ZIP_ARCHIVE();
 
   //
   // Test 1.
