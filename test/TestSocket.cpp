@@ -328,8 +328,8 @@ TEST(Socket, sendrecv)
 
       CHECK(s.mRecvCnt == total);
       CHECK(s.mData == std::string(total, 'S'));
-      CHECK(s.mServer->getNetStats().bytesRecv == total);
-      CHECK(s.mServer->getNetStats().bytesSent == total);
+      CHECK(s.mServer->getNetStats().bytesRecv == (uint64)total);
+      CHECK(s.mServer->getNetStats().bytesSent == (uint64)total);
 
       while (!lt.isExpired() && c.mFeedbackCnt != total) {
         s.mServer->trigger();
@@ -338,8 +338,8 @@ TEST(Socket, sendrecv)
 
       CHECK(c.mFeedbackCnt == total);
       CHECK(c.mData == std::string(total, 'F'));
-      CHECK(c.mClient->getNetStats().bytesRecv == total);
-      CHECK(c.mClient->getNetStats().bytesSent == total);
+      CHECK(c.mClient->getNetStats().bytesRecv == (uint64)total);
+      CHECK(c.mClient->getNetStats().bytesSent == (uint64)total);
     }
 
     c.mClient->disconnect();
