@@ -8,6 +8,8 @@
 //  2005/06/05 Waync created.
 //
 
+#include <time.h>
+
 #if defined(WIN32) || defined(_WIN32_WCE)
 # define NOMINMAX
 # include <windows.h>

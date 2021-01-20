@@ -108,8 +108,6 @@
 
 #pragma once
 
-#include <ctime>
-
 #include "swinc.h"
 
 namespace sw2 {
