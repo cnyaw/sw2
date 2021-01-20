@@ -344,4 +344,103 @@ wait:
   UninitializeThreadPool();
 }
 
+// Test ThreadTaskPipe.
+
+class TestThreadPipeString
+{
+public:
+  std::string m_str;
+  ThreadLock *m_lock;
+
+  TestThreadPipeString()
+  {
+    m_lock = ThreadLock::alloc();
+  }
+
+  ~TestThreadPipeString()
+  {
+    ThreadLock::free(m_lock);
+  }
+
+  void append(const std::string &s)
+  {
+    m_lock->lock();
+    m_str += s;
+    m_lock->unlock();
+  }
+};
+
+class TestPipeThread1 : public ThreadTask
+{
+  TestThreadPipeString &m_str;
+public:
+  TestPipeThread1(TestThreadPipeString &s) : m_str(s) {}
+  virtual void threadTask()
+  {
+    Util::sleep(1);
+    m_str.append("1");
+  }
+};
+
+class TestPipeThread2 : public ThreadTask
+{
+  TestThreadPipeString &m_str;
+public:
+  TestPipeThread2(TestThreadPipeString &s) : m_str(s) {}
+  virtual void threadTask()
+  {
+    Util::sleep(1);
+    m_str.append("2");
+  }
+};
+
+class TestPipeThread3 : public ThreadTask
+{
+  TestThreadPipeString &m_str;
+public:
+  TestPipeThread3(TestThreadPipeString &s) : m_str(s) {}
+  virtual void threadTask()
+  {
+    Util::sleep(1);
+    m_str.append("3");
+  }
+};
+
+class TestPipeThread4 : public ThreadTask
+{
+  TestThreadPipeString &m_str;
+public:
+  TestPipeThread4(TestThreadPipeString &s) : m_str(s) {}
+  virtual void threadTask()
+  {
+    Util::sleep(1);
+    m_str.append("4");
+  }
+};
+
+TEST(ThreadPool, threadpipe)
+{
+  InitializeThreadPool(4);
+
+  TestThreadPipeString s;
+  TestPipeThread1 t1(s);
+  TestPipeThread2 t2(s);
+  TestPipeThread3 t3(s);
+  TestPipeThread4 t4(s);
+
+  ThreadTaskPipe p;
+  p.run(&t2).run(&t4).run(&t1).run(&t2).run(&t3).run(&t3).run(&t1).run(&t4);
+
+  CHECK(8 == s.m_str.length());
+  CHECK("24123314" == s.m_str);
+
+  s.m_str = "";
+  p.run(&t1, &t2, &t3).run(&t4).run(&t1).run(&t2).run(&t3);
+
+  CHECK(7 == s.m_str.length());
+  CHECK(!strncmp(s.m_str.c_str() + 3, "4123", 4));
+
+  UninitializeThreadPool();
+}
+
 // end of TestThreadPool.cpp

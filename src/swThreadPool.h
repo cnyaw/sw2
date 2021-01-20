@@ -64,6 +64,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "swinc.h"
 
 namespace sw2 {
@@ -159,6 +161,50 @@ public:
   ///
 
   virtual void unlock()=0;
+};
+
+///
+/// \brief Helper to run and wait multiple thread tasks.
+///
+
+class ThreadTaskPipe
+{
+public:
+
+  ///
+  /// \brief Run and wait a thread task.
+  /// \param [in] pTask A thread task.
+  /// \return Return this thread task pipe.
+  ///
+
+  ThreadTaskPipe& run(ThreadTask *pTask);
+
+  ///
+  /// \brief Run and wait two thread tasks.
+  /// \param [in] pTask1 Thread task1.
+  /// \param [in] pTask2 Thread task2.
+  /// \return Return this thread task pipe.
+  ///
+
+  ThreadTaskPipe& run(ThreadTask *pTask1, ThreadTask *pTask2);
+
+  ///
+  /// \brief Run and wait three thread tasks.
+  /// \param [in] pTask1 Thread task1.
+  /// \param [in] pTask2 Thread task2.
+  /// \param [in] pTask3 Thread task3.
+  /// \return Return this thread task pipe.
+  ///
+
+  ThreadTaskPipe& run(ThreadTask *pTask1, ThreadTask *pTask2, ThreadTask *pTask3);
+
+  ///
+  /// \brief Run and wait multiple thread tasks.
+  /// \param [in] tasks Thread tasks.
+  /// \return Return this thread task pipe.
+  ///
+
+  ThreadTaskPipe& run(const std::vector<ThreadTask*> &tasks);
 };
 
 } // end of namespace sw2

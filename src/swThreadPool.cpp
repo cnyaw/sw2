@@ -681,6 +681,56 @@ void ThreadLock::free(ThreadLock* pLock)
   delete (impl::implLock*)pLock;
 }
 
+//
+// ThreadTaskPipe.
+//
+
+ThreadTaskPipe& ThreadTaskPipe::run(ThreadTask *pTask)
+{
+  std::vector<ThreadTask*> v;
+  v.push_back(pTask);
+  return run(v);
+}
+
+ThreadTaskPipe& ThreadTaskPipe::run(ThreadTask *pTask1, ThreadTask *pTask2)
+{
+  std::vector<ThreadTask*> v;
+  v.push_back(pTask1);
+  v.push_back(pTask2);
+  return run(v);
+}
+
+ThreadTaskPipe& ThreadTaskPipe::run(ThreadTask *pTask1, ThreadTask *pTask2, ThreadTask *pTask3)
+{
+  std::vector<ThreadTask*> v;
+  v.push_back(pTask1);
+  v.push_back(pTask2);
+  v.push_back(pTask3);
+  return run(v);
+}
+
+ThreadTaskPipe& ThreadTaskPipe::run(const std::vector<ThreadTask*> &tasks)
+{
+  std::vector<ThreadTask*> v;
+  for (size_t i = 0; i < tasks.size(); i++) {
+    ThreadTask *p = tasks[i];
+    assert(p);
+    while (p->isRunning()) {
+      Util::sleep(1);
+    }
+    v.push_back(p);
+    p->runTask();
+  }
+wait_1:
+  for (size_t i = 0; i < v.size(); i++) {
+    if (v[i]->isRunning()) {
+      Util::sleep(1);
+      goto wait_1;
+    }
+  }
+  return *this;
+}
+
 } // namespace sw2
 
 // end of swThreadPool.cpp
