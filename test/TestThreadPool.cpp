@@ -286,6 +286,10 @@ wait:
   UninitializeThreadPool();
 }
 
+//
+// bankbalance.
+//
+
 class TestBankBalance : public ThreadTask
 {
 public:
@@ -323,18 +327,11 @@ TEST(ThreadPool, bankbalance)
       result -= withdraw;
     }
 
+    std::vector<ThreadTask*> v;
     for (int i = 0; i < n; i++) {
-      CHECK(!test[i].isRunning());
-      test[i].runTask();
+      v.push_back(&test[i]);
     }
-
-wait:
-    for (int i = 0; i < n; i++) {
-      if (test[i].isRunning()) {
-        Util::sleep(1);
-        goto wait;
-      }
-    }
+    ThreadTaskPipe().run(v);
 
     CHECK(result == balance);
 
@@ -344,7 +341,9 @@ wait:
   UninitializeThreadPool();
 }
 
+//
 // Test ThreadTaskPipe.
+//
 
 class TestThreadPipeString
 {
@@ -420,7 +419,7 @@ public:
 
 TEST(ThreadPool, threadpipe)
 {
-  InitializeThreadPool(4);
+  CHECK(InitializeThreadPool(4));
 
   TestThreadPipeString s;
   TestPipeThread1 t1(s);
