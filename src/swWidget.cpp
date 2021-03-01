@@ -1250,13 +1250,14 @@ int Listbox::create(int hParent, IntRect const& dim, std::string const& text, st
   // Query item dim.
   //
 
+  implWindow& iw2 = thePool[handle];    // &iw may change because sb.create cause pool grow.
   IntPoint pt(0, 16);
-  iw.m_pCb->onWidgetQueryItemMetrics(handle, -1, pt);
-  iw.m_cyItem = pt.y;
+  iw2.m_pCb->onWidgetQueryItemMetrics(handle, -1, pt);
+  iw2.m_cyItem = pt.y;
 
-  iw.m_pos = iw.m_lastPt = -1;          // Current hot && current selection.
-  iw.m_limit = INT_MAX;
-  iw.m_lst.clear();
+  iw2.m_pos = iw2.m_lastPt = -1;        // Current hot && current selection.
+  iw2.m_limit = INT_MAX;
+  iw2.m_lst.clear();
 
   //
   // Initialize scrollbar.
@@ -1264,7 +1265,7 @@ int Listbox::create(int hParent, IntRect const& dim, std::string const& text, st
 
   implWindow& scrollbar = thePool[sb.handle];
   scrollbar.m_min = scrollbar.m_pos = 0;
-  scrollbar.m_page = scrollbar.m_max = (int)(dim.bottom / (float)iw.m_cyItem);
+  scrollbar.m_page = scrollbar.m_max = (int)(dim.bottom / (float)iw2.m_cyItem);
 
   return handle;
 }
