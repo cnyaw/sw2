@@ -503,11 +503,11 @@ public:
 
       case WAIT_OBJECT_0 + 1:           // New task.
         {
-          int idTask = -1;
-
           //
           // Get queued task id.
           //
+
+          int idTask = -1;
 
           pThreadPool->lockQueue();
 
@@ -527,25 +527,13 @@ public:
 
           pThreadPool->unlockQueue();
 
-          //
-          // Execute task.
-          //
-
-          if (-1 != idTask) {
-
-            pThreadPool->lockPool();
-            implThreadTask& task = pThreadPool->m_poolTask[idTask];
-            pThreadPool->unlockPool();
-
-            task.runTask();
-          }
+          pThreadPool->execTask_i(idTask);
         }
         break;
 
       default:
         assert(0);                      // Should not happen.
         break;
-
       }
     }
 
@@ -600,23 +588,22 @@ public:
 
       pThreadPool->unlockQueue();
 
-      //
-      // Execute task.
-      //
-
-      if (-1 != idTask) {
-
-        pThreadPool->lockPool();
-        implThreadTask& task = pThreadPool->m_poolTask[idTask];
-        pThreadPool->unlockPool();
-
-        task.runTask();
-      }
+      pThreadPool->execTask_i(idTask);
     }
 
     return 0;
   }
 #endif
+
+  void execTask_i(int idTask)
+  {
+    if (-1 != idTask) {
+      lockPool();
+      implThreadTask& task = m_poolTask[idTask];
+      unlockPool();
+      task.runTask();
+    }
+  }
 };
 
 } // namespace impl
