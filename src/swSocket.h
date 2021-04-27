@@ -146,6 +146,7 @@ struct SocketClientStats
   time_t startTime;                     ///< Start time.
   time_t upTime;                        ///< Up time.
 
+  unsigned long long bytesBuff;         ///< Total bytes in send buffer.
   unsigned long long bytesSent;         ///< Total bytes sent.
   unsigned long long bytesRecv;         ///< Total bytes received.
 };
@@ -159,6 +160,7 @@ struct SocketServerStats
   time_t startTime;                     ///< Start time.
   time_t upTime;                        ///< Up time.
 
+  unsigned long long bytesBuff;         ///< Total bytes in send buffer.
   unsigned long long bytesSent;         ///< Total bytes sent.
   unsigned long long bytesRecv;         ///< Total bytes received.
 

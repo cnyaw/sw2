@@ -401,6 +401,7 @@ public:
       cs.bytesSent = ss.bytesSent;
       cs.packetsRecv = ss.packetsRecv;
       cs.packetsSent = ss.packetsSent;
+      cs.bytesBuff = ss.bytesBuff;
     }
     for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
       NetworkClientStats ns = m_poolDepex[i].m_pClient->getNetStats();
@@ -410,6 +411,7 @@ public:
       cs.packetsSent += ns.packetsSent;
       cs.startTime = ns.startTime;
       cs.upTime = ns.upTime;
+      cs.bytesBuff += ns.bytesBuff;
     }
     return cs;
   }

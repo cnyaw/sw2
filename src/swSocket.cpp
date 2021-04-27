@@ -214,6 +214,17 @@ public:
     }
   }
 
+  unsigned long long getBytesSendBuff() const
+  {
+    unsigned long long s = 0;
+    implSocketPacketBuffer *p = m_pBuff;
+    while (p) {
+      s += p->len - p->offset;
+      p = p->pNext;
+    }
+    return s;
+  }
+
   bool connect(std::string const& svrAddr)
   {
     assert(CS_DISCONNECTED == m_state);
@@ -846,6 +857,7 @@ public:
   {
     SocketClientStats s = m_netStats;
     s.upTime = (time_t)::difftime(::time(0), s.startTime);
+    s.bytesBuff = getBytesSendBuff();
     return s;
   }
 
@@ -912,6 +924,7 @@ public:
   {
     SocketClientStats s = m_netStats;
     s.upTime = (time_t)::difftime(::time(0), s.startTime);
+    s.bytesBuff = getBytesSendBuff();
     return s;
   }
 
@@ -1024,6 +1037,12 @@ public:
   {
     SocketServerStats s = m_netStats;
     s.upTime = (time_t)difftime(time(0), s.startTime);
+    s.bytesBuff = 0;
+    implSocketConnection *client = m_pClient;
+    while (client) {
+      s.bytesBuff += client->getBytesSendBuff();
+      client = client->m_pNext;
+    }
     return s;
   }
 
