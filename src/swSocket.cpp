@@ -182,7 +182,7 @@ public:
     m_state(CS_DISCONNECTED),
     m_socket(INVALID_SOCKET),
     m_pSvrNetStats(0),
-    m_pSocketFreeBuff(0),
+    m_pFreeBuff(0),
     m_pBuff(0),
     m_pBuffLast(0)
   {
@@ -198,8 +198,8 @@ public:
 
     if (m_pBuff) {
       assert(m_pBuffLast && 0 == m_pBuffLast->pNext);
-      m_pBuffLast->pNext = m_pSocketFreeBuff;
-      m_pSocketFreeBuff = m_pBuff;
+      m_pBuffLast->pNext = m_pFreeBuff;
+      m_pFreeBuff = m_pBuff;
       m_pBuff = m_pBuffLast = 0;
     }
 
@@ -207,9 +207,9 @@ public:
     // Free buffers.
     //
 
-    while (m_pSocketFreeBuff) {
-      implSocketPacketBuffer* p = m_pSocketFreeBuff;
-      m_pSocketFreeBuff = m_pSocketFreeBuff->pNext;
+    while (m_pFreeBuff) {
+      implSocketPacketBuffer* p = m_pFreeBuff;
+      m_pFreeBuff = m_pFreeBuff->pNext;
       delete p;
     }
   }
@@ -300,8 +300,8 @@ public:
 
     if (m_pBuff) {
       assert(m_pBuffLast && 0 == m_pBuffLast->pNext);
-      m_pBuffLast->pNext = m_pSocketFreeBuff;
-      m_pSocketFreeBuff = m_pBuff;
+      m_pBuffLast->pNext = m_pFreeBuff;
+      m_pFreeBuff = m_pBuff;
       m_pBuff = m_pBuffLast = 0;
     }
 
@@ -355,9 +355,9 @@ public:
       // Allocate packet buffer.
       //
 
-      if (m_pSocketFreeBuff) {
-        pBuff = m_pSocketFreeBuff;
-        m_pSocketFreeBuff = m_pSocketFreeBuff->pNext;
+      if (m_pFreeBuff) {
+        pBuff = m_pFreeBuff;
+        m_pFreeBuff = m_pFreeBuff->pNext;
       } else {
         pBuff = new implSocketPacketBuffer;
       }
@@ -367,8 +367,8 @@ public:
         SW2_TRACE_ERROR("Send stream, out of memory.");
 
         if (0 != pHead) {               // Release allocated buffer(s).
-          pLast->pNext = m_pSocketFreeBuff;
-          m_pSocketFreeBuff = pHead;
+          pLast->pNext = m_pFreeBuff;
+          m_pFreeBuff = pHead;
         }
 
         //
@@ -448,8 +448,8 @@ public:
           m_pBuffLast = 0;
         }
 
-        p->pNext = m_pSocketFreeBuff;
-        m_pSocketFreeBuff = p;
+        p->pNext = m_pFreeBuff;
+        m_pFreeBuff = p;
       }
 
       //
@@ -799,7 +799,7 @@ public:
   SocketClientStats m_netStats;         // Net stats.
   SocketServerStats* m_pSvrNetStats;
 
-  implSocketPacketBuffer* m_pSocketFreeBuff; // Free list of packet buffer.
+  implSocketPacketBuffer* m_pFreeBuff;  // Free list of packet buffer.
 
   implSocketPacketBuffer *m_pBuff, *m_pBuffLast; // Buffer list for queued data.
   TimeoutTimer m_lastProcessTimeout;    // Since last process trigger.
