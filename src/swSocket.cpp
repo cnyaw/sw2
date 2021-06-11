@@ -153,16 +153,6 @@ SOCKET createSock(std::string const& addr, struct sockaddr_in &sa)
   }
 
   //
-  // Enable TCP_NODELAY.
-  //
-
-  if (SOCKET_ERROR == ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&v, sizeof(v))) {
-    SW2_TRACE_ERROR("Set tcp no delay failed.");
-    closesocket(s);
-    return INVALID_SOCKET;
-  }
-
-  //
   // Setup sock address.
   //
 
