@@ -45,6 +45,7 @@ namespace impl {
 # define SOCKET_EINPROGRESS   WSAEWOULDBLOCK
 # define SOCKET_EWOULDBLOCK   WSAEWOULDBLOCK
 # define SOCKET_EAGAIN        WSAEWOULDBLOCK
+# define socklen_t int
 #elif defined(_linux_)
 # define errorno              errno
 # define SOCKET               int
@@ -1087,7 +1088,7 @@ public:
     ::memset(&m_netStats, 0, sizeof(SocketServerStats));
     m_netStats.startTime = ::time(0);
 
-    int len = sizeof(sa);
+    socklen_t len = sizeof(sa);
     if (SOCKET_ERROR != getsockname(s, (sockaddr*)&sa, &len)) {
       char addr[128];
       ::sprintf(addr, "%s:%hu", ::inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
