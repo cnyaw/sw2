@@ -192,7 +192,7 @@ TEST(Socket, connect1)
   CHECK(InitializeSocket());
 
   {
-    std::string const addr = "localhost:1213";
+    std::string const addr = "localhost:121314";
 
     TestSocketServer s;
     CHECK(!s.mReady);
