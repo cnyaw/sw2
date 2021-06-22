@@ -64,9 +64,9 @@ namespace impl {
 //
 
 #define TIMEOUT_DISCONNECTING 10        // Disconnecting phase timeout, second.
-#define MAX_PACKET_BUFFER_SIZE 256      // Max buffer size, bytes.
-#define MAX_TRIGGER_READ_SIZE 1024      // Max data size will be read in each trigger process, bytes.
-#define MAX_TRIGGER_WIRTE_SIZE 1024     // Max data size will be written in each trigger process, bytes.
+#define MAX_PACKET_BUFFER_SIZE 512      // Max buffer size, bytes.
+#define MAX_TRIGGER_READ_SIZE 2048      // Max data size will be read in each trigger process, bytes.
+#define MAX_TRIGGER_WIRTE_SIZE 2048     // Max data size will be written in each trigger process, bytes.
 
 //
 // Packet buffer.
