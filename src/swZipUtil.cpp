@@ -658,6 +658,24 @@ bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os
   return impl::zipStream(false, path, is, os, items, password);
 }
 
+bool Util::isZipFile(std::istream& stream)
+{
+  std::streampos p = stream.tellg();
+  uint sig = (uint)-1;
+  stream.read((char*)&sig, sizeof(uint));
+  stream.seekg(p, std::ios::beg);
+  return impl::zHeader::TAG == sig;     // Is a local file header sig?
+}
+
+bool Util::isZipFile(std::string const& path)
+{
+  std::ifstream ifs(path.c_str(), std::ios::binary);
+  if (!ifs.is_open()) {
+    return false;
+  }
+  return isZipFile(ifs);
+}
+
 } // namespace sw2
 
 // end of swZipUtil.cpp

@@ -89,26 +89,6 @@ public:
 
   mutable std::map<std::string, zItem> items; // Local file header list, <path,offset>.
 
-  static bool isZipFile(std::istream& stream)
-  {
-    std::streampos p = stream.tellg();
-    uint sig = (uint)-1;
-    stream.read((char*)&sig, sizeof(uint));
-    stream.seekg(p, std::ios::beg);
-
-    return zHeader::TAG == sig;         // Is a local file header sig?
-  }
-
-  static bool isZipFile(std::string const& path)
-  {
-    std::ifstream ifs(path.c_str(), std::ios::binary);
-    if (!ifs.is_open()) {
-      return false;
-    }
-
-    return isZipFile(ifs);
-  }
-
   explicit implArchiveFileSystemZipfile(std::string const& path_) : archive(path_)
   {
   }
@@ -460,7 +440,7 @@ public:
     // A zip archive file system?
     //
 
-    if (implArchiveFileSystemZipfile::isZipFile(path)) {
+    if (Util::isZipFile(path)) {
       ArchiveFileSystem* pfs = new implArchiveFileSystemZipfile(path);
       if (0 == pfs) {
         return false;
@@ -478,7 +458,7 @@ public:
   {
     ArchiveFileSystem* pfs = 0;
 
-    if (implArchiveFileSystemZipfile::isZipFile(stream)) { // A ZIP archive?
+    if (Util::isZipFile(stream)) {
       pfs = new implArchiveFileSystemZipfile(stream);
     } else {
       SW2_TRACE_WARNING("Unknown file system.");

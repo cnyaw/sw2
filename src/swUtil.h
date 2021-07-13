@@ -217,6 +217,22 @@ namespace Util {
   bool zipStream(std::string const& path, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password = "");
 
   ///
+  /// \brief Check is the stream a zip archive.
+  /// \param [in] stream The stream.
+  /// \return Return true if the stream is a zip archive else return false.
+  ///
+
+  bool isZipFile(std::istream& stream);
+
+  ///
+  /// \brief Check is the file a zip archive.
+  /// \param [in] stream The file path.
+  /// \return Return true if the file is a zip archive else return false.
+  ///
+
+  bool isZipFile(std::string const& path);
+
+  ///
   /// \brief Create form widget.
   /// \param [in] hParent Parent widget.
   /// \param [in] res Resource INI.
