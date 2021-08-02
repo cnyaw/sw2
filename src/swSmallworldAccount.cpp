@@ -443,7 +443,7 @@ public:
     pClient->disconnect();
   }
 
-  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, std::string const&)
+  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, void const*)
   {
     //
     // Never used, kick.
