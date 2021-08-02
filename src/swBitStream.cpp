@@ -10,6 +10,8 @@
 
 #include <limits.h>
 
+#include <algorithm>
+
 #include "swBitStream.h"
 #include "swUtil.h"
 

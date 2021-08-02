@@ -8,7 +8,9 @@
 //  2005/08/02 Waync created.
 //
 
-#include <ctime>
+#include <time.h>
+
+#include <algorithm>
 
 #include "swNetwork.h"
 #include "swObjectPool.h"

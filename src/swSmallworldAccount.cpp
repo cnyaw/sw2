@@ -8,6 +8,8 @@
 //  2014/03/02 Waync created.
 //
 
+#include <algorithm>
+
 #include "swSmallworldEv.h"
 
 #include "swObjectPool.h"

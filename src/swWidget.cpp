@@ -8,9 +8,9 @@
 //  2006/04/06 Waync created.
 //
 
-#if defined(_linux_)
-# include <limits.h>
-#endif
+#include <limits.h>
+
+#include <algorithm>
 
 #include "swObjectPool.h"
 #include "swWidget.h"

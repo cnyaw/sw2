@@ -8,8 +8,9 @@
 //  2005/02/24 Waync created.
 //
 
-#include <queue>
+#include <algorithm>
 #include <map>
+#include <queue>
 
 #if defined(WIN32)
 # define NOMINMAX
