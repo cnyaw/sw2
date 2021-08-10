@@ -337,7 +337,7 @@ bool zipStream(bool bNew, std::string const& apath, std::istream& is, std::ostre
   zEndOfCentralDir edir = {0};
   edir.sig = zEndOfCentralDir::TAG;
   edir.noDisk = edir.noStartDisk = 0;
-  edir.numEntry = edir.numEntryDisk = (int)dirs.size();
+  edir.numEntry = edir.numEntryDisk = (ushort)dirs.size();
   edir.szCentralDir = (uint)os.tellp() - offsetdir2;
   edir.offsetCentralDir = offsetdir2;
   edir.szComment = 0;
