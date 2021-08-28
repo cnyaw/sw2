@@ -326,7 +326,7 @@ public:
       return false;
     }
 
-    return Util::unzip(ss, outs, item.hdr.szCompressed);
+    return Util::unzip(ss, outs);
   }
 
   virtual bool isFileExist(std::string const& name) const
