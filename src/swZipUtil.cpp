@@ -179,6 +179,10 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
   if (!password.empty()) {
     char buff[MAX_BUFF];
     int rpos = rand() % 255;            // Random position.
+
+    buff[10 + rpos] = (z.crc32 >> 16) & 0xff; // Last 2 bytes of PKWARE traditional encryption header verifier is last 2 bytes of crc32.
+    buff[11 + rpos] = (z.crc32 >> 24) & 0xff;
+
     for (int i = 0; i < 12; i++) {
       uchar t = keys.decryptByte();
       char c = buff[i + rpos];
@@ -188,11 +192,7 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
 
     os.write(buff + rpos, 12);
 
-    int totallen = z.szCompressed;
-    if (!password.empty()) {
-      totallen -= 12;
-    }
-
+    int totallen = z.szCompressed - 12;
     while (0 < totallen) {
 
       int len = std::min(totallen, MAX_BUFF);
@@ -636,7 +636,6 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
   ofs.close();
 
   return true;
-
 }
 
 bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password)
