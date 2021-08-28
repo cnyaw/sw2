@@ -232,7 +232,7 @@ public:
     return true;
   }
 
-  bool initEncryptKeys(std::istream& stream, std::string const& password, zEncryptKeys& keys) const
+  bool initEncryptKeys(std::istream& stream, std::string const& password, zEncryptKeys& keys, uint crc32) const
   {
     //
     // Initialize keys.
@@ -256,6 +256,16 @@ public:
     for (int i = 0; i < 12; i++) {
       char c = buf[i] ^ keys.decryptByte();
       keys.updateKeys(c);
+      buf[i] = c;
+    }
+
+    //
+    // Last 2 bytes of PKWARE traditional encryption header verifier is last 2 bytes of crc32.
+    //
+
+    if ((char)((crc32 >> 16) & 0xff) != buf[10] || (char)((crc32 >> 24) & 0xff) != buf[11]) {
+      SW2_TRACE_ERROR("Verify password failed.");
+      return false;
     }
 
     return true;
@@ -288,8 +298,8 @@ public:
     //
 
     zEncryptKeys keys;
-    if (encrypt) {
-      initEncryptKeys(stream, password, keys);
+    if (encrypt && !initEncryptKeys(stream, password, keys, item.hdr.crc32)) {
+      return false;
     }
 
     //
