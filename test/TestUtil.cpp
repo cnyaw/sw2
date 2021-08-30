@@ -180,14 +180,16 @@ TEST(Util, zipArchive)
   // Test 1.
   //
 
+  const std::string TEST_ADD_ZIP_FILE_NAME = "./data/testAddZip.zip";
+
   std::vector<std::string> v;
   v.push_back("test.ini");
 
-  CHECK(Util::zipArchive(true, "./data/testAddZip.zip", v)); // Create new.
+  CHECK(Util::zipArchive(true, TEST_ADD_ZIP_FILE_NAME, v)); // Create new.
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem("./data/testAddZip.zip"));
+    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss1;
     CHECK(ar->loadFile("test.ini", ss1));
@@ -209,11 +211,11 @@ TEST(Util, zipArchive)
   v.clear();
   v.push_back("ThePoolOfTears.txt");
 
-  CHECK(Util::zipArchive(false, "./data/testAddZip.zip", v, "smallworld2")); // Append with password.
+  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, "smallworld2")); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem("./data/testAddZip.zip"));
+    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss1;
     CHECK(ar->loadFile("test.ini", ss1)); // Existing item.
@@ -234,11 +236,11 @@ TEST(Util, zipArchive)
   v.clear();
   v.push_back("widget.txt");
 
-  CHECK(Util::zipArchive(false, "./data/testAddZip.zip", v)); // Append.
+  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v)); // Append.
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem("./data/testAddZip.zip"));
+    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("widget.txt", ss2));
@@ -260,11 +262,11 @@ TEST(Util, zipArchive)
   v.clear();
   v.push_back("test.txt");
 
-  CHECK(Util::zipArchive(false, "./data/testAddZip.zip", v, "smallworld2")); // Append with password.
+  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, "smallworld2")); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem("./data/testAddZip.zip"));
+    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("test.txt", ss2, "smallworld2"));
@@ -275,7 +277,7 @@ TEST(Util, zipArchive)
     Archive::free(ar);
   }
 
-  remove("./data/testAddZip.zip");      // Delete test file.
+  remove(TEST_ADD_ZIP_FILE_NAME.c_str());       // Delete test file.
 }
 
 TEST(Util, zipArchive2)
