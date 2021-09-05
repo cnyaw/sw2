@@ -7,6 +7,8 @@
 // 2020/2/6 Waync Created.
 //
 
+#include <time.h>
+
 #include "swSocket.h"
 #include "swUtil.h"
 
