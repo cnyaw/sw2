@@ -1158,16 +1158,6 @@ public:
       }
 
       //
-      // Enable TCP_NODELAY.
-      //
-
-      if (SOCKET_ERROR == ::setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (const char*)&v, sizeof(v))) {
-        SW2_TRACE_ERROR("New arrive, set tcp no delay failed.");
-        closesocket(s);
-        break;
-      }
-
-      //
       // Accept?
       //
 
