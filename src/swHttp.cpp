@@ -154,7 +154,12 @@ public:
 bool Util::httpGet(const std::string &url, std::string &resp, int timeout)
 {
   impl::implHttpRequest http(resp, timeout);
-  return http.get(url);
+  bool ret = http.get(url);
+  size_t headlen = resp.find("\r\n\r\n");
+  if (std::string::npos != headlen) {
+    resp.erase(0, headlen + 4);
+  }
+  return ret;
 }
 
 } // namespace sw2

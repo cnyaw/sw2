@@ -340,9 +340,7 @@ public:
   {
     std::string resp;
     if (Util::httpGet(name, resp)) {
-      size_t headlen = resp.find("\r\n\r\n");
-      assert(std::string::npos != headlen);
-      outs.write(resp.data() + headlen + 4, (int)(resp.length() - headlen - 4));
+      outs.write(resp.data(), (int)resp.length());
       return true;
     } else {
       return false;
