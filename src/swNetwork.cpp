@@ -182,8 +182,6 @@ public:
 
     if (c->pItem->read(bs)) {
       *pp = c->pItem;
-    } else {
-      return false;
     }
 
     rt.freeObj(c);
