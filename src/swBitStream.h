@@ -160,6 +160,13 @@ public:
   }
 
   ///
+  /// \brief Check read/write pointer is out of range.
+  /// \return Return true if read/write if out of internal buffer range.
+  ///
+
+  bool isOutOfRange(int bitCount) const;
+
+  ///
   /// \brief Set how many bits of next write.
   ///
 
@@ -266,7 +273,6 @@ public:
 private:
 
   int calcBitsCount(int bitCount, int bitPtr) const;
-  bool isOutOfRange(int bitCount) const;
 
 private:
 
