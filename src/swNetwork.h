@@ -42,12 +42,13 @@
 ///
 /// \code
 /// #include "swNetwork.h"
+/// #include "swBitStreamPacket.h"
 ///
 /// //
 /// // User define packet.
 /// //
 ///
-/// class MyPacket : public NetworkPacket
+/// class MyPacket : public BitStreamPacket
 /// {
 /// public:
 ///
@@ -55,7 +56,7 @@
 ///   // Declare packet class and it's unique ID.
 ///   //
 ///
-///   SW2_DECLARE_PACKET(ID_MYPACKET, MyPacket)
+///   SW2_DECLARE_BITSTREAM_PACKET(ID_MYPACKET, MyPacket)
 ///
 ///   //
 ///   // Implement formated data read/write functions.
@@ -66,10 +67,12 @@
 /// };
 ///
 /// //
-/// // Register and implement MyPacket, this line should place in the source file.
+/// // Register and implement MyPacket.
 /// //
 ///
-/// SW2_IMPLEMENT_PACKET(ID_MYPACKET, MyPacket)
+/// BitStreamPacketHandler g_bph;
+///
+/// SW2_REGISTER_BITSTREAM_PACKET(g_bph, ID_MYPACKET, MyPacket)
 ///
 /// //
 /// // Client.
@@ -95,12 +98,16 @@
 ///   }
 ///   virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
 ///   { // Do something when receive a data stream from server.
-///   }
-///   void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
-///   { // Do something when receive a data packet from server.
-///      if (ID_MYPACKET == p.getId())
-///      { // This is a MyPacket packet.
-///      }
+///     BitStream bs((char*)pStream, len);
+///     const BitStreamPacket *p;
+///     if (g_bph.readPacket(bs, &p)) {
+///       if (ID_MYPACKET == p->getId())
+///       { // This is a MyPacket packet.
+///       }
+///       g_bph.freePacket(p);
+///     } else {
+///       // Handle other stream data.
+///     }
 ///   }
 ///
 ///   NetworkClient* m_pClient;
@@ -137,12 +144,16 @@
 ///   }
 ///   virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
 ///   { // Do something when received a data stream from a client.
-///   }
-///   void onNetworkPacketReady(NetworkServer* pServer, NetworkConnection* pClient, NetworkPacket const& p)
-///   { // Do something when received a data packet from a client.
-///      if (ID_MYPACKET == p.getId())
-///      { // This is a MyPacket packet.
-///      }
+///     BitStream bs((char*)pStream, len);
+///     const BitStreamPacket *p;
+///     if (g_bph.readPacket(bs, &p)) {
+///       if (ID_MYPACKET == p->getId())
+///       { // This is a MyPacket packet.
+///       }
+///       g_bph.freePacket(p);
+///     } else {
+///       // Handle other stream data.
+///     }
 ///   }
 ///
 ///   NetworkServer* m_pServer;
@@ -156,7 +167,6 @@
 
 #pragma once
 
-#include "swBitStream.h"
 #include "swSocket.h"
 
 namespace sw2 {
@@ -192,47 +202,6 @@ struct NetworkServerStats : public SocketServerStats
 {
   unsigned long long packetsSent;       ///< Total packets sent.
   unsigned long long packetsRecv;       ///< Total packets received.
-};
-
-///
-/// \brief Network formated packet.
-///
-/// Base class of network packet, encapsulate data stream with bit stream.
-///
-
-class NetworkPacket
-{
-public:
-  typedef NetworkPacket* (*StaticCreatePacket)();
-
-  virtual ~NetworkPacket()
-  {
-  }
-
-  ///
-  /// \brief Get packet ID.
-  /// \return Return packet ID.
-  /// \note Every packet has a unique ID, this function is implemented by
-  ///       SW2_DECL_PACKET macro, no need to implement it again.
-  ///
-
-  virtual int getId() const=0;
-
-  ///
-  /// \brief Read data from bit stream.
-  /// \param [in] bs Bit stream.
-  /// \return Return true if read data success else return false.
-  ///
-
-  virtual bool read(BitStream &bs)=0;
-
-  ///
-  /// \brief Write data to bit stream.
-  /// \param [out] bs Bit stream.
-  /// \return Return true if write data success else return false.
-  ///
-
-  virtual bool write(BitStream &bs) const=0;
 };
 
 class NetworkClient;
@@ -275,16 +244,6 @@ public:
   ///
 
   virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
-  {
-  }
-
-  ///
-  /// \brief Notify when a formated packet is ready from server.
-  /// \param [in] pClient The client.
-  /// \param [in] p Data packet.
-  ///
-
-  virtual void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
   {
   }
 };
@@ -354,17 +313,6 @@ public:
   virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
   {
   }
-
-  ///
-  /// \brief Notify when a formated packet is ready from a client.
-  /// \param [in] pServer The server.
-  /// \param [in] pClient The sender client.
-  /// \param [in] p Data packet.
-  ///
-
-  virtual void onNetworkPacketReady(NetworkServer* pServer, NetworkConnection* pClient, NetworkPacket const& p)
-  {
-  }
 };
 
 ///
@@ -412,16 +360,6 @@ public:
   ///
 
   virtual bool send(int len, void const* pStream)=0;
-
-  ///
-  /// \brief Send a formated packet to remote client.
-  /// \param [in] p Data packet.
-  /// \return Return true if success else return false.
-  /// \note Return true doesn't mean the data is sent right away. It is possible
-  ///       queued and sent later.
-  ///
-
-  virtual bool send(NetworkPacket const& p)=0;
 
   uint_ptr userData;                    ///< User define data.
 };
@@ -547,30 +485,6 @@ public:
 
   uint_ptr userData;                    ///< User define data.
 };
-
-///
-/// \brief Declare packet class.
-///
-
-#define SW2_DECLARE_PACKET(id, cls) \
-public:\
-  static NetworkPacket* staticCreatePacket() { return new cls; }\
-  virtual int getId() const { return id; }
-
-//
-// Internal register net packet class.
-//
-
-struct NetworkPacketRegister
-{
-  NetworkPacketRegister(uint, NetworkPacket::StaticCreatePacket, char const*);
-};
-
-///
-/// \brief Implement packet class.
-///
-
-#define SW2_IMPLEMENT_PACKET(id, cls) NetworkPacketRegister cls##NetworkPacketRegister(id, &cls::staticCreatePacket, #cls);
 
 } // namespace sw2
 

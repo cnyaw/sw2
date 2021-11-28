@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "swNetwork.h"
 #include "swIni.h"
+#include "swNetwork.h"
 
 namespace sw2 {
 
@@ -160,14 +160,6 @@ public:
   ///
 
   virtual NetworkClientStats getNetStats()=0;
-
-  ///
-  /// Send a data packet to server.
-  /// \param [in] p Data packet.
-  /// \return Return true if success else return false.
-  ///
-
-  virtual bool send(const NetworkPacket& p)=0;
 
   ///
   /// Send a data stream to server.
@@ -509,15 +501,6 @@ struct SmallworldServerCallback
   virtual void onSmallworldError(SmallworldServer* pServer, int errCode) {}
 
   ///
-  /// Notify when receive a data packet from a player.
-  /// \param [in] pServer The server.
-  /// \param [in] pPlayer Data sender.
-  /// \param [in] p Data packet.
-  ///
-
-  virtual void onSmallworldPacketReady(SmallworldServer* pServer, SmallworldPlayer* pPlayer, const NetworkPacket &p) {}
-
-  ///
   /// Notify when receive a data stream from a player.
   /// \param [in] pServer The server.
   /// \param [in] pPlayer Data sender.
@@ -730,14 +713,6 @@ struct SmallworldClientCallback
   ///
 
   virtual void onSmallworldError(SmallworldClient* pClient, int errCode) {}
-
-  ///
-  /// Notify when receive a data packet from server.
-  /// \param [in] pClient The client.
-  /// \param [in] p Data packet.
-  ///
-
-  virtual void onSmallworldPacketReady(SmallworldClient* pClient, const NetworkPacket &p) {}
 
   ///
   /// Notify when receive a data stream from server.

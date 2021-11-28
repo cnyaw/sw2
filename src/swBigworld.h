@@ -77,17 +77,6 @@ public:
   virtual void onBigworldStreamReady(BigworldNode *pInstNode, BigworldNode *pNode, int len, void const* pStream)
   {
   }
-
-  ///
-  /// \brief Notify when a formated packet is ready from a bigworld node.
-  /// \param [in] pInstNode The instance node.
-  /// \param [in] pNode The sender bigworld node.
-  /// \param [in] p Data packet.
-  ///
-
-  virtual void onBigworldEventReady(BigworldNode *pInstNode, BigworldNode *pNode, NetworkPacket const &p)
-  {
-  }
 };
 
 ///
@@ -202,14 +191,6 @@ public:
   ///
 
   virtual bool send(int len, void const* pStream)=0;
-
-  ///
-  /// \brief Send a data packet to this bigworld node.
-  /// \param [in] p Data packet.
-  /// \return Return true if success else return false.
-  ///
-
-  virtual bool send(const NetworkPacket &p)=0;
 
   ///
   /// \brief Add a new depex node.

@@ -81,9 +81,7 @@ public:
       return false;
     }
 
-    assert(m_pNetPeer);
-
-    return m_pNetPeer->send(er);
+    return send(m_pNetPeer, er);
   }
 
   virtual bool replyPlayerLogout(int code, std::string const& token)
@@ -101,9 +99,7 @@ public:
       return false;
     }
 
-    assert(m_pNetPeer);
-
-    return m_pNetPeer->send(er);
+    return send(m_pNetPeer, er);
   }
 
   virtual int getServerId() const
@@ -162,7 +158,6 @@ public:
     Ini conf = conf1;
     m_conf.addrListen = conf["AddrListen"].value;
     m_conf.maxServer = conf.find("MaxServer") ? conf["MaxServer"] : (int)SMALLWORLD_MAX_PEER;
-
     m_conf.maxServer = std::max(0, std::min(m_conf.maxServer, (int)SMALLWORLD_MAX_PEER));
     return m_pServer->startup(m_conf.addrListen);
   }
@@ -273,7 +268,7 @@ public:
     if (m_conf.maxServer == m_pool.size()) {
       evSmallworldNotify n;
       n.code = evSmallworldNotify::NC_SERVER_BUSY;
-      pNewClient->send(n);              // Notify server busy and ignore failed.
+      send(pNewClient, n);              // Notify server busy and ignore failed.
       return false;
     }
 
@@ -291,7 +286,7 @@ public:
     evSmallworldNotify n;
     n.code = evSmallworldNotify::NC_NEED_LOGIN;
 
-    if (!pNewClient->send(n)) {         // Send failed?
+    if (!send(pNewClient, n)) {         // Send failed?
       m_pool.free(id);
       return false;
     }
@@ -331,134 +326,130 @@ public:
     m_pool.free(peer.m_idServer);
   }
 
-  virtual void onNetworkPacketReady(NetworkServer* pServer, NetworkConnection* pClient, const NetworkPacket& p)
+  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
   {
     assert(pClient);
 
-    //
-    // Server Login.
-    //
-
-    if (EID_LOGIN == p.getId()) {
-      implSmallworldAccountPeer& peer = m_pool[(int)pClient->userData];
+    BitStream bs((char*)pStream, len);
+    const BitStreamPacket *p;
+    while (readPacket(bs, &p)) {
 
       //
-      // Duplicated login?
+      // Server Login.
       //
 
-      if (peer.m_bVerified) {
-        SW2_TRACE_ERROR("[AC] Duplicate login received from %s, Kick", pClient->getAddr().c_str());
-        pClient->disconnect();
-        return;
-      }
+      if (EID_LOGIN == p->getId()) {
+        implSmallworldAccountPeer& peer = m_pool[(int)pClient->userData];
 
-      //
-      // Normal login.
-      //
+        //
+        // Duplicated login?
+        //
 
-      evSmallworldLogin* pl = (evSmallworldLogin*)&p; // Store login information.
-
-      if (SMALLWORLD_VERSION_MAJOR != pl->verMajor ||
-          SMALLWORLD_VERSION_MINOR != pl->verMinor) {
-        evSmallworldNotify n;
-        n.code = evSmallworldNotify::NC_VERSION_MISMATCH;
-        pClient->send(n);               // Ignore failed.
-        pClient->disconnect();
-        return;
-      }
-
-      peer.userData = (uint_ptr)0;
-      peer.m_bVerified = true;
-
-      //
-      // Callback new server ready.
-      //
-
-      if (m_pCallback->onSmallworldNewServerReady(this, &peer)) { // Accept?
-        evSmallworldNotify n;
-        n.code = evSmallworldNotify::NC_LOGIN_ACCEPTED;
-        n.id = peer.m_idServer;
-        if (!pClient->send(n)) {
-          SW2_TRACE_ERROR("[AC] Reply Login Accepted Failed from %s, Kick", pClient->getAddr().c_str());
+        if (peer.m_bVerified) {
+          SW2_TRACE_ERROR("[AC] Duplicate login received from %s, Kick", pClient->getAddr().c_str());
           pClient->disconnect();
-          m_pCallback->onSmallworldServerLeave(this, &peer);
-          peer.m_bVerified = false;
+          return;
         }
+
+        //
+        // Normal login.
+        //
+
+        evSmallworldLogin* pl = (evSmallworldLogin*)p; // Store login information.
+
+        if (SMALLWORLD_VERSION_MAJOR != pl->verMajor ||
+            SMALLWORLD_VERSION_MINOR != pl->verMinor) {
+          evSmallworldNotify n;
+          n.code = evSmallworldNotify::NC_VERSION_MISMATCH;
+          send(pClient, n);             // Ignore failed.
+          pClient->disconnect();
+          return;
+        }
+
+        peer.userData = (uint_ptr)0;
+        peer.m_bVerified = true;
+
+        //
+        // Callback new server ready.
+        //
+
+        if (m_pCallback->onSmallworldNewServerReady(this, &peer)) { // Accept?
+          evSmallworldNotify n;
+          n.code = evSmallworldNotify::NC_LOGIN_ACCEPTED;
+          n.id = peer.m_idServer;
+          if (!send(pClient, n)) {
+            SW2_TRACE_ERROR("[AC] Reply Login Accepted Failed from %s, Kick", pClient->getAddr().c_str());
+            pClient->disconnect();
+            m_pCallback->onSmallworldServerLeave(this, &peer);
+            peer.m_bVerified = false;
+          }
+        } else {
+          evSmallworldNotify n;
+          n.code = evSmallworldNotify::NC_LOGIN_NOT_ALLOWED;
+          send(pClient, n);             // Ignore failed.
+          pClient->disconnect();
+          peer.m_bVerified = false;       // Avoid to notify server leave.
+        }
+
+      }
+
+      //
+      // Request player login/out.
+      //
+
+      else if (EID_REQUEST == p->getId()) {
+        implSmallworldAccountPeer& peer = m_pool[(int)pClient->userData];
+
+        //
+        // Verified?
+        //
+
+        if (!peer.m_bVerified) {
+          SW2_TRACE_ERROR("[AC] Request before login from %s, Kick", pClient->getAddr().c_str());
+          pClient->disconnect();
+          return;
+        }
+
+        //
+        // Handle request.
+        //
+
+        evSmallworldRequest* pr = (evSmallworldRequest*)p;
+
+        std::string token(32, 0);
+        BitStream bs((char*)token.data(), (int)token.length());
+        bs << pr->idPlayer << pr->time;
+        token.resize(bs.getByteCount());
+
+        if (evSmallworldRequest::NC_PLAYER_LOGIN == pr->code) { // Player login request.
+          m_pCallback->onSmallworldRequestPlayerLogin(this, &peer, pr->stream, token);
+        } else if (evSmallworldRequest::NC_PLAYER_LOGOUT == pr->code) { // Player logout request.
+          m_pCallback->onSmallworldRequestPlayerLogout(this, &peer, pr->stream, token);
+        } else {                        // Invalid request, kick.
+          SW2_TRACE_ERROR("[AC] Invalid request from %s, Kick", pClient->getAddr().c_str());
+          pClient->disconnect();
+        }
+
       } else {
-        evSmallworldNotify n;
-        n.code = evSmallworldNotify::NC_LOGIN_NOT_ALLOWED;
-        pClient->send(n);               // Ignore failed.
+
+        //
+        // Unknown command.
+        //
+
+        SW2_TRACE_ERROR("[AC] Unknown event received from %s, Kick", pClient->getAddr().c_str());
         pClient->disconnect();
-        peer.m_bVerified = false;       // Avoid to notify server leave.
       }
 
-      return;
+      freePacket(p);
     }
-
-    //
-    // Request player login/out.
-    //
-
-    if (EID_REQUEST == p.getId()) {
-      implSmallworldAccountPeer& peer = m_pool[(int)pClient->userData];
-
-      //
-      // Verified?
-      //
-
-      if (!peer.m_bVerified) {
-        SW2_TRACE_ERROR("[AC] Request before login from %s, Kick", pClient->getAddr().c_str());
-        pClient->disconnect();
-        return;
-      }
-
-      //
-      // Handle request.
-      //
-
-      evSmallworldRequest* pr = (evSmallworldRequest*)&p;
-
-      std::string token(32, 0);
-      BitStream bs((char*)token.data(), (int)token.length());
-      bs << pr->idPlayer << pr->time;
-      token.resize(bs.getByteCount());
-
-      if (evSmallworldRequest::NC_PLAYER_LOGIN == pr->code) { // Player login request.
-        m_pCallback->onSmallworldRequestPlayerLogin(this, &peer, pr->stream, token);
-      } else if (evSmallworldRequest::NC_PLAYER_LOGOUT == pr->code) { // Player logout request.
-        m_pCallback->onSmallworldRequestPlayerLogout(this, &peer, pr->stream, token);
-      } else {                          // Invalid request, kick.
-        SW2_TRACE_ERROR("[AC] Invalid request from %s, Kick", pClient->getAddr().c_str());
-        pClient->disconnect();
-      }
-
-      return;
-    }
-
-    //
-    // unknown command
-    //
-
-    SW2_TRACE_ERROR("[AC] Unknown event received from %s, Kick", pClient->getAddr().c_str());
-    pClient->disconnect();
-  }
-
-  virtual void onNetworkStreamReady(NetworkServer* pServer, NetworkConnection* pClient, int len, void const* pStream)
-  {
-    //
-    // Never used, kick.
-    //
-
-    SW2_TRACE_ERROR("[AC] Unknown stream received from %s, Kick", pClient->getAddr().c_str());
-    pClient->disconnect();
   }
 
 public:
 
   SmallworldAccountCallback* m_pCallback; // Callback interface.
-  NetworkServer* m_pServer;               // Network server.
+  NetworkServer* m_pServer;             // Network server.
   ObjectPool<implSmallworldAccountPeer, SMALLWORLD_MAX_PEER> m_pool; // implSmallworldAccountPeer object pool.
-  CONFIG_ACCOUNT m_conf;                  // Configuration.
+  CONFIG_ACCOUNT m_conf;                // Configuration.
 };
 
 } // namespace impl

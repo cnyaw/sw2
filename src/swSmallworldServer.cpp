@@ -92,7 +92,6 @@ public:
   virtual std::string getAddr() const;
   virtual NetworkClientStats getNetStats();
 
-  virtual bool send(const NetworkPacket& p);
   virtual bool send(int len, void const* pStream);
 
   virtual bool sendMessage(const std::string& msg);
@@ -125,11 +124,10 @@ public:
   //
 
   void handleWait4LoginEvent(evSmallworldLogin *pLogin);
-  void handleReadyStageEvent(NetworkPacket *pEvent);
+  void handleReadyStageEvent(BitStreamPacket *pEvent);
   void handleChannelEvent(evSmallworldChannel* pChannel);
   void handleChatEvent(evSmallworldChat* pChat);
   void handleGameEvent(evSmallworldGame* pGame);
-  void handleUserEvent(NetworkPacket* pEvent);
 
   void initReadyStage();
   void uninitReadyStage();
@@ -170,7 +168,7 @@ public:
   //
 
   virtual void onNetworkServerLeave(NetworkClient* pClient);
-  virtual void onNetworkPacketReady(NetworkClient* pClient, const NetworkPacket& p);
+  virtual void onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream);
 
 public:
 
@@ -230,7 +228,6 @@ public:
 
   virtual bool onNetworkNewClientReady(NetworkServer*, NetworkConnection* pNewClient);
   virtual void onNetworkClientLeave(NetworkServer*, NetworkConnection* pClient);
-  virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, const NetworkPacket& p);
   virtual void onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream);
 
   //
@@ -465,7 +462,7 @@ bool implSmallworldServer::onNetworkNewClientReady(NetworkServer*, NetworkConnec
   if (m_player.size() == m_conf.maxPlayer) {
     evSmallworldNotify n;
     n.code = evSmallworldNotify::NC_SERVER_BUSY;
-    pNewClient->send(n);                // Ignore send fail.
+    send(pNewClient, n);                // Ignore send fail.
     return false;                       // Not accept this connection.
   }
 
@@ -483,7 +480,7 @@ bool implSmallworldServer::onNetworkNewClientReady(NetworkServer*, NetworkConnec
   evSmallworldNotify n;
   n.code = evSmallworldNotify::NC_NEED_LOGIN;
 
-  if (!pNewClient->send(n)) {
+  if (!send(pNewClient, n)) {
     m_player.free(id);
     return false;
   }
@@ -517,16 +514,6 @@ void implSmallworldServer::onNetworkClientLeave(NetworkServer*, NetworkConnectio
   m_player[id].m_stage.popAndPush(&implSmallworldServerPlayer::stageDisconnecting);
 }
 
-void implSmallworldServer::onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, const NetworkPacket& p)
-{
-  //
-  // Pass to client peer's stage controller to valid the event.
-  //
-
-  int id = (int)pClient->userData;
-  m_player[id].m_stage.trigger((uint_ptr)(intptr_t)&p);
-}
-
 void implSmallworldServer::onNetworkStreamReady(NetworkServer*, NetworkConnection* pClient, int len, void const* pStream)
 {
   //
@@ -534,7 +521,16 @@ void implSmallworldServer::onNetworkStreamReady(NetworkServer*, NetworkConnectio
   //
 
   int id = (int)pClient->userData;
-  m_pCallback->onSmallworldStreamReady(this, &m_player[id], len, pStream);
+  BitStream bs((char*)pStream, len);
+  const BitStreamPacket *p;
+  if (readPacket(bs, &p)) {
+    do {
+      m_player[id].m_stage.trigger((uint_ptr)p);
+      freePacket(p);
+    } while (readPacket(bs, &p));
+  } else {
+    m_pCallback->onSmallworldStreamReady(this, &m_player[id], len, pStream);
+  }
 }
 
 void implSmallworldServer::stageDummy(int, uint_ptr)
@@ -701,136 +697,136 @@ void implSmallworldServerAccountClient::onNetworkServerLeave(NetworkClient* pCli
   SW2_TRACE_ERROR("Lost Connection with Account Server");
 }
 
-void implSmallworldServerAccountClient::onNetworkPacketReady(NetworkClient* pClient, const NetworkPacket& p)
+void implSmallworldServerAccountClient::onNetworkStreamReady(NetworkClient* pClient, int len, void const* pStream)
 {
   assert(m_pServer);
 
-  if (EID_NOTIFY == p.getId()) {
-    evSmallworldNotify* pNotify = (evSmallworldNotify*)&p;
-    switch (pNotify->code)
-    {
-    case evSmallworldNotify::NC_NEED_LOGIN:
+  BitStream bs((char*)pStream, len);
+  const BitStreamPacket *p;
+  while (readPacket(bs, &p)) {
+    if (EID_NOTIFY == p->getId()) {
+      evSmallworldNotify* pNotify = (evSmallworldNotify*)p;
+      switch (pNotify->code)
       {
-        evSmallworldLogin el;
-        assert(m_pClient);
-        if (!m_pClient->send(el)) {
-          m_pClient->disconnect();
-        }
-      }
-      break;
-
-    case evSmallworldNotify::NC_LOGIN_ACCEPTED:
-      m_pServer->m_stage.push(&implSmallworldServer::stageStartup);
-      break;
-
-    default:
-      SW2_TRACE_WARNING("Unknown notify code received, ignore"); // Ignore.
-      break;
-    }
-
-    return;
-  }
-
-  if (EID_REQUEST == p.getId()) {
-    evSmallworldRequest* pReq = (evSmallworldRequest*)&p;
-
-    implSmallworldServerPlayer& peer = m_pServer->m_player[pReq->idPlayer];
-
-    //
-    // Is still alive?
-    //
-
-    if (0 != peer.m_pNetPeer) {
-
-      //
-      // Verify time stamp, because it is internal verification so use assert.
-      //
-
-      assert(peer.m_timer.getExpiredTime() == pReq->time);
-
-      switch (pReq->code)
-      {
-      case evSmallworldRequest::NC_PLAYER_LOGIN: // Login success(login).
-        peer.m_bVerified = true;
-        peer.m_stage.popAndPush(&implSmallworldServerPlayer::stageReady);
-        break;
-
-      case evSmallworldRequest::NC_PLAYER_LOGOUT: // Logout success(logout).
-        m_pServer->m_player.free(peer.m_idPlayer);
-        peer.m_stage.popAll();
-        break;
-
-      case evSmallworldRequest::NC_ACCOUNT_OR_PASSWORD: // (login)
+      case evSmallworldNotify::NC_NEED_LOGIN:
         {
-          evSmallworldNotify n;
-          n.code = evSmallworldNotify::NC_ACCOUNT_OR_PASSWORD;
-          peer.m_pNetPeer->send(n);
-          peer.m_pNetPeer->disconnect();
+          evSmallworldLogin el;
+          assert(m_pClient);
+          if (!send(m_pClient, el)) {
+            m_pClient->disconnect();
+          }
         }
         break;
 
-      case evSmallworldRequest::NC_DUPLICATE_LOGIN: // (login)
-        {
-          evSmallworldNotify n;
-          n.code = evSmallworldNotify::NC_DUPLICATE_LOGIN;
-          peer.m_pNetPeer->send(n);
-          peer.m_pNetPeer->disconnect();
-        }
-        break;
-
-      case evSmallworldRequest::NC_NOT_ALLOWED: // (login)
-        {
-          evSmallworldNotify n;
-          n.code = evSmallworldNotify::NC_LOGIN_NOT_ALLOWED;
-          peer.m_pNetPeer->send(n);
-          peer.m_pNetPeer->disconnect();
-        }
-        break;
-
-      case evSmallworldRequest::NC_NOT_LOGIN: // (logout)
-        assert(0); // bug
+      case evSmallworldNotify::NC_LOGIN_ACCEPTED:
+        m_pServer->m_stage.push(&implSmallworldServer::stageStartup);
         break;
 
       default:
-        SW2_TRACE_WARNING("Unknown request code received, ignore"); // Ignore.
+        SW2_TRACE_WARNING("Unknown notify code received, ignore"); // Ignore.
         break;
       }
+    } else if (EID_REQUEST == p->getId()) {
+      evSmallworldRequest* pReq = (evSmallworldRequest*)p;
 
-      return;
-    }
+      implSmallworldServerPlayer& peer = m_pServer->m_player[pReq->idPlayer];
 
-    //
-    // Connections is dead.
-    //
+      //
+      // Is still alive?
+      //
 
-    switch (pReq->code)
-    {
-    case evSmallworldRequest::NC_PLAYER_LOGIN: // Login success(login)
-      pReq->code = evSmallworldRequest::NC_PLAYER_LOGOUT;
-      if (!m_pServer->m_acClient.m_pClient->send(*pReq)) { // Logout immediately.
-        m_pServer->m_player.free(peer.m_idPlayer);
-        peer.m_stage.popAll();
+      if (0 != peer.m_pNetPeer) {
+
+        //
+        // Verify time stamp, because it is internal verification so use assert.
+        //
+
+        assert(peer.m_timer.getExpiredTime() == pReq->time);
+
+        switch (pReq->code)
+        {
+        case evSmallworldRequest::NC_PLAYER_LOGIN: // Login success(login).
+          peer.m_bVerified = true;
+          peer.m_stage.popAndPush(&implSmallworldServerPlayer::stageReady);
+          break;
+
+        case evSmallworldRequest::NC_PLAYER_LOGOUT: // Logout success(logout).
+          m_pServer->m_player.free(peer.m_idPlayer);
+          peer.m_stage.popAll();
+          break;
+
+        case evSmallworldRequest::NC_ACCOUNT_OR_PASSWORD: // (login)
+          {
+            evSmallworldNotify n;
+            n.code = evSmallworldNotify::NC_ACCOUNT_OR_PASSWORD;
+            send(peer.m_pNetPeer, n);
+            peer.m_pNetPeer->disconnect();
+          }
+          break;
+
+        case evSmallworldRequest::NC_DUPLICATE_LOGIN: // (login)
+          {
+            evSmallworldNotify n;
+            n.code = evSmallworldNotify::NC_DUPLICATE_LOGIN;
+            send(peer.m_pNetPeer, n);
+            peer.m_pNetPeer->disconnect();
+          }
+          break;
+
+        case evSmallworldRequest::NC_NOT_ALLOWED: // (login)
+          {
+            evSmallworldNotify n;
+            n.code = evSmallworldNotify::NC_LOGIN_NOT_ALLOWED;
+            send(peer.m_pNetPeer, n);
+            peer.m_pNetPeer->disconnect();
+          }
+          break;
+
+        case evSmallworldRequest::NC_NOT_LOGIN: // (logout)
+          assert(0); // bug
+          break;
+
+        default:
+          SW2_TRACE_WARNING("Unknown request code received, ignore"); // Ignore.
+          break;
+        }
+      } else {
+
+        //
+        // Connections is dead.
+        //
+
+        switch (pReq->code)
+        {
+        case evSmallworldRequest::NC_PLAYER_LOGIN: // Login success(login)
+          pReq->code = evSmallworldRequest::NC_PLAYER_LOGOUT;
+          if (!send(m_pServer->m_acClient.m_pClient, *pReq)) { // Logout immediately.
+            m_pServer->m_player.free(peer.m_idPlayer);
+            peer.m_stage.popAll();
+          }
+          break;
+
+        case evSmallworldRequest::NC_NOT_LOGIN: // (logout)
+          assert(0);                    // Should be a bug.
+          break;
+
+        default:                        // Clean up anyway.
+          m_pServer->m_player.free(peer.m_idPlayer);
+          peer.m_stage.popAll();
+          break;
+        }
       }
-      break;
+    } else {
 
-    case evSmallworldRequest::NC_NOT_LOGIN: // (logout)
-      assert(0);                        // Should be a bug.
-      break;
+      //
+      // Ignore unknown event.
+      //
 
-    default:                            // Clean up anyway.
-      m_pServer->m_player.free(peer.m_idPlayer);
-      peer.m_stage.popAll();
-      break;
+      SW2_TRACE_WARNING("Unknown Event received, ignore");
     }
 
-    return;
+    freePacket(p);
   }
-
-  //
-  // Ignore unknown event.
-  //
-
-  SW2_TRACE_WARNING("Unknown Event received, ignore");
 }
 
 implSmallworldServerPlayer::~implSmallworldServerPlayer()
@@ -860,20 +856,6 @@ NetworkClientStats implSmallworldServerPlayer::getNetStats()
   } else {
     return NetworkClientStats();
   }
-}
-
-bool implSmallworldServerPlayer::send(const NetworkPacket& p)
-{
-  if (!m_bVerified) {
-    SW2_TRACE_ERROR("[LB] try to send event while not ready");
-    return false;
-  }
-
-  if (0 == m_pNetPeer) {
-    return false;
-  }
-
-  return m_pNetPeer->send(p);
 }
 
 bool implSmallworldServerPlayer::send(int len, void const* pStream)
@@ -920,7 +902,7 @@ bool implSmallworldServerPlayer::sendMessage(const std::string& msg)
     if (!peer.m_bVerified || !peer.m_bNeedMessage) { // Only send to verified player.
       continue;
     }
-    if (!peer.m_pNetPeer->send(chat)) {
+    if (!impl::send(peer.m_pNetPeer, chat)) {
       peer.m_pNetPeer->disconnect();
     }
   }
@@ -960,7 +942,7 @@ bool implSmallworldServerPlayer::sendPrivateMessage(int idWho, const std::string
     if (m_bNeedMessage) {
       chat.code = evSmallworldChat::NC_PM_TO;
       chat.idWho = idWho;
-      if (!m_pNetPeer->send(chat)) {
+      if (!impl::send(m_pNetPeer, chat)) {
         m_pNetPeer->disconnect();
       }
     }
@@ -972,7 +954,7 @@ bool implSmallworldServerPlayer::sendPrivateMessage(int idWho, const std::string
     if (m_pServer->m_player[idWho].m_bNeedMessage) {
       chat.code = evSmallworldChat::NC_PM_FROM;
       chat.idWho = m_idPlayer;
-      if (!m_pServer->m_player[idWho].m_pNetPeer->send(chat)) {
+      if (!impl::send(m_pServer->m_player[idWho].m_pNetPeer, chat)) {
         m_pServer->m_player[idWho].m_pNetPeer->disconnect();
       }
     }
@@ -983,7 +965,7 @@ bool implSmallworldServerPlayer::sendPrivateMessage(int idWho, const std::string
     //
 
     chat.code = evSmallworldChat::NC_PN_NOT_FOUND;
-    if (!m_pNetPeer->send(chat)) {
+    if (!impl::send(m_pNetPeer, chat)) {
       m_pNetPeer->disconnect();
     }
   }
@@ -1035,7 +1017,7 @@ bool implSmallworldServerPlayer::changeChannel(int newChannel)
   if (m_pServer->m_conf.maxChannelPlayer == m_pServer->m_channelPlayer[newChannel].size()) {
     evSmallworldNotify n;
     n.code = evSmallworldNotify::NC_CHANNEL_IS_FULL;
-    if (!m_pNetPeer->send(n)) {
+    if (!impl::send(m_pNetPeer, n)) {
       m_pNetPeer->disconnect();
     }
     return false;
@@ -1176,7 +1158,7 @@ bool implSmallworldServerPlayer::newGame()
       //
 
       eg.code = evSmallworldGame::NC_GAME_ADD;
-      if (!peer.m_pNetPeer->send(eg)) {
+      if (!impl::send(peer.m_pNetPeer, eg)) {
         peer.m_pNetPeer->disconnect();
         continue;
       }
@@ -1190,7 +1172,7 @@ bool implSmallworldServerPlayer::newGame()
       }
 
       eg.code = evSmallworldGame::NC_PLAYER_JOIN;
-      if (!peer.m_pNetPeer->send(eg)) {
+      if (!impl::send(peer.m_pNetPeer, eg)) {
         m_pNetPeer->disconnect();
       }
     }
@@ -1223,7 +1205,7 @@ bool implSmallworldServerPlayer::joinGame(int idGame)
   if (!m_pServer->m_game.isUsed(idGame) || m_pServer->m_game[idGame].m_iChannel != m_iChannel) {
     evSmallworldGame eg;
     eg.code = evSmallworldGame::NC_GAME_NOT_FOUND;
-    if (!m_pNetPeer->send(eg)) {
+    if (!impl::send(m_pNetPeer, eg)) {
       m_pNetPeer->disconnect();
     }
     return false;
@@ -1267,7 +1249,7 @@ bool implSmallworldServerPlayer::joinGame(int idGame)
     if (!peer.m_bNeedPlayerList && peer.m_idPlayer != m_idPlayer) {
       continue;
     }
-    if (!peer.m_pNetPeer->send(eg)) {
+    if (!impl::send(peer.m_pNetPeer, eg)) {
       m_pNetPeer->disconnect();
     }
   }
@@ -1318,7 +1300,7 @@ bool implSmallworldServerPlayer::quitGame()
       if (!peer.m_bNeedPlayerList && peer.m_idPlayer != m_idPlayer) {
         continue;
       }
-      if (!peer.m_pNetPeer->send(eg)) {
+      if (!impl::send(peer.m_pNetPeer, eg)) {
         m_pNetPeer->disconnect();
       }
     }
@@ -1338,7 +1320,7 @@ bool implSmallworldServerPlayer::quitGame()
       if (!peer.m_bVerified || !peer.m_bNeedGameList || 0 == peer.m_pNetPeer) {
         continue;
       }
-      if (!peer.m_pNetPeer->send(eg)) {
+      if (!impl::send(peer.m_pNetPeer, eg)) {
         m_pNetPeer->disconnect();
       }
     }
@@ -1393,7 +1375,7 @@ void implSmallworldServerPlayer::stageDisconnecting(int state, uint_ptr)
         //
 
         assert(m_pServer->m_acClient.m_pClient);
-        if (!m_pServer->m_acClient.m_pClient->send(req)) {
+        if (!impl::send(m_pServer->m_acClient.m_pClient, req)) {
           m_pServer->m_player.free(m_idPlayer);
           m_stage.popAll();
         }
@@ -1445,7 +1427,7 @@ void implSmallworldServerPlayer::stageReady(int state, uint_ptr pEvent)
     // Handle events.
     //
 
-    handleReadyStageEvent((NetworkPacket*)(intptr_t)pEvent);
+    handleReadyStageEvent((BitStreamPacket*)(intptr_t)pEvent);
 
     return;
   }
@@ -1480,7 +1462,7 @@ void implSmallworldServerPlayer::handleWait4LoginEvent(evSmallworldLogin *pLogin
       SMALLWORLD_VERSION_MINOR != pLogin->verMinor) {
     evSmallworldNotify n;
     n.code = evSmallworldNotify::NC_VERSION_MISMATCH;
-    m_pNetPeer->send(n);            // Ignore failed.
+    impl::send(m_pNetPeer, n);          // Ignore failed.
     m_pNetPeer->disconnect();
     return;
   }
@@ -1499,15 +1481,15 @@ void implSmallworldServerPlayer::handleWait4LoginEvent(evSmallworldLogin *pLogin
 
     evSmallworldRequest req;
     req.code = evSmallworldRequest::NC_PLAYER_LOGIN;
-    req.idPlayer = m_idPlayer;      // Verify code 1.
-    req.time = Util::getTickCount(); // Verify code 2.
+    req.idPlayer = m_idPlayer;          // Verify code 1.
+    req.time = Util::getTickCount();    // Verify code 2.
     req.stream = m_stream;
 
     //
     // Pass the login event to account server, and wait reply...
     //
 
-    if (!m_pServer->m_acClient.m_pClient->send(req)) {
+    if (!impl::send(m_pServer->m_acClient.m_pClient, req)) {
       m_pNetPeer->disconnect();
       return;
     }
@@ -1556,7 +1538,7 @@ void implSmallworldServerPlayer::stageWait4Login(int state, uint_ptr pEvent)
   }
 }
 
-void implSmallworldServerPlayer::handleReadyStageEvent(NetworkPacket *pEvent)
+void implSmallworldServerPlayer::handleReadyStageEvent(BitStreamPacket *pEvent)
 {
   if (0 == pEvent) {
     return;
@@ -1564,20 +1546,16 @@ void implSmallworldServerPlayer::handleReadyStageEvent(NetworkPacket *pEvent)
 
   switch (pEvent->getId())
   {
-  case EID_CHANNEL:                 // Internal.
+  case EID_CHANNEL:                     // Internal.
     handleChannelEvent((evSmallworldChannel*)pEvent);
     break;
 
-  case EID_CHAT:                    // Internal.
+  case EID_CHAT:                        // Internal.
     handleChatEvent((evSmallworldChat*)pEvent);
     break;
 
-  case EID_GAME:                    // Internal.
+  case EID_GAME:                        // Internal.
     handleGameEvent((evSmallworldGame*)pEvent);
-    break;
-
-  default:                          // User defined.
-    handleUserEvent((NetworkPacket*)pEvent);
     break;
   }
 }
@@ -1645,11 +1623,6 @@ void implSmallworldServerPlayer::handleGameEvent(evSmallworldGame* pGame)
   }
 }
 
-void implSmallworldServerPlayer::handleUserEvent(NetworkPacket* pEvent)
-{
-  m_pServer->m_pCallback->onSmallworldPacketReady(m_pServer, this, *pEvent);
-}
-
 void implSmallworldServerPlayer::initReadyStage()
 {
   m_idGame = -1;
@@ -1667,7 +1640,7 @@ void implSmallworldServerPlayer::initReadyStage()
   n.code = evSmallworldNotify::NC_LOGIN_ACCEPTED;
   n.id = m_idPlayer;
 
-  if (!m_pNetPeer->send(n)) {           // Kick out if send failed.
+  if (!impl::send(m_pNetPeer, n)) {     // Kick out if send failed.
     m_pNetPeer->disconnect();
     return;
   }
@@ -1798,7 +1771,7 @@ void implSmallworldServerPlayer::broadcastEnterChannel()
     ch.code = evSmallworldChannel::NC_CHANGE;
     ch.iChannel = m_iChannel;
 
-    if (!m_pNetPeer->send(ch)) {
+    if (!impl::send(m_pNetPeer, ch)) {
       m_pNetPeer->disconnect();
       return;
     }
@@ -1816,7 +1789,7 @@ void implSmallworldServerPlayer::broadcastEnterChannel()
           continue;
         }
         ch.idPlayer = peer.m_idPlayer;
-        if (!m_pNetPeer->send(ch)) {
+        if (!impl::send(m_pNetPeer, ch)) {
           m_pNetPeer->disconnect();
           return;
         }
@@ -1836,7 +1809,7 @@ void implSmallworldServerPlayer::broadcastEnterChannel()
       if (!peer.m_bVerified || !peer.m_bNeedPlayerList || 0 == peer.m_pNetPeer) {
         continue;
       }
-      if (!peer.m_pNetPeer->send(ch)) {
+      if (!impl::send(peer.m_pNetPeer, ch)) {
         peer.m_pNetPeer->disconnect();
       }
     }
@@ -1853,7 +1826,7 @@ void implSmallworldServerPlayer::broadcastEnterChannel()
     for (; -1 != i; i = m_pServer->m_channelGame[m_iChannel].next(i)) {
       eg.code = evSmallworldGame::NC_GAME_ADD;
       eg.idGame = m_pServer->m_channelGame[m_iChannel][i];
-      if (!m_pNetPeer->send(eg)) {
+      if (!impl::send(m_pNetPeer, eg)) {
         m_pNetPeer->disconnect();
         return;
       }
@@ -1867,7 +1840,7 @@ void implSmallworldServerPlayer::broadcastEnterChannel()
       int j = m_pServer->m_game[eg.idGame].m_players.first();
       for (; -1 != j; j = m_pServer->m_game[eg.idGame].m_players.next(j)) {
         eg.idPlayer = m_pServer->m_game[eg.idGame].m_players[j];
-        if (!m_pNetPeer->send(eg)) {
+        if (!impl::send(m_pNetPeer, eg)) {
           m_pNetPeer->disconnect();
           return;
         }
@@ -1894,7 +1867,7 @@ void implSmallworldServerPlayer::broadcastLeaveChannel()
       if (!peer.m_bVerified || !peer.m_bNeedPlayerList || 0 == peer.m_pNetPeer || m_idPlayer == peer.m_idPlayer) {
         continue;
       }
-      if (!peer.m_pNetPeer->send(ch)) {
+      if (!impl::send(peer.m_pNetPeer, ch)) {
         peer.m_pNetPeer->disconnect();
       }
     }

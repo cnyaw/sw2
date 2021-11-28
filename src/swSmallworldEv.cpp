@@ -21,17 +21,8 @@ namespace impl {
 //
 
 #define SW2_SMALLWORLD_TAG "sw2sw"
-
-//
-// Implement internal network packets.
-//
-
-SW2_IMPLEMENT_PACKET(EID_NOTIFY, evSmallworldNotify)
-SW2_IMPLEMENT_PACKET(EID_LOGIN, evSmallworldLogin)
-SW2_IMPLEMENT_PACKET(EID_CHANNEL, evSmallworldChannel)
-SW2_IMPLEMENT_PACKET(EID_CHAT, evSmallworldChat)
-SW2_IMPLEMENT_PACKET(EID_GAME, evSmallworldGame)
-SW2_IMPLEMENT_PACKET(EID_REQUEST, evSmallworldRequest)
+#define SW2_SMALLWORLD_HEADER_MAGIC_BITS 32
+#define SW2_SMALLWORLD_HEADER_MAGIC 0xfeed
 
 //
 // evSmallworldNotify.
@@ -477,6 +468,39 @@ bool evSmallworldGame::write(BitStream& bs) const
   return true;
 }
 
+BitStreamPacketHandler<EID_LAST_TAG> g_bph(SW2_SMALLWORLD_HEADER_MAGIC_BITS, SW2_SMALLWORLD_HEADER_MAGIC);
+
+void initBitStreamPacketHandler()
+{
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_NOTIFY, evSmallworldNotify);
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_LOGIN, evSmallworldLogin);
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_CHANNEL, evSmallworldChannel);
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_CHAT, evSmallworldChat);
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_GAME, evSmallworldGame);
+  SW2_REGISTER_BITSTREAM_PACKET(g_bph, EID_REQUEST, evSmallworldRequest);
+}
+
+bool send(NetworkConnection* pConn, const BitStreamPacket &p)
+{
+  std::string buff;
+  BitStream bs(buff);
+  if (!g_bph.writePacket(bs, p)) {
+    return false;
+  }
+  assert(pConn);
+  return pConn->send(bs.getByteCount(), buff.data());
+}
+
+bool freePacket(const BitStreamPacket *p)
+{
+  return g_bph.freePacket(p);
+}
+
+bool readPacket(BitStream &bs, const BitStreamPacket **pp)
+{
+  return g_bph.readPacket(bs, pp);
+}
+
 } // namespace impl
 
 bool InitializeSmallworld()
@@ -484,7 +508,7 @@ bool InitializeSmallworld()
   if (!InitializeNetwork()) {
     return false;
   }
-
+  impl::initBitStreamPacketHandler();
   SW2_TRACE_MESSAGE("swSmallworld initialized.");
   return true;
 }

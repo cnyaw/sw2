@@ -81,11 +81,6 @@ public:
     return NetworkClientStats();
   }
 
-  virtual bool send(const NetworkPacket& p)
-  {
-    return false;
-  }
-
   virtual bool send(int len, void const* pStream)
   {
     return false;
@@ -176,9 +171,7 @@ public:
     if (0 == m_pClient) {
       return false;
     }
-
     m_stage.initialize(this, &implSmallworldClient::stageDisconnected);
-
     return true;
   }
 
@@ -279,11 +272,6 @@ public:
   // User command.
   //
 
-  virtual bool send(const NetworkPacket& p)
-  {
-    return m_pClient->send(p);
-  }
-
   virtual bool send(int len, void const* pStream)
   {
     return m_pClient->send(len, pStream);
@@ -309,7 +297,7 @@ public:
     ec.code = evSmallworldChat::NC_CHAT;
     ec.msg = msg;
 
-    return m_pClient->send(ec);
+    return impl::send(m_pClient, ec);
   }
 
   virtual bool sendPrivateMessage(int idWho, const std::string& msg)
@@ -333,7 +321,7 @@ public:
     ec.idWho = idWho;
     ec.msg = msg;
 
-    return m_pClient->send(ec);
+    return impl::send(m_pClient, ec);
   }
 
   //
@@ -360,7 +348,7 @@ public:
     ec.code = evSmallworldChannel::NC_CHANGE;
     ec.iChannel = newChannel;
 
-    return m_pClient->send(ec);
+    return impl::send(m_pClient, ec);
   }
 
   //
@@ -382,7 +370,7 @@ public:
     evSmallworldGame eg;
     eg.code = evSmallworldGame::NC_NEW;
 
-    return m_pClient->send(eg);
+    return impl::send(m_pClient, eg);
   }
 
   virtual bool joinGame(int idGame)
@@ -406,7 +394,7 @@ public:
     eg.code = evSmallworldGame::NC_JOIN;
     eg.idGame = idGame;
 
-    return m_pClient->send(eg);
+    return impl::send(m_pClient, eg);
   }
 
   virtual bool quitGame()
@@ -424,7 +412,7 @@ public:
     evSmallworldGame eg;
     eg.code = evSmallworldGame::NC_QUIT;
 
-    return m_pClient->send(eg);
+    return impl::send(m_pClient, eg);
   }
 
   //
@@ -519,14 +507,18 @@ public:
     m_stage.popAndPush(&implSmallworldClient::stageDisconnected);
   }
 
-  virtual void onNetworkPacketReady(NetworkClient*, const NetworkPacket& p)
-  {
-    m_stage.trigger((uint_ptr)(intptr_t)&p);
-  }
-
   virtual void onNetworkStreamReady(NetworkClient*, int len, void const* pStream)
   {
-    m_pCallback->onSmallworldStreamReady(this, len, pStream);
+    BitStream bs((char*)pStream, len);
+    const BitStreamPacket *p;
+    if (readPacket(bs, &p)) {
+      do {
+        m_stage.trigger((uint_ptr)p);
+        freePacket(p);
+      } while (readPacket(bs, &p));
+    } else {
+      m_pCallback->onSmallworldStreamReady(this, len, pStream);
+    }
   }
 
   //
@@ -544,8 +536,7 @@ public:
         el.bNeedGameList = m_conf.bNeedGameList;
         el.bNeedMessage = m_conf.bNeedMessage;
         el.stream = m_stream;
-
-        if (!m_pClient->send(el)) {
+        if (!impl::send(m_pClient, el)) {
           m_pCallback->onSmallworldError(this, SMALLWORLD_STREAM_WRITE);
           disconnect();
         }
@@ -591,11 +582,6 @@ public:
       SW2_TRACE_WARNING("Unknown notify code received, ignore"); // Ignore.
       break;
     }
-  }
-
-  void handleUserEvent(NetworkPacket* pEvent)
-  {
-    m_pCallback->onSmallworldPacketReady(this, *pEvent);
   }
 
   void handleChannelEvent(evSmallworldChannel* pChannel)
@@ -745,7 +731,7 @@ public:
     }
   }
 
-  void handleConnectedStageEvent(NetworkPacket *pEvent)
+  void handleConnectedStageEvent(BitStreamPacket *pEvent)
   {
     if (0 == pEvent) {
       return;
@@ -774,12 +760,6 @@ public:
         handleGameEvent((evSmallworldGame*)pEvent);
       }
       break;
-
-    default:
-      if (m_bVerified) {
-        handleUserEvent((NetworkPacket*)pEvent);
-      }
-      break;
     }
   }
 
@@ -794,7 +774,7 @@ public:
     }
 
     if (TRIGGER == state) {
-      handleConnectedStageEvent((NetworkPacket*)(intptr_t)pEvent);
+      handleConnectedStageEvent((BitStreamPacket*)(intptr_t)pEvent);
     }
   }
 

@@ -109,11 +109,6 @@ public:
     return m_pConn->send(len, pStream);
   }
 
-  virtual bool send(const NetworkPacket &p)
-  {
-    return m_pConn->send(p);
-  }
-
   virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
   {
     return false;
@@ -236,15 +231,6 @@ public:
     }
   }
 
-  virtual bool send(const NetworkPacket &p)
-  {
-    if (m_pClient) {
-      return m_pClient->send(p);
-    } else {
-      return false;
-    }
-  }
-
   virtual bool addDepex(Ini const &ini, const std::vector<std::string> &ids)
   {
     return false;
@@ -339,12 +325,6 @@ public:
     (c.*(c.m_onStream))(m_pCallback, (BigworldNode*)this, pClient, len, pStream);
   }
 
-  virtual void onNetworkPacketReady(NetworkServer*, NetworkConnection* pClient, NetworkPacket const& p)
-  {
-    int id = (int)pClient->userData;
-    m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&m_poolChild[id], p);
-  }
-
   //
   // Implement NetworkClientCallback.
   //
@@ -367,12 +347,6 @@ public:
     int id = (int)pClient->userData;
     implBigworldParentNode &node = m_poolDepex[id];
     (node.*(node.m_onStream))(m_pCallback, (BigworldNode*)this, pClient, len, pStream);
-  }
-
-  virtual void onNetworkPacketReady(NetworkClient* pClient, NetworkPacket const& p)
-  {
-    int id = (int)pClient->userData;
-    m_pCallback->onBigworldEventReady((BigworldNode*)this, (BigworldNode*)&m_poolDepex[id], p);
   }
 
   //
@@ -497,11 +471,6 @@ public:
   }
 
   virtual bool send(int len, void const* pStream)
-  {
-    return false;                       // NOP.
-  }
-
-  virtual bool send(const NetworkPacket &p)
   {
     return false;                       // NOP.
   }

@@ -32,8 +32,6 @@
 //
 //  MAX PACKET SIZE IS 1024 BYTES, MAX DATA SIZE IS:
 //    (00) Stream: 2(stream beg) + n(stream) + 2(stream end)
-//    (01) Large packet(>= LARGE_PACKET_SIZE bytes): 2(stream beg) + n(packet stream, flagbit=sn) + 2(stream end)
-//    (10) Small packet(< LARGE_PACKET_SIZE bytes): 2(header, flagbit=sn) + n(stream:max1020)
 //    (11) Keepalive: 2(header only)
 //
 
@@ -50,166 +48,16 @@ namespace impl {
 #define TIMEOUT_DEAD_CONNECTION 60      // Force disconnect if there's no data received after this interval, sec.
 #define MAX_PACKET_BUFFER_SIZE 1024     // Max buffer size, bytes.
 #define PACKET_HEADER_SIZE 2            // Size of packet header, bytes.
-#define MAX_PACKET_ID_SIZE_BITS 7
-#define MAX_PACKET_ID_SIZE (1 << MAX_PACKET_ID_SIZE_BITS)
-#define LARGE_PACKET_SIZE (1020 + 1)
 
 #define MAKE_PACKET_HEADER(len, type, flag) ((len) | ((type) << 10) | ((flag) << 12))
 
 ushort const keepAlive = MAKE_PACKET_HEADER(0, 3, 0x0);
 ushort const streamBeg = MAKE_PACKET_HEADER(0, 0, 0xc);
 ushort const streamEnd = MAKE_PACKET_HEADER(0, 0, 0x8);
-ushort const packetEnd = MAKE_PACKET_HEADER(0, 1, 0x8);
 
 //
 // Implementation.
 //
-
-class implNetworkPacketRuntimeClass
-{
-public:
-
-  struct Cache
-  {
-    NetworkPacket* pItem;
-    Cache* pNext;
-  };
-
-  NetworkPacket::StaticCreatePacket pfCreateObj;
-  Cache* pHead;
-
-  implNetworkPacketRuntimeClass() : pfCreateObj(0), pHead(0)
-  {
-  }
-
-  ~implNetworkPacketRuntimeClass()
-  {
-    while (pHead) {
-      Cache* p = pHead;
-      pHead = pHead->pNext;
-      delete p->pItem, delete p;
-    }
-
-    pHead = 0;
-  }
-
-  Cache* allocObj()
-  {
-    if (pHead) {
-      Cache* p = pHead;
-      pHead = pHead->pNext;
-      return p;
-    }
-
-    Cache* p = new Cache;
-    if (p) {
-      p->pNext = 0;
-      p->pItem = pfCreateObj();
-      if (p->pItem) {
-        return p;
-      }
-      delete p;
-    }
-
-    return 0;
-  }
-
-  void freeObj(Cache* p)
-  {
-    assert(p);
-    p->pNext = pHead;
-    pHead = p;
-  }
-};
-
-class implNetworkPacketFactory
-{
-  implNetworkPacketRuntimeClass fac[MAX_PACKET_ID_SIZE];
-
-  implNetworkPacketFactory()
-  {
-  }
-
-public:
-
-  static implNetworkPacketFactory& inst()
-  {
-    static implNetworkPacketFactory i;
-    return i;
-  }
-
-  bool registerPacket(int id, NetworkPacket::StaticCreatePacket pf, char const* pname)
-  {
-    if (0 > id || MAX_PACKET_ID_SIZE <= id) {
-      SW2_TRACE_ERROR("Packet [%s:%d] invalid ID.", pname, id);
-      assert(0);
-      return false;
-    }
-
-    if (0 != fac[id].pfCreateObj) {
-      SW2_TRACE_ERROR("Packet [%s:%d] already registerd.", pname, id);
-      assert(0);
-      return false;
-    }
-
-    fac[id].pfCreateObj = pf;           // Insert and assign.
-
-    return true;
-  }
-
-  bool readPacket(BitStream &bs, NetworkPacket** pp)
-  {
-    if (0 == pp) {
-      return false;
-    }
-
-    *pp = 0;
-
-    uint id;
-    if (!(bs >> setBitCount(MAX_PACKET_ID_SIZE_BITS) >> id)) {
-      return false;
-    }
-
-    implNetworkPacketRuntimeClass& rt = fac[id];
-    if (0 == rt.pfCreateObj) {
-      return false;
-    }
-
-    implNetworkPacketRuntimeClass::Cache* c = rt.allocObj();
-    if (0 == c) {
-      return false;
-    }
-
-    if (c->pItem->read(bs)) {
-      *pp = c->pItem;
-    }
-
-    rt.freeObj(c);
-
-    return 0 != *pp;
-  }
-
-  bool writePacket(BitStream &bs, NetworkPacket const& p) const
-  {
-    if (0 == fac[p.getId()].pfCreateObj) {
-      return false;
-    }
-
-    //
-    // Data format: ID packet(bit stream)
-    //
-
-    if (!(bs << setBitCount(MAX_PACKET_ID_SIZE_BITS) << (uint)p.getId())) {
-      return false;
-    }
-
-    if (!p.write(bs)) {
-      return false;
-    }
-
-    return true;
-  }
-};
 
 class implNetworkBase
 {
@@ -221,7 +69,7 @@ public:
 
   bool isBadHeader(ushort header) const
   {
-    if (keepAlive == header || streamBeg == header || streamEnd == header || packetEnd == header) {
+    if (keepAlive == header || streamBeg == header || streamEnd == header) {
       return false;
     }
 
@@ -287,22 +135,6 @@ public:
             m_ss = "";                  // Reset buffer.
           } else if (streamEnd == header) { // Stream end.
             onStreamReady_i((int)m_ss.length(), m_ss.data());
-          } else if (packetEnd == header) { // Large packet end.
-
-            //
-            // A large packet is ready, read and notify it.
-            //
-
-            BitStream bs((char*)m_ss.data(), (int)m_ss.length());
-
-            NetworkPacket* p = 0;
-            if (!implNetworkPacketFactory::inst().readPacket(bs, &p)) {
-              SW2_TRACE_ERROR("Read packet failed.");
-              return false;
-            }
-
-            onPacketReady_i(*p);
-
           } else if (keepAlive != header) {
             SW2_TRACE_ERROR("Invalid keep alive header.");
             return false;
@@ -317,32 +149,10 @@ public:
           switch ((header >> 10) & 0x3)
           {
           case 0:                       // Stream.
-          case 1:                       // Large packet.
             m_packetRecv += 1;
             m_ss.append((char const*)p + PACKET_HEADER_SIZE, lenPacket);
             IncRecvPack();
             break;
-
-          case 2:                       // Small packet.
-            {
-              //
-              // A small packet is ready, read and notify it.
-              //
-
-              BitStream bs((char*)p + PACKET_HEADER_SIZE, lenPacket);
-
-              NetworkPacket* p = 0;
-              if (!implNetworkPacketFactory::inst().readPacket(bs, &p)) {
-                SW2_TRACE_ERROR("Read packet failed.");
-                return false;
-              }
-
-              m_packetRecv += 1;
-              onPacketReady_i(*p);
-              IncRecvPack();
-            }
-            break;
-
           case 3:                       // Keep-alive signal.
             break;
           }
@@ -438,36 +248,6 @@ public:
   }
 
   template<class T>
-  bool send_i(T* t, NetworkPacket const& p)
-  {
-    //
-    // Send packet data.
-    //
-
-    std::string buff;
-    BitStream bs(buff);
-
-    if (!implNetworkPacketFactory::inst().writePacket(bs, p)) {
-      return false;
-    }
-
-    if (LARGE_PACKET_SIZE > bs.getByteCount()) { // Small packet.
-      uint header = MAKE_PACKET_HEADER(bs.getByteCount(), 2, m_packetSent & 0xf);
-      if (!t->send(2, (void*)&header) || !t->send(bs.getByteCount(), buff.data())) {
-        return false;
-      }
-      m_packetSent += 1;
-      IncSendPack();
-    } else {                            // Large packet.
-      if (!send_i(t, buff.data(), bs.getByteCount(), 0, streamBeg, packetEnd)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  template<class T>
   bool trigger_(T* t)
   {
     if (CS_CONNECTED != t->getConnectionState()) {
@@ -501,7 +281,6 @@ public:
   //
 
   virtual void onStreamReady_i(int len, void const* pStream)=0;
-  virtual void onPacketReady_i(NetworkPacket const& p)=0;
   virtual void IncRecvPack()=0;
   virtual void IncSendPack()=0;
 
@@ -610,11 +389,6 @@ public:
     return implNetworkBase::send_i(m_pClient, len, pStream);
   }
 
-  virtual bool send(NetworkPacket const& p)
-  {
-    return implNetworkBase::send_i(m_pClient, p);
-  }
-
   virtual void trigger()
   {
     m_pClient->trigger();
@@ -631,11 +405,6 @@ public:
   virtual void onStreamReady_i(int len, void const* pStream)
   {
     m_pInterface->onNetworkStreamReady(this, len, pStream);
-  }
-
-  virtual void onPacketReady_i(NetworkPacket const& p)
-  {
-    m_pInterface->onNetworkPacketReady(this, p);
   }
 
   void IncRecvPack()
@@ -702,11 +471,6 @@ public:
     return implNetworkBase::send_i(m_pClientPeer, len, pStream);
   }
 
-  virtual bool send(NetworkPacket const& p)
-  {
-    return implNetworkBase::send_i(m_pClientPeer, p);
-  }
-
   //
   // Implement implNetworkBase.
   //
@@ -714,11 +478,6 @@ public:
   virtual void onStreamReady_i(int len, void const* pStream)
   {
     m_pInterface->onNetworkStreamReady(m_pServer, (NetworkConnection*)this, len, pStream);
-  }
-
-  virtual void onPacketReady_i(NetworkPacket const& p)
-  {
-    m_pInterface->onNetworkPacketReady(m_pServer, (NetworkConnection*)this, p);
   }
 
   virtual void IncRecvPack()
@@ -932,11 +691,6 @@ NetworkServer* NetworkServer::alloc(NetworkServerCallback* pCallback)
 void NetworkServer::free(NetworkServer* pServer)
 {
   delete (impl::implNetworkServer*)pServer;
-}
-
-NetworkPacketRegister::NetworkPacketRegister(uint id, NetworkPacket::StaticCreatePacket pfn, char const* name)
-{
-  impl::implNetworkPacketFactory::inst().registerPacket(id, pfn, name);
 }
 
 } // namespace sw2

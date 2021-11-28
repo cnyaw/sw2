@@ -11,6 +11,7 @@
 #pragma once
 
 #include "swSmallworld.h"
+#include "swBitStreamPacket.h"
 
 namespace sw2 {
 
@@ -45,9 +46,9 @@ enum SMALLWORLD_EVENT_ID
 // Events.
 //
 
-struct evSmallworldNotify : public NetworkPacket
+struct evSmallworldNotify : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_NOTIFY, evSmallworldNotify)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_NOTIFY, evSmallworldNotify)
 
   enum NOTIFY_CODE_
   {
@@ -71,9 +72,9 @@ struct evSmallworldNotify : public NetworkPacket
   int id;                               // Player or server ID, only valid when code==NC_LOGIN_ACCEPTED.
 };
 
-struct evSmallworldLogin : public NetworkPacket
+struct evSmallworldLogin : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_LOGIN, evSmallworldLogin)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_LOGIN, evSmallworldLogin)
 
   virtual bool read(BitStream& bs);
   virtual bool write(BitStream& bs) const;
@@ -86,9 +87,9 @@ struct evSmallworldLogin : public NetworkPacket
   std::string stream;
 };
 
-struct evSmallworldRequest : public NetworkPacket
+struct evSmallworldRequest : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_REQUEST, evSmallworldRequest)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_REQUEST, evSmallworldRequest)
 
   enum NOTIFY_CODE_
   {
@@ -116,9 +117,9 @@ struct evSmallworldRequest : public NetworkPacket
   std::string stream;
 };
 
-struct evSmallworldChannel : public NetworkPacket
+struct evSmallworldChannel : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_CHANNEL, evSmallworldChannel)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_CHANNEL, evSmallworldChannel)
 
   enum NOTIFY_CODE_
   {
@@ -138,9 +139,9 @@ struct evSmallworldChannel : public NetworkPacket
   int iChannel;                         // Channel index(0..MAX_CHANNEL-1).
 };
 
-struct evSmallworldChat : public NetworkPacket
+struct evSmallworldChat : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_CHAT, evSmallworldChat)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_CHAT, evSmallworldChat)
 
   enum NOTIFY_CODE_
   {
@@ -162,9 +163,9 @@ struct evSmallworldChat : public NetworkPacket
   std::string msg;                      // Message.
 };
 
-struct evSmallworldGame : public NetworkPacket
+struct evSmallworldGame : public BitStreamPacket
 {
-  SW2_DECLARE_PACKET(EID_GAME, evSmallworldGame)
+  SW2_DECLARE_BITSTREAM_PACKET(EID_GAME, evSmallworldGame)
 
   enum NOTIFY_CODE_
   {
@@ -188,6 +189,10 @@ struct evSmallworldGame : public NetworkPacket
   int idGame;                           // Game ID.
   int idPlayer;                         // Player ID.
 };
+
+bool send(NetworkConnection* pConn, const BitStreamPacket &p);
+bool freePacket(const BitStreamPacket *p);
+bool readPacket(BitStream &bs, const BitStreamPacket **pp);
 
 } // namespace impl
 
