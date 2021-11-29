@@ -121,7 +121,7 @@ bool setAddress_i(std::string const& addr, struct sockaddr_in* sa)
   if (!inet_aton_i(ip.c_str(), &sa->sin_addr)) {
     struct hostent *h = ::gethostbyname(ip.c_str());
     if (0 == h) {                     // Unknown host.
-      SW2_TRACE_ERROR("Unknown host name.");
+      SW2_TRACE_ERROR("Unknown host name '%s'.", ip.c_str());
       return false;
     }
     sa->sin_addr = *(struct in_addr*)h->h_addr;
