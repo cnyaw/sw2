@@ -30,7 +30,7 @@
 /// // Declare a Cells to manage MyObj*, coordinate data type use float.
 /// //
 ///
-/// Cells<MyObj*, float> cells;
+/// Cells&lt;MyObj*, float&gt; cells;
 ///
 /// //
 /// // Initialize Cells, left-top of map is (-1024, -1024), slice 8 small cells
@@ -318,7 +318,7 @@ public:
   /// \param [in] nMax Max number of objects to search.
   /// \param [in,out] filter An objects filter.
   /// \note A filter is used to decide an object is selected or not, the prototype
-  ///       is bool operator()(ObjT const& obj). If it returns true, nMax - 1.
+  ///       is bool operator()(ObjT const& obj, ValueT x, ValueT y). If it returns true, nMax - 1.
   ///       else false to skip the object.
   /// \note The search is from the center of rectangle to the outer. But the order
   ///       is not totally according to the distance. If it is need, please sort manually.
@@ -405,7 +405,7 @@ private:
           if (!func(obj)) {
             continue;
           }
-          if (filter(obj.obj)) {
+          if (filter(obj.obj, obj.x, obj.y)) {
             nMax -= 1;
           }
         }

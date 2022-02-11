@@ -168,11 +168,12 @@ TEST(Cells, move)
 // Search object in rectangle area.
 //
 
+template<typename ValueT>
 struct TestCellsFilter
 {
   std::vector<int> v;
 
-  bool operator()(int i)
+  bool operator()(int i, ValueT x, ValueT y)
   {
     v.push_back(i);
     return true;
@@ -200,7 +201,7 @@ TEST(Cells, search1)
   }
 
   {
-    TestCellsFilter f;
+    TestCellsFilter<float> f;
     grid.search(-50, -50, 50, 50, 32, f);
 
     int const res[] = {2, 6, 13, 14, 16, 19, 27, 28};
@@ -211,7 +212,7 @@ TEST(Cells, search1)
   }
 
   {
-    TestCellsFilter f;
+    TestCellsFilter<float> f;
     grid.search(-83, -54, 124, 112, 32, f);
 
     int const res[] = {1, 2, 3, 4, 5, 6, 8, 10, 13, 14, 15, 16, 18, 19, 20, 21, 23, 25, 26, 27, 28};
@@ -239,7 +240,7 @@ TEST(Cells, search1_2)
     int x = Util::rangeRand<int>(-100,100-1), y = Util::rangeRand<int>(-100,100-1);
     int w = Util::rangeRand<int>(30,60), h = Util::rangeRand<int>(30,60);
 
-    TestCellsFilter f;
+    TestCellsFilter<int> f;
     grid.search(x, y, x+w, y+h, 32, f);
 
     IntRect bound(x, y, x+w, y+h);
@@ -271,7 +272,7 @@ TEST(Cells, search2)
   }
 
   {
-    TestCellsFilter f;
+    TestCellsFilter<int> f;
     grid.search(-10, 10, 72, 32, f);
 
     int const res[] = {2, 3, 6, 13, 14, 15, 16, 19, 23, 27, 28};
@@ -282,7 +283,7 @@ TEST(Cells, search2)
   }
 
   {
-    TestCellsFilter f;
+    TestCellsFilter<int> f;
     grid.search(-55, -63, 69, 32, f);
 
     int const res[] = {7, 8, 9, 11, 12, 16, 19, 22, 23, 28, 30};
@@ -310,7 +311,7 @@ TEST(Cells, search2_2)
     int x = Util::rangeRand<int>(-100, 100 - 1), y = Util::rangeRand<int>(-100, 100 - 1);
     int r = Util::rangeRand<int>(30,80);
 
-    TestCellsFilter f;
+    TestCellsFilter<int> f;
     grid.search(x, y, r, 50, f);
 
     int r2 = r * r;
