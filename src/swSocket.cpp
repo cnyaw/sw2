@@ -342,7 +342,7 @@ public:
       pLast = m_pBuffLast;
     }
 
-    while (len) {
+    while (0 < len) {
 
       //
       // Allocate packet buffer.
