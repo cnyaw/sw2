@@ -134,8 +134,6 @@ bool Ini::load(std::string const& fileName)
     return false;
   }
 
-  clear();                              // Reset content.
-
   bool ret = load(inf);                 // Parse lines.
   inf.close();
 
@@ -144,6 +142,8 @@ bool Ini::load(std::string const& fileName)
 
 bool Ini::load(std::istream& ins)
 {
+  clear();                              // Reset content.
+
   //
   // Parse lines.
   //
