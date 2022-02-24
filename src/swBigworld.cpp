@@ -23,8 +23,8 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_KEEP_CONNECTED "KeepConnected"
 #define SW2_BIGWORLD_CONF_ADDR_NODE "AddrNode"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
-#define SW2_BIGWORLD_MAX_CHILD_NODE 1024
-#define SW2_BIGWORLD_MAX_DEPEX_NODE 64
+#define SW2_BIGWORLD_MAX_CHILD_NODE 4096
+#define SW2_BIGWORLD_MAX_DEPEX_NODE 256
 
 static const unsigned char SW2_BIGWORLD_REQ_ID[] = {0x1e, 0x33, 0x5e, 0x9f, 0x0f, 0x86, 0xb9, 0x48, 0xae, 0xc6, 0xb, 0xf3, 0x33, 0x4c, 0xa0, 0x8};
 static const unsigned char SW2_BIGWORLD_RESP_ID[] = {0xb2, 0x06, 0x50, 0x05, 0x5f, 0xb7, 0x83, 0x44, 0xa1, 0x21, 0x93, 0x50, 0xba, 0x42, 0xf3, 0x4d};
