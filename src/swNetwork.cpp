@@ -319,6 +319,9 @@ public:
       disconnect();
       while (CS_DISCONNECTED != getConnectionState()) {
         trigger();
+#ifdef __EMSCRIPTEN__
+        break;                          // FIXME: workaround to avoid blocking browser thread.
+#endif
       }
     }
     SocketClient::free(m_pClient);
