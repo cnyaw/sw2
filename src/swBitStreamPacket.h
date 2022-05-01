@@ -20,6 +20,7 @@
 #include <list>
 
 #include "swBitStream.h"
+#include "swUtil.h"
 
 namespace sw2 {
 
