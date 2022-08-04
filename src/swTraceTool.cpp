@@ -14,7 +14,7 @@
 #include <cstdarg>
 #include <ctime>
 
-#include <sstream>
+#include <string>
 
 #include "swTraceTool.h"
 
@@ -109,10 +109,11 @@ public:
 
     char const* scat[] = {"[MESSAGE] ", "[WARNING] ", "[ERROR] "};
 
-    std::stringstream ss;
-    ss << buf << scat[cat] << str << "\n";
+    std::string s(buf);
+    s.append(scat[cat]);
+    s.append(str);
+    s.push_back('\n');
 
-    std::string s = ss.str();
     for (int i = 0; i < nOut; i++) {
       const implTraceToolTarget &t = target[i];
       if (t.isEnable && (0 == level || t.level == level)) {
