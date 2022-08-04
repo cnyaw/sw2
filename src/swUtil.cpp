@@ -185,109 +185,67 @@ std::string& Util::trim(std::string& str, std::string const& chrTrim)
   return str;
 }
 
-bool Util::base64(std::istream& is, std::ostream& os)
+bool Util::base64(const std::string& is, std::string& os)
 {
-  int lenStream = getStreamLen(is);
-  if (0 >= lenStream) {
+  if (is.empty()) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
   }
 
-  char inBuff[BUFF_SIZE];
+  size_t idxIn = 0;
+  for (size_t i = 0; i < is.length(); ) {
 
-  while (0 < lenStream) {
+    size_t m = i;
+    char in[3] = {0};
+    for (size_t j = 0; j < 3 && i < is.length(); j++, i++, idxIn++) {
+      in[j] = is[idxIn];
+    }
+    m = i - m;
 
-    int lenBuff = std::min(lenStream, BUFF_SIZE);
-    if (0 != (lenBuff % 3) && lenBuff != lenStream) { // Adjust.
-      lenBuff -= lenBuff % 3;
+    char out[4] = {0};
+    out[0] = base64code[((in[0] & 0xfc) >> 2)];
+    out[1] = base64code[(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4))];
+    out[2] = base64code[(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6))];
+    out[3] = base64code[(in[2] & 0x3f)];
+
+    switch (m)
+    {
+    case 1:
+      out[2] = '=';
+    case 2:
+      out[3] = '=';
+      break;
     }
 
-    if (!is.read(inBuff, lenBuff)) {
-      SW2_TRACE_ERROR("Read input failed.");
-      return false;
-    }
-
-    lenStream -= lenBuff;
-
-    int idxIn = 0;
-    for (int i = 0; i < lenBuff; ) {
-
-      int m = i;
-      char in[3] = {0};
-      for (int j = 0; j < 3 && i < lenBuff; j++, i++, idxIn++) {
-        in[j] = inBuff[idxIn];
-      }
-      m = i - m;
-
-      char out[4] = {0};
-      out[0] = base64code[((in[0] & 0xfc) >> 2)];
-      out[1] = base64code[(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4))];
-      out[2] = base64code[(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6))];
-      out[3] = base64code[(in[2] & 0x3f)];
-
-      switch (m)
-      {
-      case 1:
-        out[2] = '=';
-      case 2:
-        out[3] = '=';
-        break;
-      }
-
-      if (!os.write(out, 4)) {
-        SW2_TRACE_ERROR("Write output failed.");
-        return false;
-      }
-    }
+    os.append(out, 4);
   }
 
   return true;
 }
 
-bool Util::unbase64(std::istream& is, std::ostream& os)
+bool Util::unbase64(const std::string& is, std::string& os)
 {
-  int lenStream = getStreamLen(is);
-  if (0 >= lenStream) {
+  if (is.empty()) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
   }
 
-  char inBuff[BUFF_SIZE];
+  size_t idxIn = 0;
+  for (size_t i = 0; i < is.length(); ) {
 
-  while (0 < lenStream) {
-
-    int lenBuff = std::min(lenStream, BUFF_SIZE);
-    if (0 != (lenBuff % 4) && lenBuff != lenStream) { // Adjust.
-      lenBuff -= lenBuff % 4;
+    char in[4] = {0}, in2[4] = {0};
+    for (size_t j = 0; j < 4 && i < is.length(); j++, i++, idxIn++) {
+      in[j] = in2[j] = is[idxIn];
+      in[j] = (char)(int)base64code.find(in[j]);
     }
 
-    if (!is.read(inBuff, lenBuff)) {
-      SW2_TRACE_ERROR("Read input failed.");
-      return false;
-    }
+    char out[3] = {0};
+    out[0] = ((in[0] & 0x3f) << 2) | ((in[1] & 0x30) >> 4);
+    out[1] = ((in[1] & 0x0f) << 4) | ((in[2] & 0x3c) >> 2);
+    out[2] = ((in[2] & 0x03) << 6) | ((in[3] & 0x3f) >> 0);
 
-    lenStream -= lenBuff;
-
-    int idxIn = 0;
-    for (int i = 0; i < lenBuff; ) {
-
-      char in[4] = {0}, in2[4] = {0};
-      for (int j = 0; j < 4 && i < lenBuff; j++, i++, idxIn++) {
-        in[j] = in2[j] = inBuff[idxIn];
-        in[j] = (char)(int)base64code.find(in[j]);
-      }
-
-      char out[3] = {0};
-      out[0] = ((in[0] & 0x3f) << 2) | ((in[1] & 0x30) >> 4);
-      out[1] = ((in[1] & 0x0f) << 4) | ((in[2] & 0x3c) >> 2);
-      out[2] = ((in[2] & 0x03) << 6) | ((in[3] & 0x3f) >> 0);
-
-      int l = '=' == in2[2] ? 1 : ('=' == in2[3] ? 2 : 3);
-      if (!os.write(out, l)) {
-        SW2_TRACE_ERROR("Write output failed.");
-        return false;
-      }
-    }
+    int l = '=' == in2[2] ? 1 : ('=' == in2[3] ? 2 : 3);
+    os.append(out, l);
   }
 
   return true;

@@ -149,7 +149,7 @@ namespace Util {
   /// \note For more info, see http://zh.wikipedia.org/wiki/Base64.
   ///
 
-  bool base64(std::istream& is, std::ostream& os);
+  bool base64(const std::string& is, std::string& os);
 
   ///
   /// \brief base64 decode.
@@ -159,7 +159,7 @@ namespace Util {
   /// \note For more info, see http://zh.wikipedia.org/wiki/Base64.
   ///
 
-  bool unbase64(std::istream& is, std::ostream& os);
+  bool unbase64(const std::string& is, std::string& os);
 
   ///
   /// \brief Zip encode.

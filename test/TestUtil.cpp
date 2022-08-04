@@ -103,21 +103,19 @@ TEST(Util, base64)
 {
   std::string const sText2("TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=");
 
-  std::stringstream ssText(sSampleText), ss1;
-  if (!Util::base64(ssText, ss1)) {
+  std::string os1;
+  if (!Util::base64(sSampleText, os1)) {
     FAIL("base64");
   }
 
-  std::string s1(ss1.str());
-  CHECK(s1 == sText2);
+  CHECK(os1 == sText2);
 
-  std::stringstream ssText2(sText2), ss2;
-  if (!Util::unbase64(ssText2, ss2)) {
+  std::string os2;
+  if (!Util::unbase64(os1, os2)) {
     FAIL("unbase64");
   }
 
-  std::string s2(ss2.str());
-  CHECK(s2 == sSampleText);
+  CHECK(os2 == sSampleText);
 }
 
 //
