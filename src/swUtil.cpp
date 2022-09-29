@@ -35,8 +35,6 @@ namespace sw2 {
 
 namespace impl {
 
-#define BUFF_SIZE 2048
-
 static std::string const base64code("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
 #if defined(_linux_)
