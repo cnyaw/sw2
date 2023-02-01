@@ -61,7 +61,29 @@ public:
       goto error;
     }
 
-    size_t headend = mData.find("\r\n\r\n") + 4;
+    size_t headend = mData.find("\r\n\r\n") + 4; // Plus CRLFCRLF.
+
+    if (std::string::npos != mData.find("Transfer-Encoding: chunked")) {
+      size_t p = headend;
+      size_t chunksize = 0;
+      if (!waitChunkSize(p, chunksize)) {
+        goto error;
+      }
+      std::string data;
+      while (0 < chunksize) {
+        if (!waitData(p + chunksize)) {
+          goto error;
+        }
+        data.append(mData, p, chunksize);
+        p += chunksize + 2;             // Plus CRLF.
+        if (!waitChunkSize(p, chunksize)) {
+          goto error;
+        }
+      }
+      disconnect();
+      mData = data;
+      return true;
+    }
 
     if (std::string::npos != mData.find("Content-Length:")) {
       int datlen = 0;
@@ -115,12 +137,22 @@ error:
     return waitState(CS_CONNECTED);
   }
 
-  bool waitData(const std::string &token) const
+  bool waitChunkSize(size_t &p, size_t &chunksize) const
+  {
+    if (!waitData("\r\n", p)) {         // Wait end of chunk size line.
+      return false;
+    }
+    sscanf(mData.c_str() + p, "%x", &chunksize);
+    p = mData.find("\r\n", p) + 2;      // Plus CRLF.
+    return true;
+  }
+
+  bool waitData(const std::string &token, size_t p = 0) const
   {
     TimeoutTimer lt(1000 * mTimeout);
     while (!lt.isExpired()) {
       mClient->trigger();
-      if (std::string::npos != mData.find(token)) {
+      if (std::string::npos != mData.find(token, p)) {
         return true;
       }
     }

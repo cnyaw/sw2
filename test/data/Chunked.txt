@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+Date: Mon, 22 Mar 2004 11:15:03 GMT
+Content-Type: text/html
+Transfer-Encoding: chunked
+Trailer: Expires
+
+29
+<html><body><p>The file you requested is 
+5
+3,400
+23
+ bytes long and was last modified: 
+1d
+Sat, 20 Mar 2004 21:12:00 GMT
+13
+.</p></body></html>
+0
+Expires: Sat, 27 Mar 2004 21:12:00 GMT
+

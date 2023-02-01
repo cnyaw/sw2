@@ -258,7 +258,7 @@ class HttpFileServer : public SocketServerCallback
 {
 public:
   SocketServer* m_pServer;
-  std::string m_strThePoolOfTears, m_strContentLength;
+  std::string m_strThePoolOfTears, m_strContentLength, m_strChunked;
 
   HttpFileServer()
   {
@@ -273,9 +273,14 @@ public:
     if (fs->loadFile("ThePoolOfTears.txt", ss)) {
       m_strThePoolOfTears = ss.str();
     }
+    // Following two test data is from http://www.tcpipguide.com/free/t_HTTPDataLengthIssuesChunkedTransfersandMessageTrai-3.htm.
     ss.str("");
     if (fs->loadFile("ContentLength.txt", ss)) {
       m_strContentLength = ss.str();
+    }
+    ss.str("");
+    if (fs->loadFile("Chunked.txt", ss)) {
+      m_strChunked = ss.str();
     }
     Archive::free(fs);
   }
@@ -297,9 +302,10 @@ public:
   {
     const char *HTTP_GET_THE_POOL_OF_TEARS = "GET /ThePoolOfTears.txt";
     const char *HTTP_GET_CONTENT_LENGTH = "GET /ContentLength.txt";
+    const char *HTTP_GET_CHUNKED = "GET /Chunked.txt";
     std::string buff((const char*)pStream, len);
     if (!strncmp(buff.c_str(), HTTP_GET_THE_POOL_OF_TEARS, strlen(HTTP_GET_THE_POOL_OF_TEARS))) {
-      const char fmt[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n" ;
+      const char fmt[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: %d\r\n\r\n" ;
       std::string resp;
       resp.resize(strlen(fmt) + m_strThePoolOfTears.size() + 32);
       sprintf((char*)resp.c_str(), fmt, (int)m_strThePoolOfTears.size());
@@ -307,6 +313,8 @@ public:
       pClient->send((int)s.size(), s.data());
     } else if (!strncmp(buff.c_str(), HTTP_GET_CONTENT_LENGTH, strlen(HTTP_GET_CONTENT_LENGTH))) {
       pClient->send((int)m_strContentLength.size(), m_strContentLength.data());
+    } else if (!strncmp(buff.c_str(), HTTP_GET_CHUNKED, strlen(HTTP_GET_CHUNKED))) {
+      pClient->send((int)m_strChunked.size(), m_strChunked.data());
     } else {
       const char *err = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n" ;
       pClient->send((int)strlen(err), err);
@@ -349,7 +357,7 @@ public:
   virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
   {
     std::string resp;
-    if (Util::httpGet(name, resp)) {
+    if (Util::httpGet(name, resp, 1)) {
       outs.write(resp.data(), (int)resp.length());
       return true;
     } else {
@@ -377,7 +385,12 @@ TEST(Archive, httpfs)
     CHECK(ss.str() == svr.m_strThePoolOfTears);
     ss.str("");
     CHECK(par->loadFile("localhost:24680/ContentLength.txt", ss));
-    CHECK(ss.str() == svr.m_strContentLength.substr(4 + svr.m_strContentLength.find("\r\n\r\n")));
+    std::string strCheck = svr.m_strContentLength.substr(4 + svr.m_strContentLength.find("\r\n\r\n"));
+    strCheck = strCheck.substr(0, strCheck.find("\r\n\r\n"));
+    CHECK(ss.str() == strCheck);
+    ss.str("");
+    CHECK(par->loadFile("localhost:24680/Chunked.txt", ss));
+    CHECK(ss.str() == strCheck);
 
     while (httptask.isRunning()) {
       Util::sleep(1);
