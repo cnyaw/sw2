@@ -52,24 +52,31 @@ public:
     }
     std::string get("GET " + name.substr(urlpos) + " HTTP/1.1\r\nHost:" + url + "\r\n\r\n");
     mClient->send((int)get.length(), get.c_str());
-    if (!waitData("200 OK") || !waitData("Content-Length:")) {
-      disconnect();
-      return false;
+
+    if (!waitData("200 OK")) {
+      goto error;
     }
-    int datlen = 0;
-    sscanf(mData.c_str() + mData.find("Content-Length"), "Content-Length:%d", &datlen);
-    if (!waitData("\r\n\r\n")) {
-      disconnect();
-      return false;
+
+    if (!waitData("\r\n\r\n")) {        // Wait header end.
+      goto error;
     }
-    size_t headlen = mData.find("\r\n\r\n") + 4;
-    if (!waitData(headlen + datlen)) {
+
+    size_t headend = mData.find("\r\n\r\n") + 4;
+
+    if (std::string::npos != mData.find("Content-Length:")) {
+      int datlen = 0;
+      sscanf(mData.c_str() + mData.find("Content-Length"), "Content-Length:%d", &datlen);
+      if (!waitData(headend + datlen)) {
+        goto error;
+      }
       disconnect();
-      return false;
+      mData = mData.substr(headend, datlen);
+      return true;
     }
+
+error:
     disconnect();
-    mData = mData.substr(headlen, datlen);
-    return true;
+    return false;
   }
 
   //
