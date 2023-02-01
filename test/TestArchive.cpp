@@ -8,7 +8,6 @@
 //  2008/05/31 Waync created.
 //
 
-#include <fstream>
 #include <sstream>
 
 #include "CppUnitLite/TestHarness.h"
