@@ -268,7 +268,7 @@ public:
     }
     Archive *fs = Archive::alloc();
     assert(fs);
-    fs->addFileSystem("./data/");
+    fs->addFileSystem("./data/httpGet.zip");
     std::stringstream ss;
     if (fs->loadFile("ThePoolOfTears.txt", ss)) {
       m_strThePoolOfTears = ss.str();
