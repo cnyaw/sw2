@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+Date: Mon, 22 Mar 2004 11:15:03 GMT
+Content-Type: text/html
+Content-Length: 129
+Expires: Sat, 27 Mar 2004 21:12:00 GMT
+
+<html><body><p>The file you requested is 3,400 bytes long and was last modified: Sat, 20 Mar 2004 21:12:00 GMT.</p></body></html>

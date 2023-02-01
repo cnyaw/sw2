@@ -258,7 +258,7 @@ class HttpFileServer : public SocketServerCallback
 {
 public:
   SocketServer* m_pServer;
-  std::string m_str;
+  std::string m_strThePoolOfTears, m_strContentLength;
 
   HttpFileServer()
   {
@@ -271,7 +271,11 @@ public:
     fs->addFileSystem("./data/");
     std::stringstream ss;
     if (fs->loadFile("ThePoolOfTears.txt", ss)) {
-      m_str = ss.str();
+      m_strThePoolOfTears = ss.str();
+    }
+    ss.str("");
+    if (fs->loadFile("ContentLength.txt", ss)) {
+      m_strContentLength = ss.str();
     }
     Archive::free(fs);
   }
@@ -291,15 +295,18 @@ public:
 
   virtual void onSocketStreamReady(SocketServer*, SocketConnection* pClient, int len, void const* pStream)
   {
-    const char *HTTP_GET_FILE = "GET /ThePoolOfTears.txt";
+    const char *HTTP_GET_THE_POOL_OF_TEARS = "GET /ThePoolOfTears.txt";
+    const char *HTTP_GET_CONTENT_LENGTH = "GET /ContentLength.txt";
     std::string buff((const char*)pStream, len);
-    if (!strncmp(buff.c_str(), HTTP_GET_FILE, strlen(HTTP_GET_FILE))) {
+    if (!strncmp(buff.c_str(), HTTP_GET_THE_POOL_OF_TEARS, strlen(HTTP_GET_THE_POOL_OF_TEARS))) {
       const char fmt[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n" ;
       std::string resp;
-      resp.resize(strlen(fmt) + m_str.size() + 32);
-      sprintf((char*)resp.c_str(), fmt, (int)m_str.size());
-      std::string s = resp.c_str() + m_str;
+      resp.resize(strlen(fmt) + m_strThePoolOfTears.size() + 32);
+      sprintf((char*)resp.c_str(), fmt, (int)m_strThePoolOfTears.size());
+      std::string s = resp.c_str() + m_strThePoolOfTears;
       pClient->send((int)s.size(), s.data());
+    } else if (!strncmp(buff.c_str(), HTTP_GET_CONTENT_LENGTH, strlen(HTTP_GET_CONTENT_LENGTH))) {
+      pClient->send((int)m_strContentLength.size(), m_strContentLength.data());
     } else {
       const char *err = "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n" ;
       pClient->send((int)strlen(err), err);
@@ -367,7 +374,10 @@ TEST(Archive, httpfs)
 
     std::stringstream ss;
     CHECK(par->loadFile("localhost:24680/ThePoolOfTears.txt", ss));
-    CHECK(ss.str() == svr.m_str);
+    CHECK(ss.str() == svr.m_strThePoolOfTears);
+    ss.str("");
+    CHECK(par->loadFile("localhost:24680/ContentLength.txt", ss));
+    CHECK(ss.str() == svr.m_strContentLength.substr(4 + svr.m_strContentLength.find("\r\n\r\n")));
 
     while (httptask.isRunning()) {
       Util::sleep(1);
