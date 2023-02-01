@@ -266,11 +266,14 @@ public:
     if (m_pServer) {
       m_pServer->startup("24680");
     }
-    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);
+    Archive *fs = Archive::alloc();
+    assert(fs);
+    fs->addFileSystem("./data/");
     std::stringstream ss;
-    ss << ifs.rdbuf();
-    ifs.close();
-    m_str = ss.str();
+    if (fs->loadFile("ThePoolOfTears.txt", ss)) {
+      m_str = ss.str();
+    }
+    Archive::free(fs);
   }
 
   virtual ~HttpFileServer()
