@@ -53,19 +53,16 @@ public:
     std::string get("GET " + name.substr(urlpos) + " HTTP/1.1\r\nHost:" + url + "\r\n\r\n");
     mClient->send((int)get.length(), get.c_str());
 
-    if (!waitData("200 OK")) {
-      goto error;
-    }
-
-    if (!waitData("\r\n\r\n")) {        // Wait header end.
-      goto error;
+    if (!waitData("200 OK") || !waitData("\r\n\r\n")) { // Wait OK and header end.
+      disconnect();
+      return false;
     }
 
     size_t headend = mData.find("\r\n\r\n") + 4; // Plus CRLFCRLF.
 
     if (std::string::npos != mData.find("Transfer-Encoding: chunked")) {
       size_t p = headend;
-      size_t chunksize = 0;
+      unsigned int chunksize = 0;
       if (!waitChunkSize(p, chunksize)) {
         goto error;
       }
@@ -137,7 +134,7 @@ error:
     return waitState(CS_CONNECTED);
   }
 
-  bool waitChunkSize(size_t &p, size_t &chunksize) const
+  bool waitChunkSize(size_t &p, unsigned int &chunksize) const
   {
     if (!waitData("\r\n", p)) {         // Wait end of chunk size line.
       return false;
