@@ -42,8 +42,8 @@ TEST(Archive, addFileSystem1)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/")); // Exist folder.
-  CHECK(par->addFileSystem("./dummy/")); // Not exist folder is allowed.
+  CHECK(par->addPathFileSystem("./data/")); // Exist folder.
+  CHECK(par->addPathFileSystem("./dummy/")); // Not exist folder is allowed.
 
   Archive::free(par);
   par = 0;
@@ -60,8 +60,8 @@ TEST(Archive, addFileSystem2)
     return;
   }
 
-  CHECK(!par->addFileSystem("test.zip")); // Not exist file.
-  CHECK(par->addFileSystem("./data/test2.zip")); // Exist file.
+  CHECK(!par->addPathFileSystem("test.zip")); // Not exist file.
+  CHECK(par->addPathFileSystem("./data/test2.zip")); // Exist file.
 
   Archive::free(par);
   par = 0;
@@ -78,8 +78,8 @@ TEST(Archive, isExist)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/"));
-  CHECK(par->addFileSystem("./data/test2.zip"));
+  CHECK(par->addPathFileSystem("./data/"));
+  CHECK(par->addPathFileSystem("./data/test2.zip"));
 
   CHECK(par->isFileExist("test.txt"));  // Exist in test2.zip.
   CHECK(par->isFileExist("test2.txt")); // Exist in test2.zip.
@@ -106,9 +106,9 @@ TEST(Archive, loadFile)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/"));
-  CHECK(par->addFileSystem("./data/test2.zip"));
-  CHECK(par->addFileSystem("./data/test4.zip.dat")); // Password protected file.
+  CHECK(par->addPathFileSystem("./data/"));
+  CHECK(par->addPathFileSystem("./data/test2.zip"));
+  CHECK(par->addPathFileSystem("./data/test4.zip.dat")); // Password protected file.
 
   std::stringstream ss;
   CHECK(par->loadFile("./test.txt", ss));
@@ -138,12 +138,12 @@ TEST(Archive, addFileSystem3)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/test2.zip"));
+  CHECK(par->addPathFileSystem("./data/test2.zip"));
 
   std::stringstream ss1;
   CHECK(par->loadFile("test3.zip", ss1));
 
-  CHECK(par->addFileSystem(ss1));
+  CHECK(par->addStreamFileSystem(ss1));
 
   Archive::free(par);
   par = 0;
@@ -160,12 +160,12 @@ TEST(Archive, loadFile2)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/test2.zip"));
+  CHECK(par->addPathFileSystem("./data/test2.zip"));
 
   std::stringstream ss1;
   CHECK(par->loadFile("test3.zip", ss1));
 
-  CHECK(par->addFileSystem(ss1));       // Memory zip file system.
+  CHECK(par->addStreamFileSystem(ss1)); // Memory zip file system.
 
   std::stringstream ss;
   CHECK(par->loadFile("test3.txt", ss));
@@ -186,13 +186,13 @@ TEST(Archive, searchOrder)
     return;
   }
 
-  CHECK(par->addFileSystem("./data/"));
+  CHECK(par->addPathFileSystem("./data/"));
 
   std::stringstream ss;
   CHECK(par->loadFile("./test.txt", ss));
   CHECK(ss.str() == "this is test.txt\r\n");
 
-  CHECK(par->addFileSystem("./data/test5.zip"));
+  CHECK(par->addPathFileSystem("./data/test5.zip"));
 
   std::stringstream ss2;
   CHECK(par->loadFile("./test.txt", ss2));
@@ -238,7 +238,7 @@ TEST(Archive, addFileSystem4)
   }
   
   TestFileSystem fs;
-  CHECK(par->addFileSystem(&fs));
+  CHECK(par->addArchiveFileSystem(&fs));
 
   CHECK(par->isFileExist("./test"));
   std::stringstream ss;
@@ -267,7 +267,7 @@ public:
     }
     Archive *fs = Archive::alloc();
     assert(fs);
-    fs->addFileSystem("./data/httpGet.zip");
+    fs->addPathFileSystem("./data/httpGet.zip");
     std::stringstream ss;
     if (fs->loadFile("ThePoolOfTears.txt", ss)) {
       m_strThePoolOfTears = ss.str();
@@ -377,7 +377,7 @@ TEST(Archive, httpfs)
     httptask.runTask();
 
     HttpFileSystem fs;
-    CHECK(par->addFileSystem(&fs));
+    CHECK(par->addArchiveFileSystem(&fs));
 
     std::stringstream ss;
     CHECK(par->loadFile("localhost:24680/ThePoolOfTears.txt", ss));

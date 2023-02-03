@@ -424,7 +424,7 @@ public:
   // Archive implementation.
   //
 
-  virtual bool addFileSystem(std::string const& name)
+  virtual bool addPathFileSystem(std::string const& name)
   {
     std::string path(name);
     Util::trim(path);
@@ -464,7 +464,7 @@ public:
     return false;
   }
 
-  virtual bool addFileSystem(std::istream& stream)
+  virtual bool addStreamFileSystem(std::istream& stream)
   {
     ArchiveFileSystem* pfs = 0;
 
@@ -483,7 +483,7 @@ public:
     return true;
   }
 
-  virtual bool addFileSystem(ArchiveFileSystem *pFileSystem)
+  virtual bool addArchiveFileSystem(ArchiveFileSystem *pFileSystem)
   {
     if (pFileSystem) {
       fs.push_back(pFileSystem);

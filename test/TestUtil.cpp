@@ -187,7 +187,7 @@ TEST(Util, zipArchive)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
+    CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss1;
     CHECK(ar->loadFile("test.ini", ss1));
@@ -213,7 +213,7 @@ TEST(Util, zipArchive)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
+    CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss1;
     CHECK(ar->loadFile("test.ini", ss1)); // Existing item.
@@ -238,7 +238,7 @@ TEST(Util, zipArchive)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
+    CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("widget.txt", ss2));
@@ -264,7 +264,7 @@ TEST(Util, zipArchive)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(TEST_ADD_ZIP_FILE_NAME));
+    CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("test.txt", ss2, "smallworld2"));
@@ -294,7 +294,7 @@ TEST(Util, zipArchive2)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(stream));
+    CHECK(ar->addStreamFileSystem(stream));
 
     std::stringstream ss1;
     CHECK(ar->loadFile("test.ini", ss1));
@@ -321,7 +321,7 @@ TEST(Util, zipArchive2)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(stream2));
+    CHECK(ar->addStreamFileSystem(stream2));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("ThePoolOfTears.txt", ss2, "smallworld2"));
@@ -344,7 +344,7 @@ TEST(Util, zipArchive2)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(stream3));
+    CHECK(ar->addStreamFileSystem(stream3));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("widget.txt", ss2));
@@ -371,7 +371,7 @@ TEST(Util, zipArchive2)
 
   {
     Archive* ar = Archive::alloc();
-    CHECK(ar->addFileSystem(stream4));
+    CHECK(ar->addStreamFileSystem(stream4));
 
     std::stringstream ss2;
     CHECK(ar->loadFile("test.txt", ss2, "smallworld2"));
@@ -475,7 +475,7 @@ TEST(Util, crc32)
 TEST(Util, utf8ToUnicode)
 {
   Archive* ar = Archive::alloc();
-  CHECK(ar->addFileSystem("./data/utf8.zip"));
+  CHECK(ar->addPathFileSystem("./data/utf8.zip"));
 
   std::stringstream ss1;
   CHECK(ar->loadFile("utf8.txt", ss1));

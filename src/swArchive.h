@@ -37,15 +37,15 @@
 /// // Add new file system.
 /// //
 ///
-/// if (!pItf->addFileSystem("../data/")) // Add a folder.
+/// if (!pItf->addPathFileSystem("../data/")) // Add a folder.
 /// { // Add fail.
 /// }
 ///
-/// if (!pItf->addFileSystem("media/model.zip")) // Add a Zip file.
+/// if (!pItf->addPathFileSystem("media/model.zip")) // Add a Zip file.
 /// { // Add fail.
 /// }
 ///
-/// if (!pItf->addFileSystem(stream))   // Add a Zip file stream in the memory.
+/// if (!pItf->addStreamFileSystem(stream)) // Add a Zip file stream in the memory.
 /// { // Add fail.
 /// }
 ///
@@ -144,7 +144,7 @@ public:
   /// \note A file system can be a folder, or a Zip file.
   ///
 
-  virtual bool addFileSystem(std::string const& name)=0;
+  virtual bool addPathFileSystem(std::string const& name)=0;
 
   ///
   /// \brief Add a memory file system.
@@ -154,7 +154,7 @@ public:
   /// \note If add successful, the memory file system is duplicated internally.
   ///
 
-  virtual bool addFileSystem(std::istream& stream)=0;
+  virtual bool addStreamFileSystem(std::istream& stream)=0;
 
   ///
   /// \brief Add a user define file system.
@@ -162,7 +162,7 @@ public:
   /// \return Return true if success else return false.
   ///
 
-  virtual bool addFileSystem(ArchiveFileSystem *pFileSystem)=0;
+  virtual bool addArchiveFileSystem(ArchiveFileSystem *pFileSystem)=0;
 
   ///
   /// \brief Check is a file exist in the file system(s).
