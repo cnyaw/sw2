@@ -383,8 +383,6 @@ public:
       cs.bytesSent += ns.bytesSent;
       cs.packetsRecv += ns.packetsRecv;
       cs.packetsSent += ns.packetsSent;
-      cs.startTime = ns.startTime;
-      cs.upTime = ns.upTime;
       cs.bytesBuff += ns.bytesBuff;
     }
     return cs;
