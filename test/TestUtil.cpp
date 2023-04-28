@@ -508,4 +508,18 @@ TEST(Util, toLowerStr)
   CHECK("util::tolowerstring" == c);
 }
 
+TEST(Util, fmtTime)
+{
+  time_t t0 = 60;
+  CHECK("00:01:00" == Util::fmtUpTime(&t0));
+  time_t t1 = 60 * 60 + 60 + 5;
+  CHECK("01:01:05" == Util::fmtUpTime(&t1));
+  time_t t2 = 60 * 60 * 24 + 1;
+  CHECK("001d00:00:01" == Util::fmtUpTime(&t2));
+  time_t t3 = 60 * 60 * 24 * 365 + 60;
+  CHECK("001y00:01:00" == Util::fmtUpTime(&t3));
+  time_t t4 = 60 * 60 * 24 * 500 + 60 * 60;
+  CHECK("001y135d01:00:00" == Util::fmtUpTime(&t4));
+}
+
 // end of TestUtil.cpp

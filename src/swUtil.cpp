@@ -9,6 +9,7 @@
 //
 
 #include <ctype.h>
+#include <time.h>
 
 #include <algorithm>
 #include <istream>
@@ -310,6 +311,33 @@ void Util::u32ToUtf8(const std::vector<int> &u, std::string &utf8)
 void Util::toLowerString(std::string &str)
 {
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+std::string Util::fmtUpTime(const time_t *pTime)
+{
+  assert(pTime);
+  time_t t0 = *pTime;
+  int year = 0;
+  const int SecYear = 60 * 60 * 24 * 365;
+  if (SecYear < t0) {
+    year = (int)(t0 / SecYear);
+    t0 %= SecYear;
+  }
+  char strTime[64];
+  struct tm tmTime = *gmtime(&t0);
+  if (0 < tmTime.tm_yday) {
+    tmTime.tm_yday -= 1;
+    strftime(strTime, sizeof(strTime), "%jd%H:%M:%S", &tmTime);
+  } else {
+    strftime(strTime, sizeof(strTime), "%H:%M:%S", &tmTime);
+  }
+  if (0 < year) {
+    char strTime2[128];
+    sprintf(strTime2, "%03dy%s", year, strTime);
+    return strTime2;
+  } else {
+    return strTime;
+  }
 }
 
 TimeoutTimer::TimeoutTimer() : m_timeExpired(0)

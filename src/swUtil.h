@@ -277,6 +277,14 @@ namespace Util {
 
   void toLowerString(std::string &str);
 
+  //
+  // \brief Get format string of uptime.
+  // \param [in] pTime Total time in seconds.
+  // \return Return a format time string in [???y???d]hh:ss:ss.
+  //
+
+  std::string fmtUpTime(const time_t *pTime);
+
 } // namespace Util
 
 ///
