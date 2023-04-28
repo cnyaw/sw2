@@ -508,7 +508,7 @@ TEST(Util, toLowerStr)
   CHECK("util::tolowerstring" == c);
 }
 
-TEST(Util, fmtTime)
+TEST(Util, fmtUpTime)
 {
   char buff[64];
   time_t t0 = 60;
@@ -521,6 +521,19 @@ TEST(Util, fmtTime)
   CHECK(std::string("001y00:01:00") == Util::fmtUpTime(buff, sizeof(buff), &t3));
   time_t t4 = 60 * 60 * 24 * 500 + 60 * 60;
   CHECK(std::string("001y135d01:00:00") == Util::fmtUpTime(buff, sizeof(buff), &t4));
+}
+
+TEST(Util, fmtSizeByte)
+{
+  char buff[64];
+  unsigned long long s0 = 1000;
+  CHECK(std::string("1000") == Util::fmtSizeByte(buff, sizeof(buff), &s0));
+  unsigned long long s1 = 5000;
+  CHECK(std::string("4.88k") == Util::fmtSizeByte(buff, sizeof(buff), &s1));
+  unsigned long long s2 = 5000000;
+  CHECK(std::string("4.77m") == Util::fmtSizeByte(buff, sizeof(buff), &s2));
+  unsigned long long s3 = 5005001000;
+  CHECK(std::string("4.66g") == Util::fmtSizeByte(buff, sizeof(buff), &s3));
 }
 
 // end of TestUtil.cpp

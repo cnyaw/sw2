@@ -9,6 +9,7 @@
 //
 
 #include <ctype.h>
+#include <math.h>
 #include <time.h>
 
 #include <algorithm>
@@ -334,6 +335,21 @@ char* Util::fmtUpTime(char *buff, size_t szBuff, const time_t *pTime)
     strftime(p, sz, "%jd%H:%M:%S", &tmTime);
   } else {
     strftime(p, sz, "%H:%M:%S", &tmTime);
+  }
+  return buff;
+}
+
+char* Util::fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *bytes)
+{
+  assert(buff && bytes);
+  static const char *unit[] = {"", "k", "m", "g", "t", "p", "e", "z", "y"};
+  double size = (double)*bytes;
+  double power = 1 < size ? floor(log(size) / log((double)1024)) : 0;
+  sprintf(buff, "%.2lf%s", (double)(size / (double)pow(1024, power)), unit[(int)power]);
+  char *p = strstr(buff, ".00");
+  if (p) {
+    size_t s = strlen(buff);
+    strncpy(p, p + 3, s - (p - buff) - 2);
   }
   return buff;
 }

@@ -287,6 +287,16 @@ namespace Util {
 
   char* fmtUpTime(char *buff, size_t szBuff, const time_t *pTime);
 
+  //
+  // \brief Get format string of size of bytes.
+  // \param [out] buff Buffer to retrieve result format string.
+  // \param [in] szBuff Size in bytes of buff.
+  // \param [in] bytes Total size in bytes.
+  // \return Return a format size of bytes string in ???[k|m|g|t|p|e|z|y].
+  //
+
+  char* fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *bytes);
+
 } // namespace Util
 
 ///
