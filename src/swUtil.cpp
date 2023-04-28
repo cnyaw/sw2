@@ -313,31 +313,29 @@ void Util::toLowerString(std::string &str)
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-std::string Util::fmtUpTime(const time_t *pTime)
+char* Util::fmtUpTime(char *buff, size_t szBuff, const time_t *pTime)
 {
-  assert(pTime);
+  assert(buff && pTime);
+  char *p = buff;
+  size_t sz = szBuff;
   time_t t0 = *pTime;
   int year = 0;
   const int SecYear = 60 * 60 * 24 * 365;
   if (SecYear < t0) {
     year = (int)(t0 / SecYear);
     t0 %= SecYear;
+    int l = sprintf(p, "%03dy", year);
+    p += l;
+    sz -= l;
   }
-  char strTime[64];
   struct tm tmTime = *gmtime(&t0);
   if (0 < tmTime.tm_yday) {
     tmTime.tm_yday -= 1;
-    strftime(strTime, sizeof(strTime), "%jd%H:%M:%S", &tmTime);
+    strftime(p, sz, "%jd%H:%M:%S", &tmTime);
   } else {
-    strftime(strTime, sizeof(strTime), "%H:%M:%S", &tmTime);
+    strftime(p, sz, "%H:%M:%S", &tmTime);
   }
-  if (0 < year) {
-    char strTime2[128];
-    sprintf(strTime2, "%03dy%s", year, strTime);
-    return strTime2;
-  } else {
-    return strTime;
-  }
+  return buff;
 }
 
 TimeoutTimer::TimeoutTimer() : m_timeExpired(0)

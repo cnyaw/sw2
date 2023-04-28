@@ -279,11 +279,13 @@ namespace Util {
 
   //
   // \brief Get format string of uptime.
+  // \param [out] buff Buffer to retrieve result format string.
+  // \param [in] szBuff Size in bytes of buff.
   // \param [in] pTime Total time in seconds.
   // \return Return a format time string in [???y???d]hh:ss:ss.
   //
 
-  std::string fmtUpTime(const time_t *pTime);
+  char* fmtUpTime(char *buff, size_t szBuff, const time_t *pTime);
 
 } // namespace Util
 
