@@ -348,8 +348,7 @@ char* Util::fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *byt
   sprintf(buff, "%.2lf%s", (double)(size / (double)pow(1024, power)), unit[(int)power]);
   char *p = strstr(buff, ".00");
   if (p) {
-    size_t s = strlen(buff);
-    strncpy(p, p + 3, s - (p - buff) - 2);
+    *p = '\0';
   }
   return buff;
 }
