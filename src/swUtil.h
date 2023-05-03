@@ -343,6 +343,70 @@ public:
   }
 };
 
+///
+/// \brief Save log to file utility.
+/// \note LogFile will use ThreadTask to perform file save, therefore
+/// before save logs to file InitializeThreadPool is required.
+///
+
+class LogFile
+{
+public:
+
+  ///
+  /// \brief Allocate a LogFile instance.
+  /// \return If success return an interface pointer else return 0.
+  ///
+
+  static LogFile* alloc();
+
+  ///
+  /// \brief Release a unused LogFile instance.
+  /// \param [in] pItf Instance to free.
+  ///
+
+  static void free(LogFile* pItf);
+
+  ///
+  /// \brief Set log file directory name.
+  /// \param [in] dir Director name where log file saves.
+  ///
+
+  virtual void setDir(const std::string &dir)=0;
+
+  ///
+  /// \brief Set log file name.
+  /// \param [in] name File name postfix of log file. File name format is: '%Y-%m-%dname'.
+  ///
+
+  virtual void setFileName(const std::string &name)=0;
+
+  ///
+  /// \brief Enter critical section.
+  ///
+
+  virtual void lock()=0;
+
+  ///
+  /// \brief Leave critical section.
+  ///
+
+  virtual void unlock()=0;
+
+  ///
+  /// \brief Add log to log file.
+  /// \param [in] log New log to add to file.
+  ///
+
+  virtual void addLog(const std::string &log)=0;
+
+  ///
+  /// \brief Perform save logs to log file.
+  ///
+
+  virtual void saveLogs()=0;
+};
+
 } // namespace sw2
 
 // end of swUtil.h

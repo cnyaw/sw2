@@ -178,6 +178,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\swLogFile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\swNetwork.cpp"
 				>
 			</File>
