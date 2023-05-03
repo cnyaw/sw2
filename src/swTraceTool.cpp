@@ -23,6 +23,7 @@ namespace sw2 {
 namespace impl {
 
 #define MAX_OUTPUT 32
+#define MAX_STR_LEN 1024
 
 struct implTraceToolTarget
 {
@@ -44,14 +45,6 @@ public:
   std::string fmt;
   implTraceToolTarget target[MAX_OUTPUT];
   void (*pfnTrace)(int level, const char* format, va_list args);
-
-  enum CONST_TRACETOOL
-  {
-    MAX_STR_LEN = 1024,
-    TRACECAT_MESSAGE = 0,
-    TRACECAT_WARNING,
-    TRACECAT_ERROR
-  };
 
   static implTraceTool& inst()
   {
@@ -98,7 +91,7 @@ public:
     }
   }
 
-  void doTrace(int cat, int level, char const* str) const
+  void doTrace(int level, char const* str) const
   {
     char buf[MAX_STR_LEN];
     buf[0] = '\0';
@@ -107,10 +100,7 @@ public:
     struct tm tmNow = *::localtime(&now);
     ::strftime(buf, sizeof(buf), fmt.c_str(), &tmNow);
 
-    char const* scat[] = {"[MESSAGE] ", "[WARNING] ", "[ERROR] "};
-
     std::string s(buf);
-    s.append(scat[cat]);
     s.append(str);
     s.push_back('\n');
 
@@ -126,7 +116,7 @@ public:
 
 } // namespace impl
 
-#define DO_TRACE(type) \
+#define DO_TRACE() \
   assert(format); \
   impl::implTraceTool& inst = impl::implTraceTool::inst(); \
   if (0 >= inst.nEnable || 0 == inst.nOut) { \
@@ -137,25 +127,15 @@ public:
   if (inst.pfnTrace) { \
     inst.pfnTrace((level), format, va); \
   } else { \
-    char buf[impl::implTraceTool::MAX_STR_LEN]; \
-    vsnprintf(buf, impl::implTraceTool::MAX_STR_LEN, format, va); \
-    inst.doTrace((type), (level), buf); \
+    char buf[MAX_STR_LEN]; \
+    vsnprintf(buf, MAX_STR_LEN, format, va); \
+    inst.doTrace((level), buf); \
   } \
   va_end(va);
 
-void TraceTool::error(int level, const char* format, ...)
+void TraceTool::trace(int level, const char* format, ...)
 {
-  DO_TRACE(impl::implTraceTool::TRACECAT_ERROR)
-}
-
-void TraceTool::message(int level, const char* format, ...)
-{
-  DO_TRACE(impl::implTraceTool::TRACECAT_MESSAGE)
-}
-
-void TraceTool::warning(int level, const char* format, ...)
-{
-  DO_TRACE(impl::implTraceTool::TRACECAT_WARNING)
+  DO_TRACE()
 }
 
 void TraceTool::enableTarget(bool bEnable, FILE* out)
