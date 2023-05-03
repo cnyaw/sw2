@@ -10,7 +10,6 @@
 
 #include <ctype.h>
 #include <math.h>
-#include <time.h>
 
 #include <algorithm>
 #include <istream>

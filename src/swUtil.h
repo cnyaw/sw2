@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <time.h>
+
 #include <iterator>
 #include <vector>
 
