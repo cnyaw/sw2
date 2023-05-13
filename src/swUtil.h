@@ -409,6 +409,89 @@ public:
   virtual void saveLogs()=0;
 };
 
+///
+/// \brief Simple key states handler.
+/// \note Each key state is a user defined bit flag.
+///
+
+class KeyStates
+{
+  uint m_keys, m_prevKeys;
+public:
+  KeyStates();
+
+  //
+  // \brief Get current key states.
+  // \return Current key states.
+  //
+
+  uint keys() const
+  {
+    return m_keys;
+  }
+
+  //
+  // \brief Get previous key states.
+  // \return Previous key states.
+  //
+
+  uint prevKeys() const
+  {
+    return m_prevKeys;
+  }
+
+  //
+  // \brief Reset key states.
+  //
+
+  void reset()
+  {
+    m_keys = m_prevKeys = 0;
+  }
+
+  //
+  // \brief Check is a key down.
+  // \param [in] keys Key states to check.
+  // \param [in] key The key flag to check is down.
+  // \return Return true if key is down, else return false.
+  //
+
+  bool isKeyDown(uint keys, uint key) const;
+
+  //
+  // \brief Check is a key down.
+  // \param [in] key The key flag to check is down.
+  // \return Return true if key is down, else return false.
+  //
+
+  bool isKeyDown(uint key) const;
+
+  //
+  // \brief Check is a key pressed.
+  // \param [in] key The key flag to check is pressed.
+  // \return Return true if key is pressed, else return false.
+  // \note A key is pressed mean it is down then up.
+  //
+
+  bool isKeyPressed(uint key) const;
+
+  //
+  // \brief Check is a key pushed.
+  // \param [in] key The key flag to check is pushed.
+  // \return Return true if key is pushed, else return false.
+  // \note A key is pushed mean it is down and not up.
+  //
+
+  bool isKeyPushed(uint key) const;
+
+  //
+  // \breif Update current key states and original key states become previous states.
+  // \param [in] keys New key states.
+  //
+
+  void update(uint keys);
+};
+
 } // namespace sw2
 
 // end of swUtil.h

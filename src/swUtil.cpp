@@ -377,6 +377,36 @@ void TimeoutTimer::setExpiredTime(uint timeExpired)
   m_timeExpired = timeExpired;
 }
 
+KeyStates::KeyStates() : m_keys(0), m_prevKeys(0)
+{
+}
+
+bool KeyStates::isKeyDown(uint keys, uint key) const
+{
+  return 0 != (keys & key);
+}
+
+bool KeyStates::isKeyDown(uint key) const
+{
+  return isKeyDown(m_keys, key);
+}
+
+bool KeyStates::isKeyPressed(uint key) const
+{
+  return !isKeyDown(key) && isKeyDown(m_prevKeys, key);
+}
+
+bool KeyStates::isKeyPushed(uint key) const
+{
+  return isKeyDown(key) && !isKeyDown(m_prevKeys, key);
+}
+
+void KeyStates::update(uint keys)
+{
+  m_prevKeys = m_keys;
+  m_keys = keys;
+}
+
 } // namespace sw2
 
 // end of swUtil.cpp

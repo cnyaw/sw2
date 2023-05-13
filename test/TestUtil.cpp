@@ -540,4 +540,79 @@ TEST(Util, fmtSizeByte)
   CHECK(std::string("4.66g") == Util::fmtSizeByte(buff, sizeof(buff), &s3));
 }
 
+TEST(Util, keystate)
+{
+  const uint UP = 1;
+  const uint DOWN = 2;
+  const uint LEFT = 4;
+  const uint RIGHT = 8;
+
+  KeyStates ks;
+
+  CHECK(0 == ks.keys());
+  CHECK(0 == ks.prevKeys());
+  CHECK(!ks.isKeyDown(UP));
+  CHECK(!ks.isKeyDown(DOWN));
+  CHECK(!ks.isKeyDown(LEFT));
+  CHECK(!ks.isKeyDown(RIGHT));
+  CHECK(!ks.isKeyPressed(UP));
+  CHECK(!ks.isKeyPressed(DOWN));
+  CHECK(!ks.isKeyPressed(LEFT));
+  CHECK(!ks.isKeyPressed(RIGHT));
+  CHECK(!ks.isKeyPushed(UP));
+  CHECK(!ks.isKeyPushed(DOWN));
+  CHECK(!ks.isKeyPushed(LEFT));
+  CHECK(!ks.isKeyPushed(RIGHT));
+
+  ks.update(UP|LEFT);
+  CHECK((UP|LEFT) == ks.keys());
+  CHECK(0 == ks.prevKeys());
+  CHECK(ks.isKeyDown(UP));
+  CHECK(!ks.isKeyDown(DOWN));
+  CHECK(ks.isKeyDown(LEFT));
+  CHECK(!ks.isKeyDown(RIGHT));
+  CHECK(ks.isKeyDown(UP|LEFT));
+  CHECK(!ks.isKeyPressed(UP));
+  CHECK(!ks.isKeyPressed(DOWN));
+  CHECK(!ks.isKeyPressed(LEFT));
+  CHECK(!ks.isKeyPressed(RIGHT));
+  CHECK(ks.isKeyPushed(UP));
+  CHECK(!ks.isKeyPushed(DOWN));
+  CHECK(ks.isKeyPushed(LEFT));
+  CHECK(!ks.isKeyPushed(RIGHT));
+
+  ks.update(DOWN|RIGHT);
+  CHECK((DOWN|RIGHT) == ks.keys());
+  CHECK((UP|LEFT) == ks.prevKeys());
+  CHECK(!ks.isKeyDown(UP));
+  CHECK(ks.isKeyDown(DOWN));
+  CHECK(!ks.isKeyDown(LEFT));
+  CHECK(ks.isKeyDown(RIGHT));
+  CHECK(ks.isKeyDown(DOWN|RIGHT));
+  CHECK(ks.isKeyPressed(UP));
+  CHECK(!ks.isKeyPressed(DOWN));
+  CHECK(ks.isKeyPressed(LEFT));
+  CHECK(!ks.isKeyPressed(RIGHT));
+  CHECK(!ks.isKeyPushed(UP));
+  CHECK(ks.isKeyPushed(DOWN));
+  CHECK(!ks.isKeyPushed(LEFT));
+  CHECK(ks.isKeyPushed(RIGHT));
+
+  ks.update(0);
+  CHECK(0 == ks.keys());
+  CHECK((DOWN|RIGHT) == ks.prevKeys());
+  CHECK(!ks.isKeyDown(UP));
+  CHECK(!ks.isKeyDown(DOWN));
+  CHECK(!ks.isKeyDown(LEFT));
+  CHECK(!ks.isKeyDown(RIGHT));
+  CHECK(!ks.isKeyPressed(UP));
+  CHECK(ks.isKeyPressed(DOWN));
+  CHECK(!ks.isKeyPressed(LEFT));
+  CHECK(ks.isKeyPressed(RIGHT));
+  CHECK(!ks.isKeyPushed(UP));
+  CHECK(!ks.isKeyPushed(DOWN));
+  CHECK(!ks.isKeyPushed(LEFT));
+  CHECK(!ks.isKeyPushed(RIGHT));
+}
+
 // end of TestUtil.cpp
