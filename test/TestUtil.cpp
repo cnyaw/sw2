@@ -8,7 +8,6 @@
 //  2008/05/26 Waync created.
 //
 
-#include <fstream>
 #include <iterator>
 #include <sstream>
 
@@ -21,6 +20,21 @@
 using namespace sw2;
 
 static std::string const sSampleText("Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.");
+
+bool LoadFileContent(const char *fn, std::string &str)
+{
+  FILE *f = fopen(fn, "rb");
+  if (!f) {
+    return false;
+  }
+  fseek(f, 0, SEEK_END);
+  long n = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  str.resize(n);
+  fread((void*)str.data(), 1, n, f);
+  fclose(f);
+  return true;
+}
 
 //
 // Test clamp.
@@ -125,14 +139,7 @@ TEST(Util, base64)
 TEST(Util, zip_unzip)
 {
   std::string str;
-
-  { // get test data
-    std::ifstream ifs("./data/widget.txt");
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    str = ss.str();
-    ifs.close();
-  }
+  LoadFileContent("./data/widget.txt", str);
 
   for (int i = -1; i < 10; ++i) {
     std::stringstream ss(str), os, os2;
@@ -151,21 +158,9 @@ TEST(Util, zip_unzip)
   CHECK(ini1.load("./data/test.ini"));\
   CHECK(ini2.load("./data/widget.txt"));\
   std::string str1;\
-  {\
-    std::ifstream ifs("./data/ThePoolOfTears.txt", std::ios_base::binary);\
-    std::stringstream ss;\
-    ss << ifs.rdbuf();\
-    ifs.close();\
-    str1 = ss.str();\
-  }\
+  LoadFileContent("./data/ThePoolOfTears.txt", str1);\
   std::string str2;\
-  {\
-    std::ifstream ifs("./data/test.txt", std::ios_base::binary);\
-    std::stringstream ss;\
-    ss << ifs.rdbuf();\
-    ifs.close();\
-    str2 = ss.str();\
-  }\
+  LoadFileContent("./data/test.txt", str2);\
   std::stringstream out1, out2;\
   CHECK(ini1.store(out1));\
   CHECK(ini2.store(out2));
@@ -417,15 +412,10 @@ TEST(Util, TraceTool)
   SW2_TRACE_RESET_TARGET();
   fclose(out);
 
-  std::ifstream ifs(FILE_NAME);
-  std::stringstream ss;
-
-  ss << ifs.rdbuf();
-  ifs.close();
-
+  std::string s;
+  LoadFileContent(FILE_NAME, s);
   ::remove(FILE_NAME);                  // Delete temp file.
 
-  std::string s = ss.str();
   CHECK(s.npos != s.find(s0));
   CHECK(s.npos != s.find("[MESSAGE] TRACE1 messAge test 123"));
   CHECK(s.npos != s.find("[WARNING] TRACE2 wArning test 456"));
@@ -451,15 +441,10 @@ TEST(Util, TraceTool_level)
   SW2_TRACE_RESET_TARGET();
   fclose(out);
 
-  std::ifstream ifs(FILE_NAME);
-  std::stringstream ss;
-
-  ss << ifs.rdbuf();
-  ifs.close();
-
+  std::string s;
+  LoadFileContent(FILE_NAME, s);
   ::remove(FILE_NAME);                  // Delete temp file.
 
-  std::string s = ss.str();
   CHECK(s.npos != s.find("TRACE1 messAge test 123"));
   CHECK(s.npos != s.find("TRACE1 wArning test 456"));
   CHECK(s.npos != s.find("TRACE1 errOr test 789"));
