@@ -517,11 +517,17 @@ TEST(Util, fmtSizeByte)
   char buff[64];
   unsigned long long s0 = 1000;
   CHECK(std::string("1000") == Util::fmtSizeByte(buff, sizeof(buff), &s0));
-  unsigned long long s1 = 5000;
+  unsigned long long s1 = 4096;
+  CHECK(std::string("4k") == Util::fmtSizeByte(buff, sizeof(buff), &s1));
+  s1 = 5000;
   CHECK(std::string("4.88k") == Util::fmtSizeByte(buff, sizeof(buff), &s1));
-  unsigned long long s2 = 5000000;
+  unsigned long long s2 = 4194304;
+  CHECK(std::string("4m") == Util::fmtSizeByte(buff, sizeof(buff), &s2));
+  s2 = 5000000;
   CHECK(std::string("4.77m") == Util::fmtSizeByte(buff, sizeof(buff), &s2));
-  unsigned long long s3 = 5005001000;
+  unsigned long long s3 = 4294967296;
+  CHECK(std::string("4g") == Util::fmtSizeByte(buff, sizeof(buff), &s3));
+  s3 = 5005001000;
   CHECK(std::string("4.66g") == Util::fmtSizeByte(buff, sizeof(buff), &s3));
 }
 

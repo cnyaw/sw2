@@ -341,14 +341,15 @@ char* Util::fmtUpTime(char *buff, size_t szBuff, const time_t *pTime)
 char* Util::fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *bytes)
 {
   assert(buff && bytes);
-  static const char *unit[] = {"", "k", "m", "g", "t", "p", "e", "z", "y"};
   double size = (double)*bytes;
   double power = 1 < size ? floor(log(size) / log((double)1024)) : 0;
-  sprintf(buff, "%.2lf%s", (double)(size / (double)pow(1024, power)), unit[(int)power]);
+  sprintf(buff, "%.2lf", (double)(size / (double)pow(1024, power)));
   char *p = strstr(buff, ".00");
   if (p) {
     *p = '\0';
   }
+  static const char *unit[] = {"", "k", "m", "g", "t", "p", "e", "z", "y"};
+  buff = strcat(buff, unit[(int)power]);
   return buff;
 }
 
