@@ -10,8 +10,6 @@
 
 #include <limits.h>
 
-#include <fstream>
-
 #include "swIni.h"
 #include "swUtil.h"
 
@@ -127,26 +125,24 @@ bool getkeyValue(std::string const& line, uint ln, std::string& key, std::string
 // swIni.
 //
 
-bool Ini::load(std::string const& fileName)
+bool Ini::load(const std::string &fileName)
 {
-  std::ifstream inf(fileName.c_str());
-  if (!inf) {
+  std::string s;
+  if (!Util::loadFileContent(fileName.c_str(), s)) {
     return false;
   }
-
-  bool ret = load(inf);                 // Parse lines.
-  inf.close();
-
-  return ret;
+  return loadFromStream(s);
 }
 
-bool Ini::load(std::istream& ins)
+bool Ini::loadFromStream(const std::string &s)
 {
   clear();                              // Reset content.
 
   //
   // Parse lines.
   //
+
+  std::stringstream ins(s);
 
   value_type line;
 
@@ -223,21 +219,27 @@ sections:
   return true;
 }
 
-bool Ini::store(std::string const& fileName) const
+bool Ini::store(const std::string &fileName) const
 {
-  std::ofstream outf(fileName.c_str());
-  if (!outf) {
+  std::string s;
+  if (!storeToStream(s)) {
     return false;
   }
 
-  bool ret = store(outf);
-  outf.close();
-
-  return ret;
+  FILE *f = fopen(fileName.c_str(), "wt");
+  if (f) {
+    fwrite(s.data(), s.size(), 1, f);
+    fclose(f);
+    return true;
+  } else {
+    return false;
+  }
 }
 
-bool Ini::store(std::ostream& outs) const
+bool Ini::storeToStream(std::string &s) const
 {
+  std::stringstream outs;
+
   for (int i = 0; i < size(); i++) {    // For each section.
     Ini const& sec = items[i];
     outs << "[" << sec.key << "]\n";
@@ -259,6 +261,7 @@ bool Ini::store(std::ostream& outs) const
     outs << "\n";
   }
 
+  s = outs.str();
   return true;
 }
 

@@ -146,9 +146,9 @@ TEST(Util, zip_unzip)
   Util::loadFileContent("./data/ThePoolOfTears.txt", str1);\
   std::string str2;\
   Util::loadFileContent("./data/test.txt", str2);\
-  std::stringstream out1, out2;\
-  CHECK(ini1.store(out1));\
-  CHECK(ini2.store(out2));
+  std::string out1, out2;\
+  CHECK(ini1.storeToStream(out1));\
+  CHECK(ini2.storeToStream(out2));
 
 TEST(Util, zipArchive)
 {
@@ -173,11 +173,11 @@ TEST(Util, zipArchive)
     CHECK(ar->loadFile("test.ini", ss1));
 
     Ini ini1_;
-    CHECK(ini1_.load(ss1));
+    CHECK(ini1_.loadFromStream(ss1.str()));
 
-    std::stringstream out1_;
-    CHECK(ini1_.store(out1_));
-    CHECK(out1_.str() == out1.str());
+    std::string out1_;
+    CHECK(ini1_.storeToStream(out1_));
+    CHECK(out1_ == out1);
 
     Archive::free(ar);
   }
@@ -224,11 +224,11 @@ TEST(Util, zipArchive)
     CHECK(ar->loadFile("widget.txt", ss2));
 
     Ini ini2_;
-    CHECK(ini2_.load(ss2));
+    CHECK(ini2_.loadFromStream(ss2.str()));
 
-    std::stringstream out2_;
-    CHECK(ini2_.store(out2_));
-    CHECK(out2_.str() == out2.str());
+    std::string out2_;
+    CHECK(ini2_.storeToStream(out2_));
+    CHECK(out2_ == out2);
 
     Archive::free(ar);
   }
@@ -280,11 +280,11 @@ TEST(Util, zipArchive2)
     CHECK(ar->loadFile("test.ini", ss1));
 
     Ini ini1_;
-    CHECK(ini1_.load(ss1));
+    CHECK(ini1_.loadFromStream(ss1.str()));
 
-    std::stringstream out1_;
-    CHECK(ini1_.store(out1_));
-    CHECK(out1_.str() == out1.str());
+    std::string out1_;
+    CHECK(ini1_.storeToStream(out1_));
+    CHECK(out1_ == out1);
 
     Archive::free(ar);
   }
@@ -330,11 +330,11 @@ TEST(Util, zipArchive2)
     CHECK(ar->loadFile("widget.txt", ss2));
 
     Ini ini2_;
-    CHECK(ini2_.load(ss2));
+    CHECK(ini2_.loadFromStream(ss2.str()));
 
-    std::stringstream out2_;
-    CHECK(ini2_.store(out2_));
-    CHECK(out2_.str() == out2.str());
+    std::string out2_;
+    CHECK(ini2_.storeToStream(out2_));
+    CHECK(out2_ == out2);
 
     Archive::free(ar);
   }

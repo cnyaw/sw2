@@ -110,7 +110,7 @@ public:
   /// \return Return true if success else return false.
   ///
 
-  bool load(std::string const& fileName);
+  bool load(const std::string &fileName);
 
   ///
   /// \brief Load INI from a stream.
@@ -118,7 +118,7 @@ public:
   /// \return Return true if success else return false.
   ///
 
-  bool load(std::istream& ins);
+  bool loadFromStream(const std::string &ins);
 
   ///
   /// \brief Save INI to a file.
@@ -126,7 +126,7 @@ public:
   /// \return Return true if success else return false.
   ///
 
-  bool store(std::string const& fileName) const;
+  bool store(const std::string &fileName) const;
 
   ///
   /// \brief Save INI to a stream.
@@ -134,7 +134,7 @@ public:
   /// \return Return true if success else return false.
   ///
 
-  bool store(std::ostream& outs) const;
+  bool storeToStream(std::string& outs) const;
 
   ///
   /// \brief Get item count.

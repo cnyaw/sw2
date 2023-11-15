@@ -160,11 +160,11 @@ TEST(Ini, loadstore)
   Ini ini;
   CHECK(ini.load("./data/test.ini"));
 
-  std::stringstream ss;
-  CHECK(ini.store(ss));
+  std::string ss;
+  CHECK(ini.storeToStream(ss));
 
   Ini ini2;
-  CHECK(ini2.load(ss));
+  CHECK(ini2.loadFromStream(ss));
 
   CHECK(ini.size() == ini2.size());
 
