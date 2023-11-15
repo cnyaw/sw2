@@ -299,6 +299,15 @@ namespace Util {
 
   char* fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *bytes);
 
+  //
+  // \brief Load file binary content  to str.
+  // \param [in] filename Name of file to load.
+  // \param [out] str A std::string as buffer to get file content.
+  // \return Return true if load file success else return false.
+  //
+
+  bool loadFileContent(const char *filename, std::string &str);
+
 } // namespace Util
 
 ///

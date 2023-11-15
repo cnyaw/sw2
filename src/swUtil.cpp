@@ -353,6 +353,21 @@ char* Util::fmtSizeByte(char *buff, size_t szBuff, const unsigned long long *byt
   return buff;
 }
 
+bool Util::loadFileContent(const char *fn, std::string &str)
+{
+  FILE *f = fopen(fn, "rb");
+  if (!f) {
+    return false;
+  }
+  fseek(f, 0, SEEK_END);
+  long n = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  str.resize(n);
+  fread((void*)str.data(), 1, n, f);
+  fclose(f);
+  return true;
+}
+
 TimeoutTimer::TimeoutTimer() : m_timeExpired(0)
 {
   m_timeExpired = Util::getTickCount();

@@ -21,21 +21,6 @@ using namespace sw2;
 
 static std::string const sSampleText("Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.");
 
-bool LoadFileContent(const char *fn, std::string &str)
-{
-  FILE *f = fopen(fn, "rb");
-  if (!f) {
-    return false;
-  }
-  fseek(f, 0, SEEK_END);
-  long n = ftell(f);
-  fseek(f, 0, SEEK_SET);
-  str.resize(n);
-  fread((void*)str.data(), 1, n, f);
-  fclose(f);
-  return true;
-}
-
 //
 // Test clamp.
 //
@@ -139,7 +124,7 @@ TEST(Util, base64)
 TEST(Util, zip_unzip)
 {
   std::string str;
-  LoadFileContent("./data/widget.txt", str);
+  Util::loadFileContent("./data/widget.txt", str);
 
   for (int i = -1; i < 10; ++i) {
     std::stringstream ss(str), os, os2;
@@ -158,9 +143,9 @@ TEST(Util, zip_unzip)
   CHECK(ini1.load("./data/test.ini"));\
   CHECK(ini2.load("./data/widget.txt"));\
   std::string str1;\
-  LoadFileContent("./data/ThePoolOfTears.txt", str1);\
+  Util::loadFileContent("./data/ThePoolOfTears.txt", str1);\
   std::string str2;\
-  LoadFileContent("./data/test.txt", str2);\
+  Util::loadFileContent("./data/test.txt", str2);\
   std::stringstream out1, out2;\
   CHECK(ini1.store(out1));\
   CHECK(ini2.store(out2));
@@ -413,7 +398,7 @@ TEST(Util, TraceTool)
   fclose(out);
 
   std::string s;
-  LoadFileContent(FILE_NAME, s);
+  Util::loadFileContent(FILE_NAME, s);
   ::remove(FILE_NAME);                  // Delete temp file.
 
   CHECK(s.npos != s.find(s0));
@@ -442,7 +427,7 @@ TEST(Util, TraceTool_level)
   fclose(out);
 
   std::string s;
-  LoadFileContent(FILE_NAME, s);
+  Util::loadFileContent(FILE_NAME, s);
   ::remove(FILE_NAME);                  // Delete temp file.
 
   CHECK(s.npos != s.find("TRACE1 messAge test 123"));
