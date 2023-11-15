@@ -128,10 +128,7 @@ bool getkeyValue(std::string const& line, uint ln, std::string& key, std::string
 bool Ini::load(const std::string &fileName)
 {
   std::string s;
-  if (!Util::loadFileContent(fileName.c_str(), s)) {
-    return false;
-  }
-  return loadFromStream(s);
+  return Util::loadFileContent(fileName.c_str(), s) && loadFromStream(s);
 }
 
 bool Ini::loadFromStream(const std::string &s)
@@ -222,18 +219,7 @@ sections:
 bool Ini::store(const std::string &fileName) const
 {
   std::string s;
-  if (!storeToStream(s)) {
-    return false;
-  }
-
-  FILE *f = fopen(fileName.c_str(), "wt");
-  if (f) {
-    fwrite(s.data(), s.size(), 1, f);
-    fclose(f);
-    return true;
-  } else {
-    return false;
-  }
+  return storeToStream(s) && Util::storeFileContent(fileName.c_str(), s);
 }
 
 bool Ini::storeToStream(std::string &s) const

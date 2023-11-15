@@ -368,6 +368,18 @@ bool Util::loadFileContent(const char *fn, std::string &str)
   return true;
 }
 
+bool Util::storeFileContent(const char *fn, const std::string &str)
+{
+  FILE *f = fopen(fn, "wb");
+  if (f) {
+    fwrite(str.data(), str.size(), 1, f);
+    fclose(f);
+    return true;
+  } else {
+    return false;
+  }
+}
+
 TimeoutTimer::TimeoutTimer() : m_timeExpired(0)
 {
   m_timeExpired = Util::getTickCount();
