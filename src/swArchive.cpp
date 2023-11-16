@@ -422,12 +422,20 @@ public:
   // Archive implementation.
   //
 
-  virtual bool addPathFileSystem(std::string const& name)
+  std::string convertPath_i(const std::string &name, bool removeDotSlash = false) const
   {
     std::string path(name);
     Util::trim(path);
     std::replace(path.begin(), path.end(), '\\', '/');
+    if (removeDotSlash && 0 == path.compare(0, 2, "./")) {
+      path.erase(0, 2);
+    }
+    return path;
+  }
 
+  virtual bool addPathFileSystem(std::string const& name)
+  {
+    std::string path = convertPath_i(name);
     std::string::size_type ldot = path.rfind('.');
     std::string::size_type lslash = path.rfind('/');
 
@@ -494,13 +502,7 @@ public:
 
   virtual bool isFileExist(std::string const& name) const
   {
-    std::string path(name);
-    Util::trim(path);
-    std::replace(path.begin(), path.end(), '\\', '/');
-
-    if (0 == path.compare(0, 2, "./")) {
-      path.erase(0, 2);
-    }
+    std::string path = convertPath_i(name, true);
 
     for (int i = (int)fs.size() - 1; i >= 0; i--) {
       if (fs[i]->isFileExist(path)) {
@@ -513,13 +515,7 @@ public:
 
   virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
   {
-    std::string path(name);
-    Util::trim(path);
-    std::replace(path.begin(), path.end(), '\\', '/');
-
-    if (0 == path.compare(0, 2, "./")) {
-      path.erase(0, 2);
-    }
+    std::string path = convertPath_i(name, true);
 
     for (int i = (int)fs.size() - 1; i >= 0; i--) {
       if (fs[i]->loadFile(path, outs, password)) {
