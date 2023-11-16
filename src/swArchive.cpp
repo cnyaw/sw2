@@ -39,24 +39,22 @@ public:
 
   virtual bool isFileExist(std::string const& name) const
   {
-    std::ifstream ifs((path + name).c_str());
-    if (!ifs.is_open()) {
+    FILE *f = fopen((path + name).c_str(), "r");
+    if (f) {
+      fclose(f);
+      return true;
+    } else {
       return false;
     }
-
-    return true;
   }
 
   virtual bool loadFile(std::string const& name, std::ostream& outs, std::string const& password) const
   {
-    std::string file(path + name);
-    std::ifstream ifs(file.c_str(), std::ios::binary);
-    if (!ifs.is_open()) {
+    std::string s;
+    if (!Util::loadFileContent((path + name).c_str(), s)) {
       return false;
     }
-
-    outs << ifs.rdbuf();
-
+    outs << s;
     return true;
   }
 };
