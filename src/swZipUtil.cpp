@@ -626,14 +626,10 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
 
   ifs.close();
 
-  std::ofstream ofs(zipname.c_str(), std::ios::binary);
-  if (!ofs) {
-    SW2_TRACE_ERROR("Create new archive [%s] failed.", zipName.c_str());
+  if (!storeFileContent(zipname.c_str(), ss.str())) {
+    SW2_TRACE_ERROR("Write archive [%s] failed.", zipName.c_str());
     return false;
   }
-
-  ofs << ss.rdbuf();
-  ofs.close();
 
   return true;
 }
@@ -641,20 +637,7 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
 bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password)
 {
   bool empty = 0 >= getStreamLen(is);
-
-  //
-  // Create new.
-  //
-
-  if (empty) {
-    return impl::zipStream(true, path, is, os, items, password);
-  }
-
-  //
-  // Append existing.
-  //
-
-  return impl::zipStream(false, path, is, os, items, password);
+  return impl::zipStream(!empty, path, is, os, items, password);
 }
 
 bool Util::isZipFile(std::istream& stream)
