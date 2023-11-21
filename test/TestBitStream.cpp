@@ -12,10 +12,9 @@
 
 #include "CppUnitLite/TestHarness.h"
 
-#include "swBitStream.h"
+#include "swBitStreamPacket.h"
 #include "swUtil.h"
 using namespace sw2;
-
 
 //
 // Test BITCOUNT.
@@ -106,13 +105,10 @@ TEST(BitStream, outOfRange)
   BitStream bs2(s2, sizeof(s2));
 
   for (int offset = 0; offset < 8; offset++) {
-
     bs2.setPtr(0, offset);
     bs2 << setBitCount(8) << 10;
-
     int n = 0;
     bs2 >> n;
-
     CHECK(bs2.fail());
   }
 }
@@ -257,6 +253,66 @@ TEST(BitStream, growbuff)
     bs >> setBitCount(getBitCount(i)) >> u;
     CHECK(bs && u == i)
   }
+}
+
+class TestBitPacket : public BitStreamPacket
+{
+public:
+  SW2_DECLARE_BITSTREAM_PACKET(1, TestBitPacket)
+  uint a;
+  bool b;
+  float c;
+  std::string d;
+  int e;
+  virtual bool read(BitStream &bs)
+  {
+    if (!(bs >> setBitCount(5) >> a >> e)) {
+      return false;
+    }
+    if (!(bs >> b >> c >> d)) {
+      return false;
+    }
+    return true;
+  }
+  virtual bool write(BitStream &bs) const
+  {
+    if (!(bs << setBitCount(5) << a << e)) {
+      return false;
+    }
+    if (!(bs << b << c << d)) {
+      return false;
+    }
+    return true;
+  }
+  bool operator==(const TestBitPacket &p) const
+  {
+    return a == p.a && b == p.b && c == p.c && d == p.d && e == p.e;
+  }
+};
+
+TEST(BitStreamPacket, readwrite)
+{
+  BitStreamPacketHandler<4> h;
+  SW2_REGISTER_BITSTREAM_PACKET(h, 1, TestBitPacket);
+
+  TestBitPacket p;
+  p.a = 18;
+  p.b = true;
+  p.c = 3.14159f;
+  p.d = "Hello BitStreamPacket";
+  p.e = -10;
+
+  std::string s;
+  BitStream bs(s);
+
+  h.writePacket(bs, p);
+
+  const BitStreamPacket *p2 = 0;
+  bs.reset();
+  h.readPacket(bs, &p2);
+  CHECK(p2 && 1 == p2->getId());
+  CHECK(p == *((const TestBitPacket*)p2));
+  h.freePacket(p2);
 }
 
 // end of TestBitStream.cpp
