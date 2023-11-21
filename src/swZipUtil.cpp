@@ -637,7 +637,7 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
 bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password)
 {
   bool empty = 0 >= getStreamLen(is);
-  return impl::zipStream(!empty, path, is, os, items, password);
+  return impl::zipStream(empty, path, is, os, items, password);
 }
 
 bool Util::isZipFile(std::istream& stream)
