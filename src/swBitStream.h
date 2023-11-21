@@ -59,6 +59,26 @@
 
 namespace sw2 {
 
+///
+/// \brief Calculate the max bit need to store a number.(constant)
+/// \see Util::getBitCount
+///
+
+template<uint n>struct BITCOUNT
+{
+  enum { value = 1 + BITCOUNT<(n >> 1)>::value };
+};
+
+template<> struct BITCOUNT<1>
+{
+  enum { value = 1 };
+};
+
+template<> struct BITCOUNT<0>
+{
+  enum { value = 1 };
+};
+
 struct setBitCount
 {
   int bitCount;
@@ -67,6 +87,14 @@ struct setBitCount
   {
   }
 };
+
+///
+/// \brief Calculate the max bit need to store a number.
+/// \param [in] n A number.
+/// \return Return the max bit need to store the number.
+///
+
+uint getBitCount(uint n);
 
 ///
 /// \brief Bit stream module.

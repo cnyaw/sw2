@@ -32,6 +32,21 @@ static const uchar c_bitMask[] = {0, 1, 3, 7, 0xf, 0x1f, 0x3f, 0x7f, 0xff};
 
 using namespace impl;
 
+uint getBitCount(uint n)
+{
+  if (0 == n) {
+    return 1;
+  }
+
+  uint bc = 0;
+  while (0 < n) {
+    bc += 1;
+    n >>= 1;
+  }
+
+  return bc;
+}
+
 //
 // Constructor.
 //

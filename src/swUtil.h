@@ -29,26 +29,6 @@ namespace sw2 {
 class Ini;
 
 ///
-/// \brief Calculate the max bit need to store a number.(constant)
-/// \see Util::getBitCount
-///
-
-template<uint n>struct BITCOUNT
-{
-  enum { value = 1 + BITCOUNT<(n >> 1)>::value };
-};
-
-template<> struct BITCOUNT<1>
-{
-  enum { value = 1 };
-};
-
-template<> struct BITCOUNT<0>
-{
-  enum { value = 1 };
-};
-
-///
 /// \brief Utility routines.
 ///
 
@@ -96,14 +76,6 @@ namespace Util {
   ///
 
   int getStreamLen(std::istream &is);
-
-  ///
-  /// \brief Calculate the max bit need to store a number.
-  /// \param [in] n A number.
-  /// \return Return the max bit need to store the number.
-  ///
-
-  uint getBitCount(uint n);
 
   ///
   /// \brief Read a key from keyboard.

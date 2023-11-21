@@ -109,21 +109,6 @@ public:
 
 using namespace impl;
 
-uint Util::getBitCount(uint n)
-{
-  if (0 == n) {
-    return 1;
-  }
-
-  uint bc = 0;
-  while (0 < n) {
-    bc += 1;
-    n >>= 1;
-  }
-
-  return bc;
-}
-
 int Util::getKey()
 {
 #if defined(WIN32)

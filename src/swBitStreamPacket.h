@@ -196,7 +196,7 @@ protected:
 
   int getIdBitCount() const
   {
-    return sw2::Util::getBitCount(MAX_ID);
+    return BITCOUNT<MAX_ID>::value;
   }
 
 private:

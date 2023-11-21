@@ -47,54 +47,6 @@ TEST(Util, clamp)
 }
 
 //
-// Test BITCOUNT.
-//
-
-TEST(Util, BITCOUNT)
-{
-  CHECK(1 == BITCOUNT<0>::value);
-  CHECK(1 == BITCOUNT<1>::value);
-  CHECK(2 == BITCOUNT<2>::value);
-  CHECK(2 == BITCOUNT<3>::value);
-  CHECK(3 == BITCOUNT<4>::value);
-  CHECK(3 == BITCOUNT<6>::value);
-  CHECK(4 == BITCOUNT<8>::value);
-  CHECK(4 == BITCOUNT<12>::value);
-  CHECK(5 == BITCOUNT<16>::value);
-  CHECK(6 == BITCOUNT<32>::value);
-  CHECK(7 == BITCOUNT<64>::value);
-  CHECK(8 == BITCOUNT<128>::value);
-  CHECK(8 == BITCOUNT<255>::value);
-  CHECK(11 == BITCOUNT<1024>::value);
-  CHECK(16 == BITCOUNT<65535>::value);
-  CHECK(32 == BITCOUNT<4294967295U>::value);
-}
-
-//
-// Test bitCount.
-//
-
-TEST(Util, bitCount)
-{
-  CHECK(1 == Util::getBitCount(0));
-  CHECK(1 == Util::getBitCount(1));
-  CHECK(2 == Util::getBitCount(2));
-  CHECK(2 == Util::getBitCount(3));
-  CHECK(3 == Util::getBitCount(4));
-  CHECK(3 == Util::getBitCount(6));
-  CHECK(4 == Util::getBitCount(8));
-  CHECK(4 == Util::getBitCount(12));
-  CHECK(5 == Util::getBitCount(16));
-  CHECK(6 == Util::getBitCount(32));
-  CHECK(7 == Util::getBitCount(64));
-  CHECK(8 == Util::getBitCount(128));
-  CHECK(8 == Util::getBitCount(255));
-  CHECK(11 == Util::getBitCount(1024));
-  CHECK(16 == Util::getBitCount(65535));
-  CHECK(32 == Util::getBitCount(4294967295U));
-}
-
-//
 // Test base64.
 //
 

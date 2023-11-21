@@ -16,6 +16,55 @@
 #include "swUtil.h"
 using namespace sw2;
 
+
+//
+// Test BITCOUNT.
+//
+
+TEST(BitStream, BITCOUNT)
+{
+  CHECK(1 == BITCOUNT<0>::value);
+  CHECK(1 == BITCOUNT<1>::value);
+  CHECK(2 == BITCOUNT<2>::value);
+  CHECK(2 == BITCOUNT<3>::value);
+  CHECK(3 == BITCOUNT<4>::value);
+  CHECK(3 == BITCOUNT<6>::value);
+  CHECK(4 == BITCOUNT<8>::value);
+  CHECK(4 == BITCOUNT<12>::value);
+  CHECK(5 == BITCOUNT<16>::value);
+  CHECK(6 == BITCOUNT<32>::value);
+  CHECK(7 == BITCOUNT<64>::value);
+  CHECK(8 == BITCOUNT<128>::value);
+  CHECK(8 == BITCOUNT<255>::value);
+  CHECK(11 == BITCOUNT<1024>::value);
+  CHECK(16 == BITCOUNT<65535>::value);
+  CHECK(32 == BITCOUNT<4294967295U>::value);
+}
+
+//
+// Test bitCount.
+//
+
+TEST(BitStream, bitCount)
+{
+  CHECK(1 == getBitCount(0));
+  CHECK(1 == getBitCount(1));
+  CHECK(2 == getBitCount(2));
+  CHECK(2 == getBitCount(3));
+  CHECK(3 == getBitCount(4));
+  CHECK(3 == getBitCount(6));
+  CHECK(4 == getBitCount(8));
+  CHECK(4 == getBitCount(12));
+  CHECK(5 == getBitCount(16));
+  CHECK(6 == getBitCount(32));
+  CHECK(7 == getBitCount(64));
+  CHECK(8 == getBitCount(128));
+  CHECK(8 == getBitCount(255));
+  CHECK(11 == getBitCount(1024));
+  CHECK(16 == getBitCount(65535));
+  CHECK(32 == getBitCount(4294967295U));
+}
+
 //
 // Initial state check.
 //
@@ -198,14 +247,14 @@ TEST(BitStream, growbuff)
 
   const unsigned int COUNT = 5000;
   for (unsigned int i = 0; i < COUNT; i++) {
-    bs << setBitCount(Util::getBitCount(i)) << i;
+    bs << setBitCount(getBitCount(i)) << i;
   }
 
   bs.setPtr(0, 0);
 
   for (unsigned int i = 0; i < COUNT; i++) {
     unsigned int u;
-    bs >> setBitCount(Util::getBitCount(i)) >> u;
+    bs >> setBitCount(getBitCount(i)) >> u;
     CHECK(bs && u == i)
   }
 }
