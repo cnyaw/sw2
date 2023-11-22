@@ -19,7 +19,8 @@
 #include "swUtil.h"
 using namespace sw2;
 
-static std::string const sSampleText("Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.");
+static const std::string sSampleText("Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.");
+static const std::string sTestPassword("smallworld2");
 
 //
 // Test clamp.
@@ -141,7 +142,7 @@ TEST(Util, zipArchive)
   v.clear();
   v.push_back("ThePoolOfTears.txt");
 
-  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, "smallworld2")); // Append with password.
+  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, sTestPassword)); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
@@ -151,7 +152,7 @@ TEST(Util, zipArchive)
     CHECK(ar->loadFile("test.ini", ss1)); // Existing item.
 
     std::stringstream ss2;
-    CHECK(ar->loadFile("ThePoolOfTears.txt", ss2, "smallworld2"));
+    CHECK(ar->loadFile("ThePoolOfTears.txt", ss2, sTestPassword));
 
     std::string str1_ = ss2.str();
     CHECK(str1_ == str1);
@@ -192,14 +193,14 @@ TEST(Util, zipArchive)
   v.clear();
   v.push_back("test.txt");
 
-  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, "smallworld2")); // Append with password.
+  CHECK(Util::zipArchive(false, TEST_ADD_ZIP_FILE_NAME, v, sTestPassword)); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
     CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
     std::stringstream ss2;
-    CHECK(ar->loadFile("test.txt", ss2, "smallworld2"));
+    CHECK(ar->loadFile("test.txt", ss2, sTestPassword));
 
     std::string str2_ = ss2.str();
     CHECK(str2_ == str2);
@@ -249,14 +250,14 @@ TEST(Util, zipArchive2)
   v.push_back("ThePoolOfTears.txt");
 
   std::stringstream stream2;
-  CHECK(Util::zipStream("./data/", stream, stream2, v, "smallworld2")); // Append with password.
+  CHECK(Util::zipStream("./data/", stream, stream2, v, sTestPassword)); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
     CHECK(ar->addStreamFileSystem(stream2));
 
     std::stringstream ss2;
-    CHECK(ar->loadFile("ThePoolOfTears.txt", ss2, "smallworld2"));
+    CHECK(ar->loadFile("ThePoolOfTears.txt", ss2, sTestPassword));
 
     std::string str1_ = ss2.str();
     CHECK(str1_ == str1);
@@ -299,14 +300,14 @@ TEST(Util, zipArchive2)
   v.push_back("test.txt");
 
   std::stringstream stream4;
-  CHECK(Util::zipStream("./data/", stream3, stream4, v, "smallworld2")); // Append with password.
+  CHECK(Util::zipStream("./data/", stream3, stream4, v, sTestPassword)); // Append with password.
 
   {
     Archive* ar = Archive::alloc();
     CHECK(ar->addStreamFileSystem(stream4));
 
     std::stringstream ss2;
-    CHECK(ar->loadFile("test.txt", ss2, "smallworld2"));
+    CHECK(ar->loadFile("test.txt", ss2, sTestPassword));
 
     std::string str2_ = ss2.str();
     CHECK(str2_ == str2);
