@@ -220,24 +220,32 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
   return true;
 }
 
+void transPathAndFileName(const std::string &path, std::string &pathOut, std::string &fnameOut)
+{
+  pathOut = path;
+  Util::trim(pathOut);
+  std::replace(pathOut.begin(), pathOut.end(), '\\', '/');
+
+  fnameOut = pathOut;
+
+  pathOut = pathOut.substr(0, pathOut.find_last_of('/') + 1);
+  if (!pathOut.empty() && '/' != *pathOut.rbegin()) {
+    pathOut.push_back('/');
+  }
+
+  if (0 == pathOut.compare(0, 2, "./")) {
+    pathOut.erase(0, 2);
+  }
+}
+
 bool zipStream(bool bNew, std::string const& apath, std::istream& is, std::ostream& os, std::vector<std::string> const& items, std::string const& password)
 {
   if (items.empty()) {
     return true;
   }
 
-  std::string path(apath);
-
-  Util::trim(path);
-  std::replace(path.begin(), path.end(), '\\', '/');
-
-  if (!path.empty() && '/' != path[path.length() - 1]) {
-    path.push_back('/');
-  }
-
-  if (0 == path.compare(0, 2, "./")) {
-    path.erase(0, 2);
-  }
+  std::string path, dummy;
+  transPathAndFileName(apath, path, dummy);
 
   //
   // Get central directories.
@@ -571,41 +579,24 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
     return true;
   }
 
-  std::string path(zipName);
-  Util::trim(path);
-  std::replace(path.begin(), path.end(), '\\', '/');
-
-  std::string zipname(path);
-
-  path = path.substr(0, path.find_last_of('/') + 1);
-
-  if (!path.empty() && '/' != path[path.length() - 1]) {
-    path.push_back('/');
-  }
-
-  if (0 == path.compare(0, 2, "./")) {
-    path.erase(0, 2);
-  }
+  std::string path, zipname;
+  impl::transPathAndFileName(zipName, path, zipname);
 
   //
   // Create new.
   //
 
   if (bCreateNew) {
-
-    std::ofstream ofs(zipName.c_str(), std::ios_base::binary);
+    std::ofstream ofs(zipname.c_str(), std::ios_base::binary);
     if (!ofs) {
       SW2_TRACE_ERROR("Create archive [%s] failed.", zipName.c_str());
       return false;
     }
-
     std::stringstream dummy;
     if (!impl::zipStream(true, path, dummy, ofs, items, password)) {
       return false;
     }
-
     ofs.close();
-
     return true;
   }
 
