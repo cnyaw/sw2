@@ -144,7 +144,7 @@ public:
   /// \note A file system can be a folder, or a Zip file.
   ///
 
-  virtual bool addPathFileSystem(std::string const& name)=0;
+  virtual bool addPathFileSystem(const std::string &name)=0;
 
   ///
   /// \brief Add a memory file system.
@@ -154,7 +154,7 @@ public:
   /// \note If add successful, the memory file system is duplicated internally.
   ///
 
-  virtual bool addStreamFileSystem(std::istream& stream)=0;
+  virtual bool addStreamFileSystem(const std::string &stream)=0;
 
   ///
   /// \brief Add a user define file system.

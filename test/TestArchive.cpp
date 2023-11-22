@@ -143,7 +143,7 @@ TEST(Archive, addFileSystem3)
   std::stringstream ss1;
   CHECK(par->loadFile("test3.zip", ss1));
 
-  CHECK(par->addStreamFileSystem(ss1));
+  CHECK(par->addStreamFileSystem(ss1.str()));
 
   Archive::free(par);
   par = 0;
@@ -165,7 +165,7 @@ TEST(Archive, loadFile2)
   std::stringstream ss1;
   CHECK(par->loadFile("test3.zip", ss1));
 
-  CHECK(par->addStreamFileSystem(ss1)); // Memory zip file system.
+  CHECK(par->addStreamFileSystem(ss1.str())); // Memory zip file system.
 
   std::stringstream ss;
   CHECK(par->loadFile("test3.txt", ss));

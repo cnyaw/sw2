@@ -91,13 +91,6 @@ public:
   {
   }
 
-  explicit implArchiveFileSystemZipfile(std::istream& stream)
-  {
-    std::streampos p = stream.tellg();
-    mem << stream.rdbuf();
-    stream.seekg(p, std::ios::beg);
-  }
-
   void getLocalFileHeader(std::istream& stream) const
   {
     std::string name;
@@ -433,7 +426,7 @@ public:
     return path;
   }
 
-  virtual bool addPathFileSystem(std::string const& name)
+  virtual bool addPathFileSystem(const std::string &name)
   {
     std::string path = convertPath_i(name);
     std::string::size_type ldot = path.rfind('.');
@@ -470,12 +463,14 @@ public:
     return false;
   }
 
-  virtual bool addStreamFileSystem(std::istream& stream)
+  virtual bool addStreamFileSystem(const std::string &stream)
   {
     ArchiveFileSystem* pfs = 0;
 
-    if (Util::isZipFile(stream)) {
-      pfs = new implArchiveFileSystemZipfile(stream);
+    if (impl::zHeader::TAG == *(const uint*)stream.c_str()) {
+      implArchiveFileSystemZipfile *p = new implArchiveFileSystemZipfile("");
+      p->mem << stream;
+      pfs = p;
     } else {
       SW2_TRACE_WARNING("Unknown file system.");
     }
