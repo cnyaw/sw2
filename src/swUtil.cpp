@@ -11,7 +11,6 @@
 #include <ctype.h>
 #include <math.h>
 
-#include <algorithm>
 #include <istream>
 
 #if defined(WIN32) || defined(_WIN32_WCE)

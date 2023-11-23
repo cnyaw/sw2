@@ -14,6 +14,7 @@
 #include "swBigworld.h"
 #include "swNetwork.h"
 #include "swObjectPool.h"
+#include "swUtil.h"
 
 namespace sw2 {
 
@@ -435,9 +436,9 @@ public:
     // Connect depex.
     //
 
-    std::stringstream ss(conf[SW2_BIGWORLD_CONF_DEPEX].value);
     std::vector<std::string> v;
-    v.assign(std::istream_iterator<std::string>(ss), std::istream_iterator<std::string>());
+    Util::split(conf[SW2_BIGWORLD_CONF_DEPEX].value, v);
+
     connectDepex(ini, v);
 
     return true;

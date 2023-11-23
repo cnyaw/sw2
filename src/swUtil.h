@@ -19,7 +19,9 @@
 
 #include <time.h>
 
+#include <algorithm>
 #include <iterator>
+#include <sstream>
 #include <vector>
 
 #include "swinc.h"
@@ -114,6 +116,26 @@ namespace Util {
   ///
 
   std::string& trim(std::string& str, std::string const& chrTrim = " \t\r\n");
+
+  ///
+  /// \brief Split string to a list.
+  /// \param [in] s A string.
+  /// \param [out] v List to return splited strings.
+  /// \param [in] chrSplit Char to split, default are SPACE,TAB,CR,LN.
+  ///
+
+  template<class T>
+  void split(const std::string &s, std::vector<T> &v, const std::string &chrSplit = " \t\r\n")
+  {
+    std::string tmp(s);
+    for (size_t i = 0; i < chrSplit.size(); i++) {
+      if (' ' != chrSplit[i]) {
+        std::replace(tmp.begin(), tmp.end(), chrSplit[i], ' ');
+      }
+    }
+    std::stringstream ss(tmp);
+    v.assign(std::istream_iterator<T>(ss), std::istream_iterator<T>());
+  }
 
   ///
   /// \brief Base64 encode.

@@ -30,8 +30,7 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
 
   if (sec.find("dim")) {
     std::vector<int> vdim;
-    std::stringstream ss(sec["dim"].value);
-    vdim.assign(std::istream_iterator<int>(ss), std::istream_iterator<int>());
+    split(sec["dim"].value, vdim);
     if (0 < vdim.size()) {
       dim.left = vdim[0];
     }
@@ -69,8 +68,7 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
 
     if (sec.find("child")) {
       std::vector<std::string> vchild;
-      std::stringstream ss(sec["child"].value);
-      vchild.assign(std::istream_iterator<std::string>(ss), std::istream_iterator<std::string>());
+      split(sec["child"].value, vchild);
       for (size_t i = 0; i < vchild.size(); i++) {
         (void)createWidget(w.handle, res, vchild[i]);
       }
@@ -209,8 +207,7 @@ int Util::createWidget(int hParent, sw2::Ini const& res, std::string const& name
 
     if (sec.find("range")) {
       std::vector<int> vrange;
-      std::stringstream ss(sec["range"].value);
-      vrange.assign( std::istream_iterator<int>(ss), std::istream_iterator<int>());
+      split(sec["range"].value, vrange);
       if (2 <= vrange.size()) {
         w.setRange(vrange[0], vrange[1]);
       } else {

@@ -416,7 +416,7 @@ TEST(Util, utf8ToUnicode)
   Util::utf8ToU32(ss1.str().c_str(), u);
 
   std::vector<int> u32;
-  u32.assign(std::istream_iterator<int>(ss2), std::istream_iterator<int>());
+  Util::split(ss2.str(), u32);
   CHECK(u == u32);
 }
 
