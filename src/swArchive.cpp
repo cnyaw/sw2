@@ -197,7 +197,7 @@ public:
 
     while (0 < lenTotal) {
 
-      uint len = std::min(lenTotal, (uint)sizeof(buf));
+      uint len = (std::min)(lenTotal, (uint)sizeof(buf));
 
       if (!stream.read(buf, len)) {
         SW2_TRACE_ERROR("Read data failed.");

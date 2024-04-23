@@ -13,7 +13,6 @@
 #include <sstream>
 
 #if defined(WIN32) || defined(_WIN32_WCE)
-# define NOMINMAX
 # include <windows.h>
 #endif
 
@@ -47,7 +46,8 @@ void getDosTime(std::string const& name, unsigned short& fdtime, unsigned short&
 
   FILETIME ftWrite;
   if (!GetFileTime(hFile, NULL, NULL, &ftWrite)) {
-    goto err;
+    CloseHandle(hFile);
+    return;
   }
 
   FILETIME ftLocal;
@@ -66,7 +66,6 @@ void getDosTime(std::string const& name, unsigned short& fdtime, unsigned short&
   fddate = (unsigned short)(stLocal.wDay + (stLocal.wMonth << 5) + (year << 9));
   fdtime = (unsigned short)((stLocal.wMinute << 5) + (stLocal.wHour << 11));
 
-err:
   CloseHandle(hFile);
 #endif // WIN32
 }
@@ -195,7 +194,7 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
     int totallen = z.szCompressed - 12;
     while (0 < totallen) {
 
-      int len = std::min(totallen, MAX_BUFF);
+      int len = (std::min)(totallen, MAX_BUFF);
       ss.read(buff, len);
 
       for (int i = 0; i < len; i++) {
@@ -274,7 +273,7 @@ bool zipStream(bool bNew, std::string const& apath, std::istream& is, std::ostre
     is.seekg(curpos, std::ios_base::beg);
     int totallen = offsetdir;
     while (0 < totallen) {
-      int len = std::min(totallen, MAX_BUFF);
+      int len = (std::min)(totallen, MAX_BUFF);
       is.read(buff, len);
       os.write(buff, len);
       totallen -= len;
@@ -401,7 +400,7 @@ bool Util::zip(std::istream& is, std::ostream& os, int level)
 
   while (0 < lenStream) {
 
-    strm.avail_in = std::min(lenStream, (int)CHUNK);
+    strm.avail_in = (std::min)(lenStream, (int)CHUNK);
     if (!is.read(in, strm.avail_in)) {
       (void)deflateEnd(&strm);
       SW2_TRACE_ERROR("Read input failed.");
@@ -460,7 +459,7 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
   }
 
   if (0 < len) {
-    lenStream = std::min(lenStream, (int)len);
+    lenStream = (std::min)(lenStream, (int)len);
   }
 
   int ret;
@@ -489,7 +488,7 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
 
   while (0 < lenStream) {
 
-    strm.avail_in = std::min(lenStream, (int)CHUNK);
+    strm.avail_in = (std::min)(lenStream, (int)CHUNK);
     if (!is.read(in, strm.avail_in)) {
       (void)inflateEnd(&strm);
       SW2_TRACE_ERROR("Read input failed.");
@@ -555,13 +554,13 @@ bool Util::crc32(uint& value, std::istream& is, uint len)
   }
 
   if (0 < len) {
-    lenStream = std::min(lenStream, (int)len);
+    lenStream = (std::min)(lenStream, (int)len);
   }
 
   char in[CHUNK];
 
   while (0 < lenStream) {
-    int lenIn = std::min(lenStream, (int)CHUNK);
+    int lenIn = (std::min)(lenStream, (int)CHUNK);
     if (!is.read(in, lenIn)) {
       SW2_TRACE_ERROR("Read input failed.");
       return false;

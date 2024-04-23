@@ -13,7 +13,6 @@
 #include <queue>
 
 #if defined(WIN32)
-# define NOMINMAX
 # include <windows.h>
 #elif defined(_linux_)
 # include "pthread.h"
@@ -300,7 +299,7 @@ public:
       return false;
     }
 
-    nPoolSize = std::max((uint)MIN_THREAD_POOL_SIZE, std::min((uint)MAX_THREAD_POOL_SIZE, nPoolSize));
+    nPoolSize = (std::max)((uint)MIN_THREAD_POOL_SIZE, (std::min)((uint)MAX_THREAD_POOL_SIZE, nPoolSize));
 
 #if defined(WIN32)
     m_singalWakeup.reset();
@@ -356,7 +355,7 @@ public:
 
     int idx = 0;
     while (idx < m_nThread) {
-      int nThread = std::min(MAXIMUM_WAIT_OBJECTS, m_nThread - idx);
+      int nThread = (std::min)(MAXIMUM_WAIT_OBJECTS, m_nThread - idx);
       ::WaitForMultipleObjects(nThread, m_hThread + idx, TRUE, INFINITE);
       idx += nThread;
     }

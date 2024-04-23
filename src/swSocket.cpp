@@ -13,7 +13,6 @@
 #include <algorithm>
 
 #if defined(WIN32) || defined(_WIN32_WCE)
-# define NOMINMAX
 # include <windows.h>
 # include <winsock.h>
 # if defined(_MSC_VER)
@@ -328,7 +327,7 @@ public:
     int lenBuffLast = 0;
     if (m_pBuffLast && MAX_PACKET_BUFFER_SIZE > m_pBuffLast->len) {
 
-      int alen = std::min((int)MAX_PACKET_BUFFER_SIZE - m_pBuffLast->len, len);
+      int alen = (std::min)((int)MAX_PACKET_BUFFER_SIZE - m_pBuffLast->len, len);
       ::memcpy(m_pBuffLast->buff + m_pBuffLast->len, p, alen);
 
       //
@@ -391,7 +390,7 @@ public:
 
       pBuff->pNext = 0;
       pBuff->offset = 0;
-      pBuff->len = std::min((int)MAX_PACKET_BUFFER_SIZE, len);
+      pBuff->len = (std::min)((int)MAX_PACKET_BUFFER_SIZE, len);
       ::memcpy(pBuff->buff, p, pBuff->len);
 
       //
@@ -1200,7 +1199,7 @@ public:
 
       if (m_pCallback->onSocketNewClientReady(this, (SocketConnection*)pClient)) {
         m_netStats.currOnline += 1;
-        m_netStats.maxOnline = std::max(m_netStats.maxOnline, m_netStats.currOnline);
+        m_netStats.maxOnline = (std::max)(m_netStats.maxOnline, m_netStats.currOnline);
         pClient->m_bAccept = true;
         pClient->m_trigger.popAndPush(&implSocketBase::stageConnected);
       } else {                          // Not allowed.

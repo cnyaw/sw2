@@ -15,9 +15,11 @@
 #ifdef WIN32
   #include <windows.h>
   #include <dbghelp.h>
-  #pragma comment(lib, "dbghelp.lib")
   #include "Shlwapi.h"
-  #pragma comment(lib,"Shlwapi.lib")
+  #ifdef _MSC_VER
+    #pragma comment(lib, "dbghelp.lib")
+    #pragma comment(lib,"Shlwapi.lib")
+  #endif
 #endif
 
 #include "swUtil.h"
@@ -38,7 +40,7 @@ public:
       return FALSE;
     }
 
-    void *pOrgEntry = GetProcAddress(hKernel32, "SetUnhandledExceptionFilter");
+    void *pOrgEntry = (void*)GetProcAddress(hKernel32, "SetUnhandledExceptionFilter");
     if (0 == pOrgEntry) {
       return FALSE;
     }
@@ -160,7 +162,7 @@ public:
       }
 
       char szBuffer[512];
-      sprintf(szBuffer, "%08X\t%08X\t", StackFrame.AddrPC.Offset, StackFrame.AddrFrame.Offset);
+      sprintf(szBuffer, "%08X\t%08X\t", (unsigned int)StackFrame.AddrPC.Offset, (unsigned int)StackFrame.AddrFrame.Offset);
       strDetails += szBuffer;
 
       //
@@ -171,7 +173,7 @@ public:
       DWORD dwLineDisplacement;
       if (SymGetLineFromAddr(hProcess, StackFrame.AddrPC.Offset, &dwLineDisplacement, &ImageHlpLine)) {
         strDetails += ImageHlpLine.FileName;
-        sprintf(szBuffer, " line %u", ImageHlpLine.LineNumber);
+        sprintf(szBuffer, " line %u", (unsigned int)ImageHlpLine.LineNumber);
         strDetails += szBuffer;
       }
 
