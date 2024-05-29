@@ -61,10 +61,10 @@ public:
     fd_set rdfs;
     FD_ZERO(&rdfs);
     FD_SET (STDIN_FILENO, &rdfs);
- 
+
     struct timeval tv;
     tv.tv_sec = tv.tv_usec = 0;
- 
+
     select(STDIN_FILENO+1, &rdfs, NULL, NULL, &tv);
     return FD_ISSET(STDIN_FILENO, &rdfs);
   }
@@ -416,6 +416,36 @@ void KeyStates::update(uint keys)
 {
   m_prevKeys = m_keys;
   m_keys = keys;
+}
+
+void FpsHelper::start(int DesireFps)
+{
+  m_ticks = 0;
+  m_fpsValue = m_framesPerSecond = 0;
+  m_timeStart = m_lastTime = clock();
+  m_timePerFrame = (int)((CLOCKS_PER_SEC * 1000) / (float)DesireFps);
+  m_timeNextFrame = m_timeStart + m_timePerFrame;
+}
+
+void FpsHelper::tick()
+{
+  m_ticks += 1;
+  clock_t currTime = clock();
+  m_framesPerSecond += 1;
+  if (currTime - m_lastTime >= CLOCKS_PER_SEC) {
+    m_lastTime = currTime;
+    m_fpsValue = m_framesPerSecond;
+    m_framesPerSecond = 0;
+  }
+}
+
+void FpsHelper::wait()
+{
+  clock_t now = clock();
+  if (m_timeNextFrame > now) {
+    Util::sleep((unsigned int)((m_timeNextFrame - now) / (float)CLOCKS_PER_SEC));
+  }
+  m_timeNextFrame = now + m_timePerFrame;
 }
 
 } // namespace sw2

@@ -497,11 +497,62 @@ public:
   bool isKeyPushed(uint key) const;
 
   //
-  // \breif Update current key states and original key states become previous states.
+  // \brief Update current key states and original key states become previous states.
   // \param [in] keys New key states.
   //
 
   void update(uint keys);
+};
+
+///
+/// \brief Helper for game loop to control FPS(frame per second).
+///
+
+class FpsHelper
+{
+  int m_timePerFrame, m_fpsValue, m_framesPerSecond;
+  clock_t m_timeStart, m_timeNextFrame, m_lastTime;
+  unsigned long m_ticks;
+public:
+
+  //
+  // \brief Get current FPS.
+  // \return Return current FPS value.
+  //
+
+  int getFps() const
+  {
+    return m_fpsValue;
+  }
+
+  //
+  // \brief Get total tick count from application starts.
+  // \return Return total tick count.
+  //
+
+  unsigned long getTicks() const
+  {
+    return m_ticks;
+  }
+
+  //
+  // \brief Application start.
+  // \param [in] DesireFps A desire FPS value for the application game loop.
+  //
+
+  void start(int DesireFps = 60);
+
+  //
+  // \brief Each time application updates invoke this to update FPS value.
+  //
+
+  void tick();
+
+  //
+  // \brief Each time after application updates invoke this to sleep until next frame.
+  //
+
+  void wait();
 };
 
 } // namespace sw2
