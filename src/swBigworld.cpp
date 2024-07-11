@@ -44,7 +44,7 @@ public:
   }
 
   //
-  // Networkd stream ready handler.
+  // Network stream ready handler.
   //
 
   void onNetworkStreamReadyWaitId(BigworldCallback *pCallback, BigworldNode *pServer, NetworkConnection *pClient, int len, void const *pStream)
@@ -579,7 +579,7 @@ public:
       }
 
       //
-      // Alloc network clien inst.
+      // Alloc network client inst.
       //
 
       NetworkClient *pClient = NetworkClient::alloc(this);

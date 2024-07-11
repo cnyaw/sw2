@@ -25,7 +25,7 @@
 namespace sw2 {
 
 ///
-/// \brief Formated packet.
+/// \brief Formatted packet.
 ///
 /// Base class of stream packet, encapsulate data with bit stream.
 ///

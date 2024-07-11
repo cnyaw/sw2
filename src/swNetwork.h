@@ -16,7 +16,7 @@
 /// features. Include:
 /// - Disconnection detect.
 /// - Full data stream control.
-/// - Formated network data packet.
+/// - Formatted network data packet.
 ///
 /// The usage of Network module is similar to Socket module:
 ///
@@ -59,7 +59,7 @@
 ///   SW2_DECLARE_BITSTREAM_PACKET(ID_MYPACKET, MyPacket)
 ///
 ///   //
-///   // Implement formated data read/write functions.
+///   // Implement formatted data read/write functions.
 ///   //
 ///
 ///   virtual bool read(BitStream& bs) { ... }
@@ -137,7 +137,7 @@
 ///   }
 ///   virtual bool onNetworkNewClientReady(NetworkServer* pServer, NetworkConnection* pNewClient)
 ///   { // Do something when a new client is arrived.
-///      return true; // Return true to accpet this new request, else return false to reject it.
+///      return true; // Return true to accept this new request, else return false to reject it.
 ///   }
 ///   virtual void onNetworkClientLeave(NetworkServer* pServer, NetworkConnection* pClient)
 ///   { // Do something when a client is disconnect.

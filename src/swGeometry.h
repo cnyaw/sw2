@@ -100,7 +100,7 @@ struct RECT_t
   }
 
   ///
-  /// \brief Check is a rectange intersect with this rectangle.
+  /// \brief Check is a rectangle intersect with this rectangle.
   /// \param [in] rc The rectangle.
   /// \return Return true if two rectangles are intersect else return false.
   ///

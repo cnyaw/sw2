@@ -60,7 +60,7 @@ struct zEndOfCentralDir
   enum { TAG = 0x06054b50 };
   uint sig;
   ushort noDisk;                        // Number of this disk.
-  ushort noStartDisk;                   // Mumber of the disk with the start of the central directory.
+  ushort noStartDisk;                   // Number of the disk with the start of the central directory.
   ushort numEntry;                      // Total number of entries in the central directory on this disk.
   ushort numEntryDisk;                  // Total number of entries in the central directory.
   uint szCentralDir;                    // Size of the central directory.

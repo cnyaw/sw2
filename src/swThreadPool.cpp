@@ -550,7 +550,7 @@ public:
       pThreadPool->lockQueue();
 
       //
-      // Wait until wakeup.
+      // Wait until wake up.
       //
 
       while (!pThreadPool->m_quitEvent && pThreadPool->m_queue.empty()) {

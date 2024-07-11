@@ -112,7 +112,7 @@ namespace Util {
   /// \brief Trim specified chars in the begin and end of the string.
   /// \param [in] str A string.
   /// \param [in] chrTrim Char to trim, default are SPACE,TAB,CR,LN.
-  /// \return Return new trimed string.
+  /// \return Return new trimmed string.
   ///
 
   std::string& trim(std::string& str, std::string const& chrTrim = " \t\r\n");
@@ -120,7 +120,7 @@ namespace Util {
   ///
   /// \brief Split string to a list.
   /// \param [in] s A string.
-  /// \param [out] v List to return splited strings.
+  /// \param [out] v List to return splitted strings.
   /// \param [in] chrSplit Char to split, default are SPACE,TAB,CR,LN.
   ///
 
@@ -340,7 +340,7 @@ public:
   void setTimeout(uint ticks);
 
   ///
-  /// \brief Set new timeout time imediately.
+  /// \brief Set new timeout time immediately.
   /// \param [in] timeExpired New expired time.
   ///
 

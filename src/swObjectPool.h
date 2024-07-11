@@ -200,7 +200,7 @@ public:
   /// \brief Allocate a free entity with specified ID(index).
   /// \param [in] index Specified ID(index).
   /// \return Return a new ID(index) if success else return -1.
-  /// \note If the specified ID is used then return faild(-1).
+  /// \note If the specified ID is used then return failed(-1).
   ///
 
   int alloc(int index)

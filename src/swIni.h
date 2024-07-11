@@ -19,10 +19,10 @@
 /// Format:
 ///
 /// - SECTION is consist of '[' name ']': [section].
-/// - ITEM is consist of a key and value pair, seperate with '=': key=value;
+/// - ITEM is consist of a key and value pair, separate with '=': key=value;
 ///   another format is key="value" or key='value' so spaces can include in the value.
 /// - Comment All characters after ';' are treated as comment and been discard.
-/// - Space before and after SECTION name and key/value of ITEM will been trimed.
+/// - Space before and after SECTION name and key/value of ITEM will been trimmed.
 /// - SECTION name and key/value of ITEM can use BIG5 code.
 ///
 /// Example:

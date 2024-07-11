@@ -13,7 +13,7 @@
 /// \brief Thread pool.
 ///
 /// Thread pool module provides a very simple interface to use thread. Your class
-/// simplely inherit ThreadTask class and implement threadTask, then it has threading
+/// simply inherit ThreadTask class and implement threadTask, then it has threading
 /// ability right away.
 ///
 /// Example:

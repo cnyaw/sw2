@@ -213,8 +213,8 @@ struct DesktopCallback
   ///
   /// \brief Notify when mouse button is pressed down.
   /// \param [in] hSender The event sender.
-  /// \param [in] x X coordicate of mouse cursor.
-  /// \param [in] y Y coordicate of mouse cursor.
+  /// \param [in] x X coordinate of mouse cursor.
+  /// \param [in] y Y coordinate of mouse cursor.
   /// \param [in] keyStat The key state.(see KEY_STATE)
   /// \return Return true if user handled this event manually and stop dispatch to widget.
   ///
@@ -227,8 +227,8 @@ struct DesktopCallback
   ///
   /// \brief Notify when mouse is moved.
   /// \param [in] hSender The event sender.
-  /// \param [in] x X coordicate of mouse cursor.
-  /// \param [in] y Y coordicate of mouse cursor.
+  /// \param [in] x X coordinate of mouse cursor.
+  /// \param [in] y Y coordinate of mouse cursor.
   /// \param [in] keyStat The key state.(see KEY_STATE)
   /// \return Return true if user handled this event manually and stop dispatch to widget.
   ///
@@ -241,8 +241,8 @@ struct DesktopCallback
   ///
   /// \brief Notify when release mouse button.
   /// \param [in] hSender The event sender.
-  /// \param [in] x X coordicate of mouse cursor.
-  /// \param [in] y Y coordicate of mouse cursor.
+  /// \param [in] x X coordinate of mouse cursor.
+  /// \param [in] y Y coordinate of mouse cursor.
   /// \param [in] keyStat The key state.(see KEY_STATE)
   /// \return Return true if user handled this event manually and stop dispatch to widget.
   ///
@@ -255,8 +255,8 @@ struct DesktopCallback
   ///
   /// \brief Notify when mouse wheel is rolling.
   /// \param [in] hSender The event sender.
-  /// \param [in] x X coordicate of mouse cursor.
-  /// \param [in] y Y coordicate of mouse cursor.
+  /// \param [in] x X coordinate of mouse cursor.
+  /// \param [in] y Y coordinate of mouse cursor.
   /// \param [in] keyStat The key state.(see KEY_STATE)
   /// \param [in] delta The rolling distance, >0 means roll forward.
   /// \return Return true if user handled this event manually and stop dispatch to widget.
@@ -273,7 +273,7 @@ struct DesktopCallback
   /// \param [in] hSender The event sender.(desktop)
   /// \param [out] rc Return the metrics of cursor position and size(x,y,w,h).
   /// \note The rc parameter is filled with default value, and the application
-  ///       can modity it to proper values.
+  ///       can modify it to proper values.
   ///
 
   virtual void onWidgetQueryCursorMetrics(int hSender, IntRect& rc)
@@ -327,7 +327,7 @@ public:
 
   ///
   /// \brief Check is this a valid window.
-  /// \return Return true if this is a valid window else return fale.
+  /// \return Return true if this is a valid window else return false.
   ///
 
   bool isWindow() const;
@@ -369,8 +369,8 @@ public:
   /// \brief Find child widget with specified ID.
   /// \param [in] id Specified ID.
   /// \param [in] bRecursive Find in recursive?
-  /// \return Return child widget handle with speicifed ID else return -1.
-  /// \note There may not only one widget has speicifed ID, but the implemention
+  /// \return Return child widget handle with specified ID else return -1.
+  /// \note There may not only one widget has specified ID, but the implementation
   ///       returns the first match.
   ///
 
@@ -1016,7 +1016,7 @@ public:
 
   ///
   /// \brief Set scrollbar style.
-  /// \param [in] bHorz true to set horizontal scrollbar; false to set verticle
+  /// \param [in] bHorz true to set horizontal scrollbar; false to set vertical
   ///             scrollbar.
   ///
 
@@ -1242,7 +1242,7 @@ public:
   ///
   /// \brief Get scrollbar widget.
   /// \return Return scrollbar widget handle.
-  /// \note This srcollbar is mentained internally, do not destroy it.
+  /// \note This srcollbar is maintained internally, do not destroy it.
   ///
 
   int getScrollbar() const;
@@ -1343,7 +1343,7 @@ public:
   ///
   /// \brief Get scrollbar widget.
   /// \return Return scrollbar widget handle.
-  /// \note This srcollbar is mentained internally, do not destroy it.
+  /// \note This srcollbar is maintained internally, do not destroy it.
   ///
 
   int getScrollbar() const;

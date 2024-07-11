@@ -17,7 +17,7 @@
 ///
 /// For example, following sample has 3 state: MainMenu, GamePlay and QuitApp.
 ///
-/// - MainMenu: the begining state, if user press ESC key then switch to QuitApp
+/// - MainMenu: the beginning state, if user press ESC key then switch to QuitApp
 ///             state, if press Enter key then switch to GamePlay state.
 /// - GamePlay: if press ESC key then return to MainMenu state.
 /// - QuitApp: quit application.
@@ -116,7 +116,7 @@ namespace sw2 {
 
 enum STAGESTACK_STATE
 {
-  JOIN,                                 ///< When a new state is pushsed, new state will get this state notify.
+  JOIN,                                 ///< When a new state is pushed, new state will get this state notify.
   LEAVE,                                ///< When a state is popped, previous state will get this state notify.
   TRIGGER,                              ///< When trigger the controller, current state will get this notify.
   SUSPEND,                              ///< When a new state is pushed, previous state will get this notify.
@@ -172,7 +172,7 @@ public:
   /// \brief Add and switch to new state.
   /// \param [in] stage New state.
   /// \note Flow controller is a stage stack, switch to a new state means push
-  ///       the new state to the stack. Everytime executes a pop, the current
+  ///       the new state to the stack. Every time executes a pop, the current
   ///       state is removed and switched to previous state.
   ///
 

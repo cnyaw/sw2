@@ -34,7 +34,7 @@
 ///
 /// //
 /// // Initialize Cells, left-top of map is (-1024, -1024), slice 8 small cells
-/// // in verticle and horizontal. Size of each small cell is (256, 256). Therefore
+/// // in vertical and horizontal. Size of each small cell is (256, 256). Therefore
 /// // the scope of the map is (-1024, -1024)-(1024, 1024).
 /// //
 ///

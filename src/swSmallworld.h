@@ -537,7 +537,7 @@ struct SmallworldServerCallback
   /// \param [in] prevChannel Previous channel; -1 means this is a new player.
   /// \note Even not use channel mode, this notify is still produced, therefore
   ///       application can do more initialization in this notify. For example
-  ///       send ohter init messages to the player, at this time the server has
+  ///       send other init messages to the player, at this time the server has
   ///       sent player list and game list to the player.
   ///
 

@@ -159,7 +159,7 @@ public:
   void setPtr(int bytePtr = 0, int bitPtr = 0);
 
   ///
-  /// \brief Reset current byte/bit pointer to the begining of the buffer.
+  /// \brief Reset current byte/bit pointer to the beginning of the buffer.
   ///
 
   void reset()
@@ -282,7 +282,7 @@ public:
   BitStream& operator>>(float& f);
 
   ///
-  /// \brief Read a atring.
+  /// \brief Read a string.
   /// \param [out] s A string.
   ///
 

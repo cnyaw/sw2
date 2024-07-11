@@ -445,7 +445,7 @@ public:
       }
 
       //
-      // Statstics.
+      // Statistics.
       //
 
       m_netStats.bytesSent += (uint)n;

@@ -705,7 +705,7 @@ void Desktop::inputMouseMove(int x, int y, uint keyStat)
       thePool[iw.m_hot].OnMouseMove(x, y, keyStat);
     }
 
-    implWindow& iw2 = thePool[handle];    // It is possible iw becomes invalid becaused thePool growed in OnMouseMove above.
+    implWindow& iw2 = thePool[handle];    // It is possible iw becomes invalid because thePool grown in OnMouseMove above.
 
     //
     // Try to get new hot wnd.
@@ -773,7 +773,7 @@ void Desktop::inputMouseUp(int x, int y, uint keyStat)
 
   thePool[iw.m_selected].OnMouseUp(x, y, keyStat);
 
-  implWindow& iw2 = thePool[handle];    // It is possible iw becomes invalid becaused thePool growed in OnMouseUp above.
+  implWindow& iw2 = thePool[handle];    // It is possible iw becomes invalid because thePool grown in OnMouseUp above.
 
   if (-1 != iw2.m_selected) {
     thePool[iw2.m_selected].setSelected(false);
@@ -784,7 +784,7 @@ void Desktop::inputMouseUp(int x, int y, uint keyStat)
   // Try to find a new hot window.
   //
 
-  iw2.m_lastX = iw2.m_lastY = -999999;  // Ensure mouse move not return immediately by of same event positon.
+  iw2.m_lastX = iw2.m_lastY = -999999;  // Ensure mouse move not return immediately by of same event position.
   inputMouseMove(x, y, keyStat);
 }
 
@@ -1200,7 +1200,7 @@ int Listbox::addString(std::string const& str)
     scrollbar.m_max += 1;
   }
 
-  if ((int)iw.m_lst.size() > iw.m_limit) { // Remvoe top if exceed limit.
+  if ((int)iw.m_lst.size() > iw.m_limit) { // Remove top if exceed limit.
     delString(0);
   }
 

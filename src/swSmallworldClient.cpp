@@ -363,7 +363,7 @@ public:
     }
 
     if (-1 != m_poolPlayer[m_idPlayer].m_idGame) {
-      SW2_TRACE_ERROR("create new game while alreay in game mode");
+      SW2_TRACE_ERROR("create new game while already in game mode");
       return false;
     }
 
@@ -386,7 +386,7 @@ public:
     }
 
     if (-1 != m_poolPlayer[m_idPlayer].m_idGame) {
-      SW2_TRACE_ERROR("join game while alreay in game mode");
+      SW2_TRACE_ERROR("join game while already in game mode");
       return false;
     }
 
@@ -400,7 +400,7 @@ public:
   virtual bool quitGame()
   {
     if (CS_CONNECTED != m_pClient->getConnectionState() || !m_bVerified) {
-      SW2_TRACE_ERROR("quit game whlie server is not ready");
+      SW2_TRACE_ERROR("quit game while server is not ready");
       return false;
     }
 

@@ -20,7 +20,7 @@
 /// Socket module is a low level module, there are many things you have to handle
 /// manually. Ex: time/flow control, combine data stream, encode/decode packets, etc.
 ///
-/// To use this moduele:
+/// To use this module:
 ///
 /// Client side:
 /// - Implement event handler: inherit and implement SocketClientCallback to handle
@@ -87,7 +87,7 @@
 ///   { // Do something when server is shutdown.(no more new connection)
 ///   }
 ///   virtual bool onSocketNewClientReady(SocketServer *pServer, SocketConnection* pNewClient)
-///   { // Do something when a new connectoin is arrived.
+///   { // Do something when a new connection is arrived.
 ///      return true; // Return true to accept this new client else return false to disconnect it.
 ///   }
 ///   virtual void onSocketClientLeave(SocketServer *pServer, SocketConnection* pClient)
