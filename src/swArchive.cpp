@@ -458,7 +458,14 @@ public:
       return true;
     }
 
-    SW2_TRACE_WARNING("Unknown file system.");
+    if (isFileExist(path)) {
+      std::stringstream ss;
+      if (loadFile(path, ss, "") && addStreamFileSystem(ss.str())) {
+        return true;
+      }
+    }
+
+    SW2_TRACE_WARNING("Unknown file system. %s", name.c_str());
 
     return false;
   }
