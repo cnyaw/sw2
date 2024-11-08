@@ -187,7 +187,7 @@ public:
 
     uint lenTotal = item.hdr.szCompressed;
 
-    if (item.hdr.flag & 1) {          // Encrypt.
+    if (item.hdr.flag & 1) {            // Encrypt.
       lenTotal -= 12;
     }
 

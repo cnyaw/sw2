@@ -159,6 +159,18 @@ namespace Util {
 
   ///
   /// \brief Zip encode.
+  /// \param [in] len Max data length of is to zip.
+  /// \param [in] is Input stream.
+  /// \param [out] os Output stream.
+  /// \param [in] level Zip level -1 ~ 9, the bigger the higher compress rate,
+  ///             0 is no compress, -1 is middle setting.
+  /// \return Return true if success else return false.
+  ///
+
+  bool zip(int len, const char *is, std::string &os, int level = -1);
+
+  ///
+  /// \brief Zip encode.
   /// \param [in] is Input stream.
   /// \param [out] os Output stream.
   /// \param [in] level Zip level -1 ~ 9, the bigger the higher compress rate,
@@ -167,6 +179,16 @@ namespace Util {
   ///
 
   bool zip(std::istream& is, std::ostream& os, int level = -1);
+
+  ///
+  /// \brief Zip decode.
+  /// \param [in] len Max data length of is to unzip.
+  /// \param [in] is Input stream.
+  /// \param [out] os Output stream.
+  /// \return Return true if success else return false.
+  ///
+
+  bool unzip(int len, const char *is, std::string &os);
 
   ///
   /// \brief Zip decode.

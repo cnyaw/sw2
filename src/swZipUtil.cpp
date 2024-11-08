@@ -362,17 +362,11 @@ bool zipStream(bool bNew, std::string const& apath, std::istream& is, std::ostre
 
 const int CHUNK = 1024;
 
-bool Util::zip(std::istream& is, std::ostream& os, int level)
+bool Util::zip(int len, const char *is, std::string &os, int level)
 {
-  int lenStream = getStreamLen(is);
-  if (0 >= lenStream) {
-    SW2_TRACE_ERROR("Zero length input stream.");
+  if (0 >= len) {
     return false;
   }
-
-  int ret;
-  char in[CHUNK];
-  char out[CHUNK];
 
   //
   // Allocate deflate state.
@@ -383,13 +377,7 @@ bool Util::zip(std::istream& is, std::ostream& os, int level)
   strm.zfree = Z_NULL;
   strm.opaque = Z_NULL;
 
-  if (Z_OK != deflateInit2(
-                &strm,
-                level,
-                Z_DEFLATED,
-                -MAX_WBITS,
-                8,
-                Z_DEFAULT_STRATEGY)) {
+  if (Z_OK != deflateInit2(&strm, level, Z_DEFLATED, -MAX_WBITS, 8, Z_DEFAULT_STRATEGY)) {
     SW2_TRACE_ERROR("Init deflate failed.");
     return false;
   }
@@ -398,47 +386,26 @@ bool Util::zip(std::istream& is, std::ostream& os, int level)
   // Compress until end of file.
   //
 
-  while (0 < lenStream) {
+  strm.avail_in = len;
+  strm.next_in = (Bytef*)is;
 
-    strm.avail_in = (std::min)(lenStream, (int)CHUNK);
-    if (!is.read(in, strm.avail_in)) {
-      (void)deflateEnd(&strm);
-      SW2_TRACE_ERROR("Read input failed.");
-      return false;
-    }
+  //
+  // Run deflate() on input until output buffer not full, finish
+  // compression if all of source has been read in
+  //
 
-    lenStream -= strm.avail_in;
-    int flush = 0 < lenStream ? Z_NO_FLUSH : Z_FINISH;
-    strm.next_in = (Bytef*)in;
+  int ret;
+  char out[CHUNK];
 
-    //
-    // Run deflate() on input until output buffer not full, finish
-    // compression if all of source has been read in
-    //
+  do {
+    strm.avail_out = CHUNK;
+    strm.next_out = (Bytef*)out;
+    ret = deflate(&strm, Z_FINISH);     // No bad return value.
+    assert(ret != Z_STREAM_ERROR);      // State not clobbered.
+    os.append(out, CHUNK - strm.avail_out);
+  } while (strm.avail_out == 0);
 
-    do {
-
-      strm.avail_out = CHUNK;
-      strm.next_out = (Bytef*)out;
-
-      ret = deflate(&strm, flush);      // No bad return value.
-      assert(ret != Z_STREAM_ERROR);    // State not clobbered.
-
-      if (!os.write(out, CHUNK - strm.avail_out)) {
-        (void)deflateEnd(&strm);
-        SW2_TRACE_ERROR("Write output failed.");
-        return false;
-      }
-
-    } while (strm.avail_out == 0);
-    assert(strm.avail_in == 0);         // All input will be used.
-
-    //
-    // Done when last data in file processed.
-    //
-
-  }
-
+  assert(strm.avail_in == 0);           // All input will be used.
   assert(ret == Z_STREAM_END);          // Stream will be complete.
 
   //
@@ -450,7 +417,7 @@ bool Util::zip(std::istream& is, std::ostream& os, int level)
   return ret == Z_STREAM_END;
 }
 
-bool Util::unzip(std::istream& is, std::ostream& os, uint len)
+bool Util::zip(std::istream& is, std::ostream& os, int level)
 {
   int lenStream = getStreamLen(is);
   if (0 >= lenStream) {
@@ -458,19 +425,31 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
     return false;
   }
 
-  if (0 < len) {
-    lenStream = (std::min)(lenStream, (int)len);
+  std::string s(lenStream, 0);
+  if (!is.read(&s[0], lenStream)) {
+    return false;
   }
 
-  int ret;
-  z_stream strm;
-  char in[CHUNK];
-  char out[CHUNK];
+  std::string o;
+  if (!zip(lenStream, &s[0], o, level)) {
+    return false;
+  }
+
+  os << o;
+  return true;
+}
+
+bool Util::unzip(int len, const char *is, std::string &os)
+{
+  if (0 >= len) {
+    return false;
+  }
 
   //
   // Allocate inflate state.
   //
 
+  z_stream strm;
   strm.zalloc = Z_NULL;
   strm.zfree = Z_NULL;
   strm.opaque = Z_NULL;
@@ -486,55 +465,31 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
   // Decompress until deflate stream ends or end of file.
   //
 
-  while (0 < lenStream) {
+  strm.avail_in = len;
+  strm.next_in = (Bytef*)is;
 
-    strm.avail_in = (std::min)(lenStream, (int)CHUNK);
-    if (!is.read(in, strm.avail_in)) {
+  //
+  // Run inflate() on input until output buffer not full.
+  //
+
+  int ret;
+  char out[CHUNK];
+
+  do {
+    strm.avail_out = CHUNK;
+    strm.next_out = (Bytef*)out;
+    ret = inflate(&strm, Z_NO_FLUSH);
+    assert(ret != Z_STREAM_ERROR);    // State not clobbered.
+    switch (ret) {
+    case Z_NEED_DICT:
+      ret = Z_DATA_ERROR;             // And fall through.
+    case Z_DATA_ERROR:
+    case Z_MEM_ERROR:
       (void)inflateEnd(&strm);
-      SW2_TRACE_ERROR("Read input failed.");
       return false;
     }
-
-    lenStream -= strm.avail_in;
-    if (strm.avail_in == 0) {
-      break;
-    }
-
-    strm.next_in = (Bytef*)in;
-
-    //
-    // Run inflate() on input until output buffer not full.
-    //
-
-    do {
-
-      strm.avail_out = CHUNK;
-      strm.next_out = (Bytef*)out;
-
-      ret = inflate(&strm, Z_NO_FLUSH);
-      assert(ret != Z_STREAM_ERROR);    // State not clobbered.
-      switch (ret) {
-      case Z_NEED_DICT:
-        ret = Z_DATA_ERROR;             // And fall through.
-      case Z_DATA_ERROR:
-      case Z_MEM_ERROR:
-        (void)inflateEnd(&strm);
-        return false;
-      }
-
-      if (!os.write(out, CHUNK - strm.avail_out)) {
-        (void)inflateEnd(&strm);
-        SW2_TRACE_ERROR("Write output failed.");
-        return false;
-      }
-
-    } while (strm.avail_out == 0);
-
-    //
-    // Done when inflate() says it's done.
-    //
-
-  }
+    os.append(out, CHUNK - strm.avail_out);
+  } while (strm.avail_out == 0);
 
   //
   // Clean up and return.
@@ -542,6 +497,32 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
 
   (void)inflateEnd(&strm);
 
+  return true;
+}
+
+bool Util::unzip(std::istream& is, std::ostream& os, uint len)
+{
+  int lenStream = getStreamLen(is);
+  if (0 >= lenStream) {
+    SW2_TRACE_ERROR("Zero length input stream.");
+    return false;
+  }
+
+  if (0 < len) {
+    lenStream = (std::min)(lenStream, (int)len);
+  }
+
+  std::string s(lenStream, 0);
+  if (!is.read(&s[0], lenStream)) {
+    return false;
+  }
+
+  std::string o;
+  if (!unzip(lenStream, &s[0], o)) {
+    return false;
+  }
+
+  os << o;
   return true;
 }
 
