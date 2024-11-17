@@ -418,18 +418,6 @@ public:
   virtual void setFileName(const std::string &name)=0;
 
   ///
-  /// \brief Enter critical section.
-  ///
-
-  virtual void lock()=0;
-
-  ///
-  /// \brief Leave critical section.
-  ///
-
-  virtual void unlock()=0;
-
-  ///
   /// \brief Add log to log file.
   /// \param [in] log New log to add to file.
   ///

@@ -97,7 +97,14 @@ public:
     m_name = name;
   }
 
-  virtual void lock()
+  virtual void addLog(const std::string &log)
+  {
+    lock();
+    m_swapBuff[m_swapIndex].push_back(log);
+    unlock();
+  }
+
+  void lock()
   {
     if (0 == m_lock) {
       m_lock = ThreadLock::alloc();
@@ -105,18 +112,6 @@ public:
     if (m_lock) {
       m_lock->lock();
     }
-  }
-
-  virtual void unlock()
-  {
-    if (m_lock) {
-      m_lock->unlock();
-    }
-  }
-
-  virtual void addLog(const std::string &log)
-  {
-    m_swapBuff[m_swapIndex].push_back(log);
   }
 
   virtual void saveLogs()
@@ -132,20 +127,23 @@ public:
     m_task.m_dir = m_dir;
     m_task.m_name = m_name;
 
-    if (m_lock) {
-      m_lock->lock();
-    }
+    lock();
 
     m_task.m_logs = m_swapBuff[m_swapIndex];
     m_swapBuff[m_swapIndex].clear();
 
-    if (m_lock) {
-      m_lock->unlock();
-    }
+    unlock();
 
     m_task.runTask();
 
     m_swapIndex = (m_swapIndex + 1) % MAX_SWAP_LOG_BUFF;
+  }
+
+  void unlock()
+  {
+    if (m_lock) {
+      m_lock->unlock();
+    }
   }
 };
 
