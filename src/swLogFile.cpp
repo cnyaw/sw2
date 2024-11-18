@@ -28,7 +28,7 @@ class implLogThreadTask : public ThreadTask
 {
 public:
   std::string m_dir, m_name;
-  std::vector<std::string> m_logs;
+  std::string m_logs;
 
   virtual void threadTask()
   {
@@ -48,9 +48,7 @@ public:
 
     FILE *pFile = fopen(buf, "a+t");
     if (pFile) {
-      for (size_t i = 0; i < m_logs.size(); i++) {
-        fprintf(pFile, "%s\n", m_logs[i].c_str());
-      }
+      fprintf(pFile, "%s", m_logs.c_str());
       fclose(pFile);
     }
   }
@@ -62,7 +60,7 @@ public:
   std::string m_dir, m_name;
 
   int m_swapIndex;
-  std::vector<std::string> m_swapBuff[MAX_SWAP_LOG_BUFF];
+  std::string m_swapBuff[MAX_SWAP_LOG_BUFF];
 
   ThreadLock *m_lock;
   implLogThreadTask m_task;
@@ -100,7 +98,7 @@ public:
   virtual void addLog(const std::string &log)
   {
     lock();
-    m_swapBuff[m_swapIndex].push_back(log);
+    m_swapBuff[m_swapIndex] += log + "\n";
     unlock();
   }
 
