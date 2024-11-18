@@ -9,8 +9,6 @@
 
 #include <time.h>
 
-#include <vector>
-
 #ifdef WIN32
 #include <Shlwapi.h>
 #endif
