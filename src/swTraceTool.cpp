@@ -116,26 +116,23 @@ public:
 
 } // namespace impl
 
-#define DO_TRACE() \
-  assert(format); \
-  impl::implTraceTool& inst = impl::implTraceTool::inst(); \
-  if (0 >= inst.nEnable || 0 == inst.nOut) { \
-    return; \
-  } \
-  va_list va; \
-  va_start(va, format); \
-  if (inst.pfnTrace) { \
-    inst.pfnTrace((level), format, va); \
-  } else { \
-    char buf[MAX_STR_LEN]; \
-    vsnprintf(buf, MAX_STR_LEN, format, va); \
-    inst.doTrace((level), buf); \
-  } \
-  va_end(va);
-
 void TraceTool::trace(int level, const char* format, ...)
 {
-  DO_TRACE()
+  assert(format);
+  impl::implTraceTool& inst = impl::implTraceTool::inst();
+  if (0 >= inst.nEnable || 0 == inst.nOut) {
+    return;
+  }
+  va_list va;
+  va_start(va, format);
+  if (inst.pfnTrace) {
+    inst.pfnTrace((level), format, va);
+  } else {
+    char buf[MAX_STR_LEN];
+    vsnprintf(buf, MAX_STR_LEN, format, va);
+    inst.doTrace((level), buf);
+  }
+  va_end(va);
 }
 
 void TraceTool::enableTarget(bool bEnable, FILE* out)
