@@ -126,11 +126,11 @@ void TraceTool::trace(int level, const char* format, ...)
   va_list va;
   va_start(va, format);
   if (inst.pfnTrace) {
-    inst.pfnTrace((level), format, va);
+    inst.pfnTrace(level, format, va);
   } else {
     char buf[MAX_STR_LEN];
     vsnprintf(buf, MAX_STR_LEN, format, va);
-    inst.doTrace((level), buf);
+    inst.doTrace(level, buf);
   }
   va_end(va);
 }

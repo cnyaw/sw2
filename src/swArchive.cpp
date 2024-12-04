@@ -175,7 +175,6 @@ public:
       getLocalFileHeader(ifs);
     } else {
       getLocalFileHeader(mem);
-      mem.seekg(0, std::ios::beg);
     }
 
     return true;
@@ -381,11 +380,7 @@ public:
     // Load from memory archive.
     //
 
-    bool ret = loadFile_i(it->second, mem, outs, password);
-
-    mem.seekg(0, std::ios::beg);
-
-    return ret;
+    return loadFile_i(it->second, mem, outs, password);
   }
 };
 
