@@ -209,7 +209,7 @@ namespace Util {
   /// \return Return true if success else return false.
   ///
 
-  bool crc32(uint& value, std::istream& is, uint len = 0);
+  bool crc32(uint& value, const std::string& is, uint len = 0);
 
   ///
   /// \brief Create new Zip archive or append files to a Zip archive.

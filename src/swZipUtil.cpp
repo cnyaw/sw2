@@ -519,9 +519,9 @@ bool Util::unzip(std::istream& is, std::ostream& os, uint len)
   return true;
 }
 
-bool Util::crc32(uint& value, std::istream& is, uint len)
+bool Util::crc32(uint& value, const std::string& is, uint len)
 {
-  int lenStream = getStreamLen(is);
+  int lenStream = (int)is.size();
   if (0 >= lenStream) {
     SW2_TRACE_ERROR("Zero length input stream.");
     return false;
@@ -531,17 +531,7 @@ bool Util::crc32(uint& value, std::istream& is, uint len)
     lenStream = (std::min)(lenStream, (int)len);
   }
 
-  char in[CHUNK];
-
-  while (0 < lenStream) {
-    int lenIn = (std::min)(lenStream, (int)CHUNK);
-    if (!is.read(in, lenIn)) {
-      SW2_TRACE_ERROR("Read input failed.");
-      return false;
-    }
-    value = ::crc32(value, (const Bytef*)in, lenIn);
-    lenStream -= lenIn;
-  }
+  value = ::crc32(value, (const Bytef*)is.c_str(), lenStream);
 
   return true;
 }

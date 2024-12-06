@@ -393,9 +393,8 @@ TEST(Util, TraceTool_level)
 
 TEST(Util, crc32)
 {
-  std::stringstream ss(sSampleText);
   uint crc32 = 0;
-  Util::crc32(crc32, ss);
+  Util::crc32(crc32, sSampleText);
   CHECK(0x6b8edcbf == crc32);
 }
 
