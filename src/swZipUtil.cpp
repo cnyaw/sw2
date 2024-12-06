@@ -124,8 +124,8 @@ bool getCentralDir(std::vector<zCentralDir> &dirs, std::vector<std::string> &nam
 
 bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string const &itemfullname, std::string const &itemname, std::string const& password)
 {
-  std::ifstream ifs(itemfullname.c_str(), std::ios::binary);
-  if (!ifs) {
+  std::string fs;
+  if (!Util::loadFileContent(itemfullname.c_str(), fs)) {
     SW2_TRACE_ERROR("Open item [%s] failed.", itemfullname.c_str());
     return false;
   }
@@ -138,21 +138,20 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
 
   getDosTime(itemfullname, z.modTime, z.modDate, attr);
 
-  z.szUncompressed = (uint)Util::getStreamLen(ifs);
+  z.szUncompressed = fs.size();
 
-  z.crc32 = 0;
-  Util::crc32(z.crc32, ifs);
-  ifs.seekg(0, std::ios_base::beg);
+  z.crc32 = ::crc32(0, (const Bytef*)fs.c_str(), fs.size());;
 
   std::stringstream ss;
 
   if (140 < z.szUncompressed) {         // TODO.
+    std::stringstream ifs(fs);
     Util::zip(ifs, ss);
     z.szCompressed = (uint)ss.tellp();  // set real output size
   } else {                              // Too small.
     z.szCompressed = z.szUncompressed;
     if (!password.empty()) {
-      ss << ifs.rdbuf();
+      ss << fs;
     }
   }
 
@@ -193,28 +192,22 @@ bool writeZipFileItem(std::ostream& os, zHeader &z, uint &attr, std::string cons
 
     int totallen = z.szCompressed - 12;
     while (0 < totallen) {
-
       int len = (std::min)(totallen, MAX_BUFF);
       ss.read(buff, len);
-
       for (int i = 0; i < len; i++) {
         uchar t = keys.decryptByte();
         char c = buff[i];
         keys.updateKeys(c);
         buff[i] = c ^ t;
       }
-
       os.write(buff, len);
-
       totallen -= len;
     }
   } else if (Z_DEFLATED == z.algo) {
     os << ss.rdbuf();
   } else {
-    os << ifs.rdbuf();
+    os << fs;
   }
-
-  ifs.close();
 
   return true;
 }
