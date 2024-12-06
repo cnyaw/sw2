@@ -12,7 +12,6 @@
 #include <iterator>
 
 #include "swBigworld.h"
-#include "swNetwork.h"
 #include "swObjectPool.h"
 #include "swUtil.h"
 
