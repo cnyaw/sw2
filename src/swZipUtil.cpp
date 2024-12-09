@@ -591,6 +591,9 @@ bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os
 
 bool Util::isZipStream(const std::string& stream)
 {
+  if (sizeof(uint) > stream.size()) {
+    return false;
+  }
   uint sig = *(const uint*)stream.c_str();
   return impl::zHeader::TAG == sig;     // Is a local file header sig?
 }
