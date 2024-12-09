@@ -550,16 +550,14 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
   //
 
   if (bCreateNew) {
-    std::ofstream ofs(zipname.c_str(), std::ios_base::binary);
-    if (!ofs) {
+    std::stringstream dummy, os;
+    if (!impl::zipStream(true, path, dummy, os, items, password)) {
+      return false;
+    }
+    if (!storeFileContent(zipname.c_str(), os.str())) {
       SW2_TRACE_ERROR("Create archive [%s] failed.", zipName.c_str());
       return false;
     }
-    std::stringstream dummy;
-    if (!impl::zipStream(true, path, dummy, ofs, items, password)) {
-      return false;
-    }
-    ofs.close();
     return true;
   }
 
@@ -594,22 +592,23 @@ bool Util::zipStream(std::string const& path, std::istream& is, std::ostream& os
   return impl::zipStream(empty, path, is, os, items, password);
 }
 
-bool Util::isZipFile(std::istream& stream)
+bool Util::isZipStream(const std::string& stream)
 {
-  std::streampos p = stream.tellg();
-  uint sig = (uint)-1;
-  stream.read((char*)&sig, sizeof(uint));
-  stream.seekg(p, std::ios::beg);
+  uint sig = *(const uint*)stream.c_str();
   return impl::zHeader::TAG == sig;     // Is a local file header sig?
 }
 
 bool Util::isZipFile(std::string const& path)
 {
-  std::ifstream ifs(path.c_str(), std::ios::binary);
-  if (!ifs.is_open()) {
+  FILE *f = fopen(path.c_str(), "rb");
+  if (f) {
+    uint sig = (uint)-1;
+    fread(&sig, sizeof(sig), 1, f);
+    fclose(f);
+    return impl::zHeader::TAG == sig;     // Is a local file header sig?
+  } else {
     return false;
   }
-  return isZipFile(ifs);
 }
 
 } // namespace sw2

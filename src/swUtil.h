@@ -240,7 +240,7 @@ namespace Util {
   /// \return Return true if the stream is a zip archive else return false.
   ///
 
-  bool isZipFile(std::istream& stream);
+  bool isZipStream(const std::string& stream);
 
   ///
   /// \brief Check is the file a zip archive.

@@ -469,7 +469,7 @@ public:
   {
     ArchiveFileSystem* pfs = 0;
 
-    if (impl::zHeader::TAG == *(const uint*)stream.c_str()) {
+    if (Util::isZipStream(stream)) {
       implArchiveFileSystemZipfile *p = new implArchiveFileSystemZipfile("");
       p->mem << stream;
       pfs = p;
