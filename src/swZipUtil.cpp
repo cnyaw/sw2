@@ -9,7 +9,6 @@
 //
 
 #include <algorithm>
-#include <fstream>
 #include <sstream>
 
 #if defined(WIN32) || defined(_WIN32_WCE)
@@ -565,18 +564,16 @@ bool Util::zipArchive(bool bCreateNew, std::string const& zipName, std::vector<s
   // Append existing.
   //
 
-  std::ifstream ifs(zipname.c_str(), std::ios::binary);
-  if (!ifs) {
+  std::string ifs;
+  if (!loadFileContent(zipname.c_str(), ifs)) {
     SW2_TRACE_ERROR("Open archive [%s] failed.", zipName.c_str());
     return false;
   }
 
-  std::stringstream ss;
-  if (!impl::zipStream(false, path, ifs, ss, items, password)) {
+  std::stringstream ss, is(ifs);
+  if (!impl::zipStream(false, path, is, ss, items, password)) {
     return false;
   }
-
-  ifs.close();
 
   if (!storeFileContent(zipname.c_str(), ss.str())) {
     SW2_TRACE_ERROR("Write archive [%s] failed.", zipName.c_str());
