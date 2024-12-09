@@ -119,6 +119,8 @@ TEST(Util, zipArchive)
   CHECK(Util::zipArchive(true, TEST_ADD_ZIP_FILE_NAME, v)); // Create new.
 
   {
+    CHECK(Util::isZipFile(TEST_ADD_ZIP_FILE_NAME));
+
     Archive* ar = Archive::alloc();
     CHECK(ar->addPathFileSystem(TEST_ADD_ZIP_FILE_NAME));
 
@@ -226,6 +228,8 @@ TEST(Util, zipArchive2)
   CHECK(Util::zipStream("./data/", dummy, stream, v)); // Create new.
 
   {
+    CHECK(Util::isZipStream(stream.str()));
+
     Archive* ar = Archive::alloc();
     CHECK(ar->addStreamFileSystem(stream.str()));
 
@@ -400,8 +404,11 @@ TEST(Util, crc32)
 
 TEST(Util, utf8ToUnicode)
 {
+  const char *fn = "./data/utf8.zip";
+  CHECK(Util::isZipFile(fn));
+
   Archive* ar = Archive::alloc();
-  CHECK(ar->addPathFileSystem("./data/utf8.zip"));
+  CHECK(ar->addPathFileSystem(fn));
 
   std::stringstream ss1;
   CHECK(ar->loadFile("utf8.txt", ss1));
