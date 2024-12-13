@@ -81,15 +81,15 @@ public:
     long offset;                        // Offset from file head.
   };
 
-  mutable std::stringstream mem;        // Memory archive, valid when archive.empty().
+  mutable std::stringstream stream;     // Memory archive, valid when archive.empty().
 
   mutable std::map<std::string, zItem> items; // Local file header list, <path,offset>.
 
-  implArchiveFileSystemZipfile(const std::string &stream) : mem(stream)
+  implArchiveFileSystemZipfile(const std::string &s) : stream(s)
   {
   }
 
-  void getLocalFileHeader(std::istream& stream) const
+  void getLocalFileHeader() const
   {
     std::string name;
     long offset = 0;
@@ -165,12 +165,12 @@ public:
       return true;
     }
 
-    getLocalFileHeader(mem);
+    getLocalFileHeader();
 
     return true;
   }
 
-  bool copyData(zItem const& item, std::istream& stream, std::ostream& outs, zEncryptKeys* keys) const
+  bool copyData(zItem const& item, std::ostream& outs, zEncryptKeys* keys) const
   {
     char buf[1024];
 
@@ -212,7 +212,7 @@ public:
     return true;
   }
 
-  bool initEncryptKeys(std::istream& stream, std::string const& password, zEncryptKeys& keys, uint crc32) const
+  bool initEncryptKeys(std::string const& password, zEncryptKeys& keys, uint crc32) const
   {
     //
     // Initialize keys.
@@ -251,7 +251,7 @@ public:
     return true;
   }
 
-  bool loadFile_i(zItem const& item, std::istream& stream, std::ostream& outs, std::string const& password) const
+  bool loadFile_i(zItem const& item, std::ostream& outs, std::string const& password) const
   {
     //
     // Is password present if the item is encrypted?
@@ -278,7 +278,7 @@ public:
     //
 
     zEncryptKeys keys;
-    if (encrypt && !initEncryptKeys(stream, password, keys, item.hdr.crc32)) {
+    if (encrypt && !initEncryptKeys(password, keys, item.hdr.crc32)) {
       return false;
     }
 
@@ -287,7 +287,7 @@ public:
     //
 
     if (0 == item.hdr.algo) {
-      return copyData(item, stream, outs, encrypt ? &keys : 0);
+      return copyData(item, outs, encrypt ? &keys : 0);
     }
 
     //
@@ -312,7 +312,7 @@ public:
     //
 
     std::stringstream ss;
-    if (!copyData(item, stream, ss, &keys)) {
+    if (!copyData(item, ss, &keys)) {
       return false;
     }
 
@@ -347,7 +347,7 @@ public:
       return false;
     }
 
-    return loadFile_i(it->second, mem, outs, password);
+    return loadFile_i(it->second, outs, password);
   }
 };
 
