@@ -9,7 +9,6 @@
 //
 
 #include <algorithm>
-#include <fstream>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -82,12 +81,11 @@ public:
     long offset;                        // Offset from file head.
   };
 
-  std::string archive;                  // Archive path name, if empty then this archive is a memory archive.
   mutable std::stringstream mem;        // Memory archive, valid when archive.empty().
 
   mutable std::map<std::string, zItem> items; // Local file header list, <path,offset>.
 
-  explicit implArchiveFileSystemZipfile(std::string const& path_) : archive(path_)
+  implArchiveFileSystemZipfile(const std::string &stream) : mem(stream)
   {
   }
 
@@ -167,15 +165,7 @@ public:
       return true;
     }
 
-    if (!archive.empty()) {
-      std::ifstream ifs(archive.c_str(), std::ios::binary);
-      if (!ifs.is_open()) {
-        return false;
-      }
-      getLocalFileHeader(ifs);
-    } else {
-      getLocalFileHeader(mem);
-    }
+    getLocalFileHeader(mem);
 
     return true;
   }
@@ -357,29 +347,6 @@ public:
       return false;
     }
 
-    //
-    // Zip file archive?
-    //
-
-    if (!archive.empty()) {
-
-      std::ifstream ifs(archive.c_str(), std::ios::binary);
-      if (!ifs.is_open()) {
-        SW2_TRACE_ERROR("Open file archive file system failed, %s.", archive.c_str());
-        return false;
-      }
-
-      //
-      // Load from file archive.
-      //
-
-      return loadFile_i(it->second, ifs, outs, password);
-    }
-
-    //
-    // Load from memory archive.
-    //
-
     return loadFile_i(it->second, mem, outs, password);
   }
 };
@@ -445,7 +412,11 @@ public:
     //
 
     if (Util::isZipFile(path)) {
-      ArchiveFileSystem* pfs = new implArchiveFileSystemZipfile(path);
+      std::string s;
+      if (!Util::loadFileContent(path.c_str(), s)) {
+        return false;
+      }
+      implArchiveFileSystemZipfile* pfs = new implArchiveFileSystemZipfile(s);
       if (0 == pfs) {
         return false;
       }
@@ -470,8 +441,7 @@ public:
     ArchiveFileSystem* pfs = 0;
 
     if (Util::isZipStream(stream)) {
-      implArchiveFileSystemZipfile *p = new implArchiveFileSystemZipfile("");
-      p->mem << stream;
+      implArchiveFileSystemZipfile *p = new implArchiveFileSystemZipfile(stream);
       pfs = p;
     } else {
       SW2_TRACE_WARNING("Unknown file system.");
