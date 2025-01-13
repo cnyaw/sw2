@@ -8,6 +8,10 @@
 //  2014/03/02 Waync created.
 //
 
+#ifdef _linux_
+#include <cstdint>
+#endif
+
 #include "swSmallworldEv.h"
 
 #include "swObjectPool.h"
