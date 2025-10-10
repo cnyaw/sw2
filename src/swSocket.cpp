@@ -1119,11 +1119,7 @@ public:
 
       struct sockaddr_in sa;
       int len = sizeof(struct sockaddr_in);
-#if defined(_linux_)
       SOCKET s = ::accept(m_listen, (struct sockaddr*)&sa, (socklen_t*)&len);
-#else
-      SOCKET s = ::accept(m_listen, (struct sockaddr*)&sa, &len);
-#endif
       if (INVALID_SOCKET == s) {
 
         if (SOCKET_EINTR == errorno) {
