@@ -434,7 +434,7 @@ public:
 
   void trigger()
   {
-    if (!implNetworkBase::trigger_(m_pClientPeer)) {
+    if (!implNetworkBase::trigger_(m_pClient)) {
       disconnect();
     }
   }
@@ -445,24 +445,24 @@ public:
 
   virtual void disconnect()
   {
-    m_pClientPeer->disconnect();
+    m_pClient->disconnect();
   }
 
   virtual int getConnectionState() const
   {
-    return m_pClientPeer->getConnectionState();
+    return m_pClient->getConnectionState();
   }
 
   virtual std::string getAddr() const
   {
-    return m_pClientPeer->getAddr();
+    return m_pClient->getAddr();
   }
 
   virtual NetworkClientStats getNetStats() const
   {
     NetworkClientStats ns;
 
-    *(SocketClientStats*)&ns = m_pClientPeer->getNetStats();
+    *(SocketClientStats*)&ns = m_pClient->getNetStats();
     ns.packetsSent = m_packetSent;
     ns.packetsRecv = m_packetRecv;
 
@@ -471,7 +471,7 @@ public:
 
   virtual bool send(int len, void const* pStream)
   {
-    return implNetworkBase::send_i(m_pClientPeer, len, pStream);
+    return implNetworkBase::send_i(m_pClient, len, pStream);
   }
 
   //
@@ -496,7 +496,7 @@ public:
 public:
 
   NetworkServer* m_pServer;
-  SocketConnection* m_pClientPeer;
+  SocketConnection* m_pClient;
   NetworkServerCallback* m_pInterface;
   long *m_svrPacketSent, *m_svrPacketRecv;
 };
@@ -537,23 +537,23 @@ public:
 
     pNewClient->userData = (uint_ptr)id;
 
-    implNetworkConnection& peer = m_poolClient[id];
-    peer.userData = 0;
-    peer.m_buffLen = 0;
-    peer.m_deadConnectionTimeout.setTimeout(1000 * TIMEOUT_DEAD_CONNECTION);
-    peer.m_keepAliveTimeout.setTimeout(1000 * TIMEOUT_KEEP_ALIVE);
-    peer.m_pClientPeer = pNewClient;
-    peer.m_pServer = this;
-    peer.m_pInterface = m_pInterface;
-    peer.m_packetSent = peer.m_packetRecv = 0;
-    peer.m_svrPacketSent = &m_packetSent;
-    peer.m_svrPacketRecv = &m_packetRecv;
+    implNetworkConnection& c = m_poolClient[id];
+    c.userData = 0;
+    c.m_buffLen = 0;
+    c.m_deadConnectionTimeout.setTimeout(1000 * TIMEOUT_DEAD_CONNECTION);
+    c.m_keepAliveTimeout.setTimeout(1000 * TIMEOUT_KEEP_ALIVE);
+    c.m_pClient = pNewClient;
+    c.m_pServer = this;
+    c.m_pInterface = m_pInterface;
+    c.m_packetSent = c.m_packetRecv = 0;
+    c.m_svrPacketSent = &m_packetSent;
+    c.m_svrPacketRecv = &m_packetRecv;
 
     //
     // Accept this new connection?
     //
 
-    if (m_pInterface->onNetworkNewClientReady(this, (NetworkConnection*)&peer)) {
+    if (m_pInterface->onNetworkNewClientReady(this, (NetworkConnection*)&c)) {
       return true;
     }
 
@@ -576,7 +576,7 @@ public:
   {
     int id = (int)pClient->userData;
     implNetworkConnection &c = m_poolClient[id];
-    if (!c.handleStreamReady(c.m_pClientPeer, len, pStream)) {
+    if (!c.handleStreamReady(c.m_pClient, len, pStream)) {
       c.disconnect();
     }
   }
@@ -601,7 +601,7 @@ public:
       return 0;
     }
 
-    int next = m_poolClient.next((int)((implNetworkConnection*)pClient)->m_pClientPeer->userData);
+    int next = m_poolClient.next((int)((implNetworkConnection*)pClient)->m_pClient->userData);
     if (-1 == next) {
       return 0;
     } else {
