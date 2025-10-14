@@ -952,11 +952,286 @@ public:
   SocketServer *m_pServer;
   SocketServerCallback* m_pCallback;
   implSocketConnection* m_pNext;
-
   bool m_bAccept;
 };
 
-class implSocketServer : public SocketServer
+class implWebSocketConnection : public implSocketBase, public SocketConnection
+{
+public:
+
+  implWebSocketConnection() : m_pServer(0), m_pCallback(0), m_pNext(0), m_bAccept(false), m_hasUpgrade(false) {}
+
+  //
+  // SocketConnection.
+  //
+
+  virtual void disconnect()
+  {
+    implSocketBase::disconnect_i();
+  }
+
+  virtual int getConnectionState() const
+  {
+    return implSocketBase::m_state;
+  }
+
+  virtual std::string getAddr() const
+  {
+    return implSocketBase::m_addr;
+  }
+
+  virtual SocketClientStats getNetStats() const
+  {
+    SocketClientStats s = m_netStats;
+    s.upTime = (time_t)::difftime(::time(0), s.startTime);
+    s.bytesBuff = getBytesSendBuff();
+    return s;
+  }
+
+  virtual bool send(int lenStream, void const* pStream)
+  {
+    unsigned char buff[10] = {0x81};
+    int64 len = lenStream;
+    if (125 >= len) {
+      buff[1] = (unsigned char)(len & 0xff);
+      len = 2;
+    } else if (65535 >= len) {
+      buff[1] = 126;
+      buff[2] = (unsigned char)((len >> 8) & 0xff);
+      buff[3] = (unsigned char)(len & 0xff);
+      len = 4;
+    } else {
+      buff[1] = 127;
+      buff[2] = (unsigned char)((len >> 56) & 0xff);
+      buff[3] = (unsigned char)((len >> 48) & 0xff);
+      buff[4] = (unsigned char)((len >> 40) & 0xff);
+      buff[5] = (unsigned char)((len >> 32) & 0xff);
+      buff[6] = (unsigned char)((len >> 24) & 0xff);
+      buff[7] = (unsigned char)((len >> 16) & 0xff);
+      buff[8] = (unsigned char)((len >> 8) & 0xff);
+      buff[9] = (unsigned char)(len & 0xff);
+      len = 10;
+    }
+    return implSocketBase::send_i((int)len, buff) && implSocketBase::send_i(lenStream, pStream);
+  }
+
+  //
+  // Notification.
+  //
+
+  virtual void onConnected()
+  {
+    m_stream.clear();
+    m_hasUpgrade = false;
+  }
+
+  virtual void onDisconnected()
+  {
+    assert(m_pCallback);
+    if (m_bAccept) {
+      m_pCallback->onSocketClientLeave(m_pServer, (SocketConnection*)this);
+    }
+  }
+
+  virtual void onStreamReady(int len, void const* pStream)
+  {
+    assert(m_pCallback);
+    m_stream.append((const char*)pStream, len);
+    if (m_hasUpgrade) {
+      while (websockReadFrame()) {
+        // NOP.
+      }
+    } else {
+      webSockUpgrade();
+    }
+  }
+
+  //
+  // WebSocket support.
+  //
+
+  std::string getConnectionInfo(const std::string& request)
+  {
+    std::string connStr;
+    size_t connIndex = request.find("Connection:");
+    if (std::string::npos != connIndex) {
+      size_t lineEnd = request.find("\r\n", connIndex);
+      if (std::string::npos != lineEnd) {
+        connStr = request.substr(connIndex, lineEnd - connIndex);
+      } else {
+        connStr = request.substr(connIndex);
+      }
+      connStr.erase(0, connStr.find_first_not_of(" \t"));
+      connStr.erase(connStr.find_last_not_of(" \t") + 1);
+    }
+    return connStr;
+  }
+
+  std::string getWebsockAcceptKey(const std::string& req)
+  {
+    if (req.find("Upgrade: websocket") == std::string::npos ||
+        req.find("Connection:") == std::string::npos ||
+        req.find("Sec-WebSocket-Version: 13") == std::string::npos ||
+        req.find("Sec-WebSocket-Protocol: sw2") == std::string::npos) {
+      return "";
+    }
+
+    size_t keyIndex = req.find("Sec-WebSocket-Key"); // Extract Sec-WebSocket-Key.
+    if (keyIndex == std::string::npos) {
+      return "";
+    }
+
+    size_t keyStart = keyIndex + std::string("Sec-WebSocket-Key:").length();
+    size_t keyEnd = req.find("\r\n", keyStart);
+    std::string key = req.substr(keyStart, keyEnd - keyStart);
+    key.erase(0, key.find_first_not_of(" \n\r\t")); // Trim leading whitespace.
+    key.erase(key.find_last_not_of(" \n\r\t") + 1); // Trim trailing whitespace.
+
+    return phpWebSockHash(key);
+  }
+
+  std::string phpWebSockHash(const std::string &key)
+  {
+    std::string script = "$combined=$key.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11';$hash=sha1($combined);$base64Hash=base64_encode(hex2bin($hash));file_put_contents('hash.txt',$base64Hash);";
+    std::string cmd = "php -r \"$key='" + key + "';" + script + "\"";
+    system(cmd.c_str());
+    std::string hash;
+    Util::loadFileContent("hash.txt", hash);
+    return hash;
+  }
+
+  std::string readRequestHeader() {
+    std::string request;
+    size_t pos = 0;
+    size_t next_line_end;
+    while (true) {
+      next_line_end = m_stream.find("\r\n", pos);
+      if (std::string::npos == next_line_end) {
+        break;
+      }
+      std::string line = m_stream.substr(pos, next_line_end - pos);
+      request += line + "\r\n";
+      pos = next_line_end + 2;
+      if (line.empty()) {
+        break;
+      }
+    }
+    return request;
+  }
+
+  bool websockReadFrame()
+  {
+    //
+    // Check message header.
+    //
+
+    const char *p = m_stream.data();
+    size_t req_len = 2;
+    if (m_stream.size() < req_len) {    // p[0]=0x81 for text, 0x82 for binary.
+      return false;
+    }
+
+    //
+    // Read message length.
+    //
+
+    int len = (p[1] & 0xff) - 128;
+    p += 2;
+
+    if (126 == len) {                   // 16-bits length.
+      req_len += 2;
+      if (m_stream.size() < req_len) {
+        return false;
+      }
+      len = (p[0] & 0xff) | ((p[1] & 0xff) << 8);
+      p += 2;
+    } else if (127 == len) {            // 64-bits length.
+      req_len += 8;
+      if (m_stream.size() < req_len) {
+        return false;
+      }
+      len = p[0] & 0xff;
+      for (int i = 1; i < 8; i++) {
+        len |= ((p[i] & 0xff) << (8 * i));
+      }
+      p += 8;
+    }
+
+    //
+    // Read decode key.
+    //
+
+    req_len += 4;
+    if (m_stream.size() < req_len) {
+      return false;
+    }
+
+    const char* pKey = p;
+    p += 4;
+
+    //
+    // Decode message.
+    //
+
+    req_len += len;
+    if (m_stream.size() < req_len) {
+      return false;
+    }
+
+    char *pMsg = (char*)p;
+    for (int i = 0; i < len; i++) {
+      pMsg[i] ^= (unsigned char)pKey[i % 4];
+    }
+
+    m_pCallback->onSocketStreamReady(m_pServer, (SocketConnection*)this, len, pMsg);
+
+    m_stream.erase(0, req_len);         // Removed handled messages.
+
+    return true;
+  }
+
+  void webSockUpgrade()
+  {
+    //
+    // Upgrade HTTP connection to WebSocket connection.
+    //
+
+    std::string req = readRequestHeader();
+    if (std::string::npos == req.find("\r\n\r\n")) {
+      return;
+    }
+
+    m_stream.erase(0, m_stream.find("\r\n\r\n") + 4); // Removed handled messages.
+
+    std::string keyAccept = getWebsockAcceptKey(req);
+    if ("" == keyAccept) {
+      return;
+    }
+
+    std::string conn = getConnectionInfo(req);
+
+    std::string resp = std::string("HTTP/1.1 101 Switching Protocols\r\n") +
+             "Upgrade: websocket\r\n" +
+             conn + "\r\n" +
+             "Sec-WebSocket-Accept: " + keyAccept + "\r\n" +
+             "Sec-WebSocket-Protocol: sw2\r\n\r\n";
+
+    if (implSocketBase::send_i((int)resp.size(), resp.c_str())) {
+      m_hasUpgrade = true;
+    }
+  }
+
+public:
+
+  WebSocketServer *m_pServer;
+  SocketServerCallback* m_pCallback;
+  implWebSocketConnection* m_pNext;
+  bool m_bAccept, m_hasUpgrade;
+  std::string m_stream;
+};
+
+template<class ConnT, class BaseT>
+class implSocketServer : public BaseT
 {
 public:
 
@@ -982,10 +1257,10 @@ public:
     // Disconnect all connected clients and wait done.
     //
 
-    implSocketConnection* p = m_pClient;
+    ConnT* p = m_pClient;
     while (p) {
       p->disconnect();
-      p = (implSocketConnection*)p->m_pNext;
+      p = (ConnT*)p->m_pNext;
     }
 
     while (m_pClient) {
@@ -1000,7 +1275,7 @@ public:
 
     while (m_pFreeClient) {
       p = m_pFreeClient;
-      m_pFreeClient = (implSocketConnection*)m_pFreeClient->m_pNext;
+      m_pFreeClient = (ConnT*)m_pFreeClient->m_pNext;
       delete p;
     }
 
@@ -1022,7 +1297,7 @@ public:
       return 0;
     }
 
-    return (SocketConnection*)(((implSocketConnection*)pClient)->m_pNext);
+    return (SocketConnection*)(((ConnT*)pClient)->m_pNext);
   }
 
   virtual SocketServerStats getNetStats() const
@@ -1030,7 +1305,7 @@ public:
     SocketServerStats s = m_netStats;
     s.upTime = (time_t)difftime(time(0), s.startTime);
     s.bytesBuff = 0;
-    implSocketConnection *client = m_pClient;
+    ConnT *client = m_pClient;
     while (client) {
       s.bytesBuff += client->getBytesSendBuff();
       client = client->m_pNext;
@@ -1156,12 +1431,12 @@ public:
       // Accept?
       //
 
-      implSocketConnection* pClient;
+      ConnT* pClient;
       if (m_pFreeClient) {
         pClient = m_pFreeClient;
-        m_pFreeClient = (implSocketConnection*)m_pFreeClient->m_pNext;
+        m_pFreeClient = (ConnT*)m_pFreeClient->m_pNext;
       } else {
-        pClient = new implSocketConnection;
+        pClient = new ConnT;
       }
 
       if (0 == pClient) {               // Out of memory?
@@ -1208,22 +1483,22 @@ public:
     // Trigger active client(s).
     //
 
-    implSocketConnection *client = m_pClient, *prev = 0;
+    ConnT *client = m_pClient, *prev = 0;
     while (client) {
 
       client->m_trigger.trigger();
 
       if (CS_DISCONNECTED == client->m_state) { // Client leave, release it.
 
-        implSocketConnection* curr = client;
-        client = (implSocketConnection*)client->m_pNext;
+        ConnT* curr = client;
+        client = (ConnT*)client->m_pNext;
 
         //
         // Update used list.
         //
 
         if (0 == prev) {
-          m_pClient = (implSocketConnection*)curr->m_pNext;
+          m_pClient = (ConnT*)curr->m_pNext;
         } else {
           prev->m_pNext = curr->m_pNext;
         }
@@ -1241,7 +1516,7 @@ public:
 
       } else {
         prev = client;
-        client = (implSocketConnection*)client->m_pNext;
+        client = (ConnT*)client->m_pNext;
       }
     }
   }
@@ -1257,8 +1532,8 @@ public:
   std::string m_addr;                   // Server addr.
   SocketServerStats m_netStats;
 
-  implSocketConnection* m_pClient;      // Active client(s).
-  implSocketConnection* m_pFreeClient;  // Available client(s).
+  ConnT* m_pClient;                     // Active client(s).
+  ConnT* m_pFreeClient;                 // Available client(s).
 
   SocketServerCallback* m_pCallback;
 };
@@ -1298,15 +1573,32 @@ void SocketClient::free(SocketClient* pClient)
   delete p;
 }
 
+typedef impl::implSocketServer<impl::implSocketConnection, SocketServer> implSocketServerT;
+
 SocketServer* SocketServer::alloc(SocketServerCallback* pCallback)
 {
   assert(pCallback);
-  return new impl::implSocketServer(pCallback);
+  return new implSocketServerT(pCallback);
 }
 
 void SocketServer::free(SocketServer* pServer)
 {
-  impl::implSocketServer *p = (impl::implSocketServer*)pServer;
+  implSocketServerT *p = (implSocketServerT*)pServer;
+  p->destroy();
+  delete p;
+}
+
+typedef impl::implSocketServer<impl::implWebSocketConnection, WebSocketServer> implWebSocketServerT;
+
+WebSocketServer* WebSocketServer::alloc(SocketServerCallback* pCallback)
+{
+  assert(pCallback);
+  return new implWebSocketServerT(pCallback);
+}
+
+void WebSocketServer::free(WebSocketServer* pServer)
+{
+  implWebSocketServerT *p = (implWebSocketServerT*)pServer;
   p->destroy();
   delete p;
 }

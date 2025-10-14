@@ -456,6 +456,30 @@ public:
   uint_ptr userData;                    ///< User define data.
 };
 
+///
+/// \brief WebSocket server.
+///
+
+class WebSocketServer : public SocketServer
+{
+public:
+
+  ///
+  /// \brief Allocate a WebSocket server instance.
+  /// \param [in] pCallback Server callback.
+  /// \return If success return an interface pointer else return 0.
+  ///
+
+  static WebSocketServer* alloc(SocketServerCallback* pCallback);
+
+  ///
+  /// \brief Release a unused WebSocket server instance.
+  /// \param [in] pServer Instance to free.
+  ///
+
+  static void free(WebSocketServer* pServer);
+};
+
 } // namespace sw2
 
 // end of swSocket.h
