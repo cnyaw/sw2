@@ -22,7 +22,7 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_ID "Id"
 #define SW2_BIGWORLD_CONF_KEEP_CONNECTED "KeepConnected"
 #define SW2_BIGWORLD_CONF_ADDR_NODE "AddrNode"
-#define SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET "WebSocket"
+#define SW2_BIGWORLD_CONF_ADDR_WEBSOCKET "AddrWebSocket"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
 #define SW2_BIGWORLD_MAX_CHILD_NODE 4096
 #define SW2_BIGWORLD_MAX_DEPEX_NODE 256
@@ -263,13 +263,12 @@ class implBigworldNode : public BigworldNode, public NetworkServerCallback, publ
 public:
   BigworldCallback *m_pCallback;
   std::string m_id;                     // Node Type|ID of this node.
-  std::string m_addrNode;
-  NetworkServer *m_pServer;
+  std::string m_addrNode, m_addrWebSock;
+  NetworkServer *m_pServer, *m_pWebSockServer;
   ObjectPool<implBigworldChildNode, SW2_BIGWORLD_MAX_CHILD_NODE> m_poolChild;
   ObjectPool<implBigworldParentNode, SW2_BIGWORLD_MAX_DEPEX_NODE> m_poolDepex;
-  bool m_isWebSocket;
 
-  explicit implBigworldNode(BigworldCallback *pCallback) : m_pCallback(pCallback), m_pServer(0), m_isWebSocket(false)
+  explicit implBigworldNode(BigworldCallback *pCallback) : m_pCallback(pCallback), m_pServer(0), m_pWebSockServer(0)
   {
   }
 
@@ -373,11 +372,21 @@ public:
       NetworkServerStats ss = m_pServer->getNetStats();
       cs.startTime = ss.startTime;
       cs.upTime = ss.upTime;
-      cs.bytesRecv = ss.bytesRecv;
-      cs.bytesSent = ss.bytesSent;
-      cs.packetsRecv = ss.packetsRecv;
-      cs.packetsSent = ss.packetsSent;
-      cs.bytesBuff = ss.bytesBuff;
+      cs.bytesRecv += ss.bytesRecv;
+      cs.bytesSent += ss.bytesSent;
+      cs.packetsRecv += ss.packetsRecv;
+      cs.packetsSent += ss.packetsSent;
+      cs.bytesBuff += ss.bytesBuff;
+    }
+    if (m_pWebSockServer) {
+      NetworkServerStats ss = m_pWebSockServer->getNetStats();
+      cs.startTime = ss.startTime;
+      cs.upTime = ss.upTime;
+      cs.bytesRecv += ss.bytesRecv;
+      cs.bytesSent += ss.bytesSent;
+      cs.packetsRecv += ss.packetsRecv;
+      cs.packetsSent += ss.packetsSent;
+      cs.bytesBuff += ss.bytesBuff;
     }
     for (int i = m_poolDepex.first(); -1 != i; i = m_poolDepex.next(i)) {
       NetworkClientStats ns = m_poolDepex[i].m_pClient->getNetStats();
@@ -392,7 +401,7 @@ public:
 
   virtual bool isReady() const
   {
-    return 0 != m_pServer;
+    return 0 != m_pServer || 0 != m_pWebSockServer;
   }
 
   virtual bool startup(Ini const &ini, std::string const &id)
@@ -420,12 +429,7 @@ public:
     }
 
     if (conf.find(SW2_BIGWORLD_CONF_ADDR_NODE)) {
-      m_isWebSocket = conf.find(SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET) && (bool)conf[SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET];
-      if (m_isWebSocket) {
-        m_pServer = WebNetworkServer::alloc(this);
-      } else {
-        m_pServer = NetworkServer::alloc(this);
-      }
+      m_pServer = NetworkServer::alloc(this);
       if (0 == m_pServer) {
         return false;
       }
@@ -433,9 +437,19 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
-      m_addrNode = getServerAddr_i();
-    } else {
-      // Ignore fail if this node is client only.
+      m_addrNode = getServerAddr_i(m_pServer);
+    }
+
+    if (conf.find(SW2_BIGWORLD_CONF_ADDR_WEBSOCKET)) {
+      m_pWebSockServer = WebNetworkServer::alloc(this);
+      if (0 == m_pWebSockServer) {
+        return false;
+      }
+      m_addrWebSock = conf[SW2_BIGWORLD_CONF_ADDR_WEBSOCKET].value;
+      if (!m_pWebSockServer->startup(m_addrWebSock)) {
+        return false;
+      }
+      m_addrWebSock = getServerAddr_i(m_pWebSockServer);
     }
 
     //
@@ -454,12 +468,13 @@ public:
   {
     if (m_pServer) {
       m_pServer->shutdown();
-      if (m_isWebSocket) {
-        WebNetworkServer::free((WebNetworkServer*)m_pServer);
-      } else {
-        NetworkServer::free(m_pServer);
-      }
+      NetworkServer::free(m_pServer);
       m_pServer = 0;
+    }
+    if (m_pWebSockServer) {
+      m_pWebSockServer->shutdown();
+      WebNetworkServer::free((WebNetworkServer*)m_pWebSockServer);
+      m_pWebSockServer = 0;
     }
   }
 
@@ -467,6 +482,9 @@ public:
   {
     if (m_pServer) {
       m_pServer->trigger();
+    }
+    if (m_pWebSockServer) {
+      m_pWebSockServer->trigger();
     }
 
     for (int dep = m_poolDepex.first(); -1 != dep; dep = m_poolDepex.next(dep)) {
@@ -620,9 +638,9 @@ public:
     return true;
   }
 
-  std::string getServerAddr_i() const
+  std::string getServerAddr_i(NetworkServer *pServer) const
   {
-    std::string addr = m_pServer->getAddr();
+    std::string addr = pServer->getAddr();
     const std::string AnyAddr("0.0.0.0");
     if (std::string::npos != addr.find(AnyAddr)) {
       addr.replace(0, AnyAddr.size(), "localhost");

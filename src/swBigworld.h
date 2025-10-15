@@ -153,8 +153,8 @@ public:
   /// Depex=Db1                         ; Will connecto to node Db1.\n
   /// [Game2]\n
   /// AddrNode=localhost:5679\n
+  /// AddrWebSocket=localhost:5680      ; This server supports WebSocket.\n
   /// Depex=Db1                         ; Will connecto to node Db1.\n
-  /// WebSocket=1                       ; This server supports WebSocket.\n
   /// \n
   /// [Client]\n
   /// Depex=Login1\n
