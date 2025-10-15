@@ -501,6 +501,7 @@ public:
   long *m_svrPacketSent, *m_svrPacketRecv;
 };
 
+template<bool SupportWebSocket>
 class implNetworkServer : public NetworkServer, public SocketServerCallback
 {
 public:
@@ -508,7 +509,11 @@ public:
   explicit implNetworkServer(NetworkServerCallback* pCallback) : m_pInterface(pCallback)
   {
     NetworkServer::userData = 0;
-    m_pServer = SocketServer::alloc(this);
+    if (SupportWebSocket) {
+      m_pServer = WebSocketServer::alloc(this);
+    } else {
+      m_pServer = SocketServer::alloc(this);
+    }
     m_packetSent = m_packetRecv = 0;
   }
 
@@ -688,12 +693,23 @@ void NetworkClient::free(NetworkClient* pClient)
 NetworkServer* NetworkServer::alloc(NetworkServerCallback* pCallback)
 {
   assert(pCallback);
-  return new impl::implNetworkServer(pCallback);
+  return new impl::implNetworkServer<false>(pCallback);
 }
 
 void NetworkServer::free(NetworkServer* pServer)
 {
-  delete (impl::implNetworkServer*)pServer;
+  delete (impl::implNetworkServer<false>*)pServer;
+}
+
+WebNetworkServer* WebNetworkServer::alloc(NetworkServerCallback* pCallback)
+{
+  assert(pCallback);
+  return (WebNetworkServer*)new impl::implNetworkServer<true>(pCallback);
+}
+
+void WebNetworkServer::free(WebNetworkServer* pServer)
+{
+  delete (impl::implNetworkServer<true>*)pServer;
 }
 
 } // namespace sw2
