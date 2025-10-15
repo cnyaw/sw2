@@ -143,7 +143,7 @@ public:
   /// [Login1]\n
   /// Id=login1                         ; Default is the section name Login1. Id is also treated as node type.\n
   /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
-  /// Depex=Db1 Game1                   ; Will connect to node Db1 and Game1.\n
+  /// Depex=Db1 Game1 Game2             ; Will connect to node Db1, Game1 and Game2.\n
   /// \n
   /// [Db1]\n
   /// AddrNode=localhost:1234\n
@@ -151,6 +151,10 @@ public:
   /// [Game1]\n
   /// AddrNode=localhost:5678\n
   /// Depex=Db1                         ; Will connecto to node Db1.\n
+  /// [Game2]\n
+  /// AddrNode=localhost:5679\n
+  /// Depex=Db1                         ; Will connecto to node Db1.\n
+  /// WebSocket=1                       ; This server supports WebSocket.\n
   /// \n
   /// [Client]\n
   /// Depex=Login1\n

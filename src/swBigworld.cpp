@@ -22,6 +22,7 @@ namespace impl {
 #define SW2_BIGWORLD_CONF_ID "Id"
 #define SW2_BIGWORLD_CONF_KEEP_CONNECTED "KeepConnected"
 #define SW2_BIGWORLD_CONF_ADDR_NODE "AddrNode"
+#define SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET "WebSocket"
 #define SW2_BIGWORLD_CONF_DEPEX "Depex"
 #define SW2_BIGWORLD_MAX_CHILD_NODE 4096
 #define SW2_BIGWORLD_MAX_DEPEX_NODE 256
@@ -266,8 +267,9 @@ public:
   NetworkServer *m_pServer;
   ObjectPool<implBigworldChildNode, SW2_BIGWORLD_MAX_CHILD_NODE> m_poolChild;
   ObjectPool<implBigworldParentNode, SW2_BIGWORLD_MAX_DEPEX_NODE> m_poolDepex;
+  bool m_isWebSocket;
 
-  explicit implBigworldNode(BigworldCallback *pCallback) : m_pCallback(pCallback), m_pServer(0)
+  explicit implBigworldNode(BigworldCallback *pCallback) : m_pCallback(pCallback), m_pServer(0), m_isWebSocket(false)
   {
   }
 
@@ -418,7 +420,12 @@ public:
     }
 
     if (conf.find(SW2_BIGWORLD_CONF_ADDR_NODE)) {
-      m_pServer = NetworkServer::alloc(this);
+      m_isWebSocket = conf.find(SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET) && (bool)conf[SW2_BIGWORLD_CONF_SUPPORT_WEBSOCKET];
+      if (m_isWebSocket) {
+        m_pServer = WebNetworkServer::alloc(this);
+      } else {
+        m_pServer = NetworkServer::alloc(this);
+      }
       if (0 == m_pServer) {
         return false;
       }
@@ -447,7 +454,11 @@ public:
   {
     if (m_pServer) {
       m_pServer->shutdown();
-      NetworkServer::free(m_pServer);
+      if (m_isWebSocket) {
+        WebNetworkServer::free((WebNetworkServer*)m_pServer);
+      } else {
+        NetworkServer::free(m_pServer);
+      }
       m_pServer = 0;
     }
   }
