@@ -990,7 +990,7 @@ public:
 
   virtual bool send(int lenStream, void const* pStream)
   {
-    unsigned char buff[10] = {0x81};
+    unsigned char buff[10] = {0x82};    // Binary data.
     int64 len = lenStream;
     if (125 >= len) {
       buff[1] = (unsigned char)(len & 0xff);
