@@ -779,6 +779,7 @@ public:
   // Notification.
   //
 
+  virtual void onBeforeCheckNewClientReady()=0;
   virtual void onConnected()=0;
   virtual void onDisconnected()=0;
   virtual void onStreamReady(int len, void const* pStream)=0;
@@ -867,6 +868,10 @@ public:
   // Notification.
   //
 
+  virtual void onBeforeCheckNewClientReady()
+  {
+  }
+
   virtual void onConnected()
   {
     m_pCallback->onSocketServerReady(this);
@@ -929,6 +934,10 @@ public:
   // Notification.
   //
 
+  virtual void onBeforeCheckNewClientReady()
+  {
+  }
+
   virtual void onConnected()
   {
   }
@@ -990,6 +999,11 @@ public:
 
   virtual bool send(int lenStream, void const* pStream)
   {
+    if (!m_hasUpgrade) {
+      m_cache.append((const char*)pStream, lenStream);
+      return true;
+    }
+
     unsigned char buff[10] = {0x82};    // Binary data.
     int64 len = lenStream;
     if (125 >= len) {
@@ -1012,6 +1026,7 @@ public:
       buff[9] = (unsigned char)(len & 0xff);
       len = 10;
     }
+
     return implSocketBase::send_i((int)len, buff) && implSocketBase::send_i(lenStream, pStream);
   }
 
@@ -1019,10 +1034,15 @@ public:
   // Notification.
   //
 
-  virtual void onConnected()
+  virtual void onBeforeCheckNewClientReady()
   {
     m_stream.clear();
+    m_cache.clear();
     m_hasUpgrade = false;
+  }
+
+  virtual void onConnected()
+  {
   }
 
   virtual void onDisconnected()
@@ -1218,6 +1238,10 @@ public:
 
     if (implSocketBase::send_i((int)resp.size(), resp.c_str())) {
       m_hasUpgrade = true;
+      if (!m_cache.empty()) {
+        send((int)m_cache.size(), m_cache.c_str());
+        m_cache.clear();
+      }
     }
   }
 
@@ -1228,6 +1252,7 @@ public:
   implWebSocketConnection* m_pNext;
   bool m_bAccept, m_hasUpgrade;
   std::string m_stream;
+  std::string m_cache;                  // Saved stream that send before connection is upgraded.
 };
 
 template<class ConnT, class BaseT>
@@ -1467,6 +1492,8 @@ public:
       //
       // Accept this new connection?
       //
+
+      pClient->onBeforeCheckNewClientReady();
 
       if (m_pCallback->onSocketNewClientReady(this, (SocketConnection*)pClient)) {
         m_netStats.currOnline += 1;
