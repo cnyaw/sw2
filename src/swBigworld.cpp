@@ -361,7 +361,11 @@ public:
 
   virtual std::string getAddr() const
   {
-    return m_addrNode;
+    if (!m_addrWebSock.empty()) {
+      return m_addrNode + ";" + m_addrWebSock;
+    } else {
+      return m_addrNode;
+    }
   }
 
   virtual NetworkClientStats getNetStats() const
