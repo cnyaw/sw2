@@ -114,6 +114,8 @@ public:
   ///
   /// \brief Get address.
   /// \return Return address, format: ip:port.
+  /// \note If the node is also support WebSocket, then the return address maybe
+  ///       in "addr1;addr2" format.
   ///
 
   virtual std::string getAddr() const=0;
@@ -143,16 +145,13 @@ public:
   /// [Login1]\n
   /// Id=login1                         ; Default is the section name Login1. Id is also treated as node type.\n
   /// AddrNode=localhost:2888           ; The addr used for other node to connect to this node.\n
-  /// Depex=Db1 Game1 Game2             ; Will connect to node Db1, Game1 and Game2.\n
+  /// Depex=Db1 Game1                   ; Will connect to node Db1 and Game1.\n
   /// \n
   /// [Db1]\n
   /// AddrNode=localhost:1234\n
   /// \n
   /// [Game1]\n
   /// AddrNode=localhost:5678\n
-  /// Depex=Db1                         ; Will connecto to node Db1.\n
-  /// [Game2]\n
-  /// AddrNode=localhost:5679\n
   /// AddrWebSocket=localhost:5680      ; This server supports WebSocket.\n
   /// Depex=Db1                         ; Will connecto to node Db1.\n
   /// \n
