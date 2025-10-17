@@ -85,6 +85,32 @@ struct implSocketPacketBuffer
 // Implementation.
 //
 
+void get_local_ip(char *ip, size_t size) {
+  char hostname[256];
+  struct hostent *host_entry;
+  gethostname(hostname, sizeof(hostname));
+  host_entry = gethostbyname(hostname);
+  if (host_entry != NULL) {
+    struct in_addr *addr = (struct in_addr *) host_entry->h_addr_list[0];
+    sprintf(ip, "%s", inet_ntoa(*addr));
+  } else {
+    sprintf(ip, "unknown");
+  }
+}
+
+std::string getAddr_i(struct sockaddr_in sa)
+{
+  char local_ip[128], ip_port[128];
+  if (sa.sin_addr.s_addr == htonl(INADDR_ANY)) {
+    get_local_ip(local_ip, sizeof(local_ip));
+    sprintf(ip_port, "%s:%d", local_ip, ntohs(sa.sin_port));
+  } else {
+    const char *ip = inet_ntoa(sa.sin_addr);
+    sprintf(ip_port, "%s:%d", ip, ntohs(sa.sin_port));
+  }
+  return ip_port;
+}
+
 int inet_aton_i(char const *cp, struct in_addr *pin)
 {
   int rc = ::inet_addr(cp);
@@ -234,9 +260,7 @@ public:
       return false;
     }
 
-    char addr[128];
-    ::sprintf(addr, "%s:%hu", ::inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
-    m_addr = addr;
+    m_addr = getAddr_i(sa);
 
     //
     // Connect.
@@ -1391,9 +1415,7 @@ public:
 
     socklen_t len = sizeof(sa);
     if (SOCKET_ERROR != getsockname(s, (sockaddr*)&sa, &len)) {
-      char addr[128];
-      ::sprintf(addr, "%s:%hu", ::inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
-      m_addr = addr;
+      m_addr = getAddr_i(sa);
     }
 
     //

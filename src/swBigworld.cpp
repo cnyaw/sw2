@@ -441,7 +441,7 @@ public:
       if (!m_pServer->startup(m_addrNode)) {
         return false;
       }
-      m_addrNode = getServerAddr_i(m_pServer);
+      m_addrNode = m_pServer->getAddr();
     }
 
     if (conf.find(SW2_BIGWORLD_CONF_ADDR_WEBSOCKET)) {
@@ -453,7 +453,7 @@ public:
       if (!m_pWebSockServer->startup(m_addrWebSock)) {
         return false;
       }
-      m_addrWebSock = getServerAddr_i(m_pWebSockServer);
+      m_addrWebSock = m_pWebSockServer->getAddr();
     }
 
     //
@@ -640,16 +640,6 @@ public:
     }
 
     return true;
-  }
-
-  std::string getServerAddr_i(NetworkServer *pServer) const
-  {
-    std::string addr = pServer->getAddr();
-    const std::string AnyAddr("0.0.0.0");
-    if (std::string::npos != addr.find(AnyAddr)) {
-      addr.replace(0, AnyAddr.size(), "localhost");
-    }
-    return addr;
   }
 
   void updateDepex(const Ini &ini, const std::string &idNode)
