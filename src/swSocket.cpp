@@ -8,6 +8,8 @@
 //  2005/06/05 Waync created.
 //
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include <algorithm>
@@ -18,6 +20,8 @@
 # if defined(_MSC_VER)
 #   pragma comment(lib, "Ws2_32")
 # endif
+# define popen _popen
+# define pclose _pclose
 #elif defined(_linux_)
 # include <errno.h>
 # include <netdb.h>
@@ -1136,11 +1140,17 @@ public:
 
   std::string phpWebSockHash(const std::string &key)
   {
-    std::string script = "$combined=$key.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11';$hash=sha1($combined);$base64Hash=base64_encode(hex2bin($hash));file_put_contents('hash.txt',$base64Hash);";
+    std::string script = "$combined=$key.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11';$hash=sha1($combined);$base64Hash=base64_encode(hex2bin($hash));echo $base64Hash;";
     std::string cmd = "php -r \"$key='" + key + "';" + script + "\"";
-    system(cmd.c_str());
     std::string hash;
-    Util::loadFileContent("hash.txt", hash);
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (pipe) {
+      char buffer[128];
+      while (fgets(buffer, sizeof(buffer), pipe)) {
+        hash += buffer;
+      }
+      pclose(pipe);
+    }
     return hash;
   }
 
