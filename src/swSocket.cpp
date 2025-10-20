@@ -1109,8 +1109,7 @@ public:
       } else {
         connStr = request.substr(connIndex);
       }
-      connStr.erase(0, connStr.find_first_not_of(" \t"));
-      connStr.erase(connStr.find_last_not_of(" \t") + 1);
+      connStr = Util::trim(connStr, " \t");
     }
     return connStr;
   }
@@ -1132,8 +1131,7 @@ public:
     size_t keyStart = keyIndex + std::string("Sec-WebSocket-Key:").length();
     size_t keyEnd = req.find("\r\n", keyStart);
     std::string key = req.substr(keyStart, keyEnd - keyStart);
-    key.erase(0, key.find_first_not_of(" \n\r\t")); // Trim leading whitespace.
-    key.erase(key.find_last_not_of(" \n\r\t") + 1); // Trim trailing whitespace.
+    key = Util::trim(key, " \n\r\t");
 
     return phpWebSockHash(key);
   }
